@@ -1,0 +1,25 @@
+{
+    "parents": {
+        "left_parent": {
+            "name": "insulin",
+            "sequence": "MALWMRLLPLLALLALWGPDPAAAFVNQHLCGSHLVEALYLVCGERGFFYTPKTRREAEDLQVGQVELGGGPGAGSLQPLALEGSLQKRGIVEQCCTSICSLYQLENYCN"
+        }, 
+        "right_parent": {
+            "name": "brain-derived neurotrophic factor", 
+            "sequence": "MTILFLTMVISYFGCMKAAPMKEANIRGQGGLAYPGVRTHGTLESVNGPKAGSRGLTSLADTFEHVIEELLDEDQKVRPNEENNKDADLYTSRVMLSSQVPLEPPLLFLLEEYKNYLDAANMSMRVRRHSDPARRGELSVCDSISEWVTAADKKTAVDMSGGTVTVLEKVPVSKGQLKQYFYETKCNPMGYTKEGCRGIDKRHWNSQCRTTQSYVRALTMDSKKRIGWRFIRIDTSCVCTLTIKRGR"
+        }
+    },
+    "hybrid": {
+        "indices": {
+            "left_parent": {
+                "start": 37, 
+                "end": 44
+            },
+            "right_parent": {
+                "start": 88,
+                "end": 93
+            }
+        },
+        "sequence": "ALYLVCGELYTSRV"
+    }
+}

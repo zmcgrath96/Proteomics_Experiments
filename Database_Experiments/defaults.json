@@ -1,12 +1,23 @@
 {
     "window_sizes": [3, 4, 6, 8, 10],
-    "title_prefix": "spectrum", 
-    "save_paths": {
+    "database_name_prefix": {
+        "flipped": "HYBRID_", 
+        "fractionated": "SUBSEQUENCE_"
+    },
+    "spectrum_title_prefix": {
+        "flipped": "SUBSEQUENCE_", 
+        "fractionated": "HYBRID_"
+    },
+    "save_dirs": {
         "flipped": "flipped",
         "fractionated": "fractionated"
     }, 
     "database_names": {
         "flipped": "hybrid_db", 
         "fractionated": "fractionated_db_"
+    }, 
+    "spectra_names": {
+        "flipped": "fractionated_",
+        "fractionated": "hybrid"
     }
 }

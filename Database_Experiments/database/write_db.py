@@ -1,4 +1,4 @@
-def write(output_path, output_name, sequences, prefix):
+def write_fasta(output_path, output_name, sequences, prefix):
     if '.fasta' not in output_name:
         output_name += '.fasta'
 
@@ -9,3 +9,5 @@ def write(output_path, output_name, sequences, prefix):
             o.write('>' + prefix + str(count) + '\n')
             count += 1
             o.write(sequence + '\n')
+
+    return output_file

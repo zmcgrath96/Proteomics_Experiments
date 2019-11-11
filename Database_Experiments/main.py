@@ -1,6 +1,7 @@
 import os
 import argparse
 import json
+from database import gen_db
 
 '''
     IMPORT DEFAULTS
@@ -23,18 +24,34 @@ def main(args):
     5. Score each spectra against the database
     6. Plot a graph of the score against the sequence position
     '''
-    experiment = args.experiment
-    db_args = {}
-    spectra_args = {}
-    if experiment == 'fractionated' or 'fractionated' in experiment:
-        # do the fractionated experiments
-        pass
-
-    else:
-        # do the flipped experiments 
-        pass
+    experiment = 'fractionated' if 'fractionated' in str(args.experiment).lower() else 'flipped'
+    '''
+        SETUP ARGUMENTS FOR EACH STEP
+    '''
+    db_args = {
+        'experiment': experiment, 
+        'path': cwd + '/' + defaults['save_dirs'][experiment], 
+        'name': defaults['database_names'][experiment], 
+        'window_sizes': defaults['window_sizes'], 
+        'prefix': defaults['database_name_prefix'][experiment], 
+        'sequences_json': cwd + '/sequences.json'
+        } 
+    spectra_args = {
+        'experiment': experiment, 
+        'path': cwd + '/' + defaults['save_dirs'][experiment], 
+        'name': defaults['spectra_names'][experiment], 
+        'window_sizes': defaults['window_sizes'], 
+        'title_prefix': defaults['spectrum_title_prefix'][experiment]
+        } 
+    '''
+        END ARGUMENT SETUP
+    '''
+    fasta_databases = gen_db.generate(db_args)
+    print(fasta_databases)
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Entry file for the database experiments')
     parser.add_argument('experiment', metavar='E', type=str, help='The experiment to run. Options are: \nflipped, fractionated\n. Defualts to flipped')
+    args = parser.parse_args()
+    main(args)
     

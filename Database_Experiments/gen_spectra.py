@@ -1,15 +1,13 @@
-from pyopenms import TheoreticalSpectrumGenerator, MSSpectrum, AASequence
+from pyteomics import mass
 
 def gen_spectra(sequenences):
     spectra = []
-    tsg = TheoreticalSpectrumGenerator()
     for sequence in sequenences:
-        spec = MSSpectrum()
-        pep = AASequence.fromString(sequence)
-        tsg.getSpectrum(spec, pep, 1, 1)
-
-        this_spectrum = [peak.getMZ() for peak in spec]
-        this_spectrum.sort()
-        spectra.append(this_spectrum)
+        rev_sequence = sequence[::-1]
+        this_spectra = []
+        for i in range(1, len(sequence) + 1):
+            this_spectra.append(mass.calculate_mass(spectra=sequence[0:i]))
+            this_spectra.append(mass.calculate_mass(spectra=rev_sequence[0:i]))
+        spectra.append(this_spectra)
 
     return spectra

@@ -24,6 +24,7 @@ The parents and hybrid can be changed in the sequences.json file
 ### Scoring
 
 # Flipped Database Query
+
 ### Hypothesis
 Flipping the database and the query strings should allow us to see how well our Amino Acid (AA) chunks score against a hybrid peptide. We should be able to see any trends in scores for these chunks. These trends should be:
 1. For smaller cuts, we should score very high with lots of false positives 
@@ -31,9 +32,8 @@ Flipping the database and the query strings should allow us to see how well our 
 3. For cuts larger than the contribution, we should see a rise as we overlap the hybrid, but not peak as well as number 2
 
 The chunk sizes used in the original runs were 3, 4, 6, 8, 10. 
-### Methods
 
-#### Overall Method
+### Methods
 1. Create a hybrid sequence from two known parent proteins
 2. Put this sequence in FASTA format and load it as the database into a database scoring algorithm
 3. For both of the parent proteins do the following:
@@ -53,8 +53,6 @@ Creating varying types of databases made from the parent proteins of the sequenc
 
 The chunk sizes used in the original runs were 3, 4, 6, 8, 10. 
 ### Methods
-
-#### Overall Method
 1. Create a hybrid sequence from two known parent proteins
 2. Create a new database (from the list below)
 3. Query the hybrid against each of these databases 

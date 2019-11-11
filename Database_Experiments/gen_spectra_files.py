@@ -1,4 +1,3 @@
-import os
 import argparse 
 import json
 import gen_sequences
@@ -24,8 +23,7 @@ def gen(args):
         seqs = gen_sequences.gen_sequences(sequences['parents']['left_parent']['sequence'], window_size)
         seqs += gen_sequences.gen_sequences(sequences['parents']['right_parent']['sequence'], window_size)
 
-    current_dir = os.path.dirname(os.path.abspath(__file__))
-    spectra = gen_spectra.gen_spectra(current_dir + '/masses.json', seqs)
+    spectra = gen_spectra.gen_spectra(seqs)
     write_spectra.write_mgf(output_path, output_file_name, spectra, title_prefix)
 
     

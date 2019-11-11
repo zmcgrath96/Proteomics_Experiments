@@ -1,29 +1,15 @@
-import json
+from pyopenms import TheoreticalSpectrumGenerator, MSSpectrum, AASequence
 
-def gen_spectra(masses_file, sequenences):
-    masses = None
-    with open(masses_file, 'r') as mf:
-        masses = json.load(mf)
-
+def gen_spectra(sequenences):
     spectra = []
+    tsg = TheoreticalSpectrumGenerator()
+    for sequence in sequenences:
+        spec = MSSpectrum()
+        pep = AASequence.fromString(sequence)
+        tsg.getSpectrum(spec, pep, 1, 1)
 
-    for sequenence in sequenences:
-        reversed_seq = sequenence[::-1]
-        forward_masses = []
-        reverse_masses = []
-        current_mass = 0
-
-        for aa in sequenence:
-            current_mass += masses[aa]
-            forward_masses.append(current_mass)
-
-        current_mass = 0
-        for aa in reversed_seq:
-            current_mass += masses[aa]
-            reverse_masses.append(current_mass)
-
-        all_masses = forward_masses + reverse_masses
-        all_masses.sort()
-        spectra.append(all_masses[:-1])
+        this_spectrum = [peak.getMZ() for peak in spec]
+        this_spectrum.sort()
+        spectra.append(this_spectrum)
 
     return spectra

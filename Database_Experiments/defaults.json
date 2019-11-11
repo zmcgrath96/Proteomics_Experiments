@@ -1,0 +1,12 @@
+{
+    "window_sizes": [3, 4, 6, 8, 10],
+    "title_prefix": "spectrum", 
+    "save_paths": {
+        "flipped": "flipped",
+        "fractionated": "fractionated"
+    }, 
+    "database_names": {
+        "flipped": "hybrid_db", 
+        "fractionated": "fractionated_db_"
+    }
+}

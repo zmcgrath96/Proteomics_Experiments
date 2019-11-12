@@ -1,7 +1,8 @@
 import os
 import argparse
 import json
-from database import gen_db
+from database import gen_db, load_dbs
+from spectra import gen_spectra_files
 
 '''
     IMPORT DEFAULTS
@@ -41,13 +42,18 @@ def main(args):
         'path': cwd + '/' + defaults['save_dirs'][experiment], 
         'name': defaults['spectra_names'][experiment], 
         'window_sizes': defaults['window_sizes'], 
-        'title_prefix': defaults['spectrum_title_prefix'][experiment]
+        'title_prefix': defaults['spectrum_title_prefix'][experiment],
+        'sequences_json': cwd + '/sequences.json'
         } 
     '''
         END ARGUMENT SETUP
     '''
     fasta_databases = gen_db.generate(db_args)
-    print(fasta_databases)
+    spectra_files = gen_spectra_files.generate(spectra_args)
+    loaded_databases = load_dbs.load_dbs(fasta_databases)
+    
+
+
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Entry file for the database experiments')

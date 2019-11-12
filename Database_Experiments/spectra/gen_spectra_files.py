@@ -24,14 +24,14 @@ def generate(args):
     if 'fractionated' in str(experiment).lower():
         seqs.append(sequences["hybrid"]["sequence"])
         spectra = gen_spectra.gen_spectra(seqs)
-        output_files.append(write_spectra.write_mgf(output_path, output_file_name, spectra, title_prefix))
+        output_files.append(write_spectra.write_mzml(output_path, output_file_name, spectra, title_prefix))
 
     else: 
         for window_size in window_sizes:
             seqs = gen_sequences.gen_sequences(sequences['parents']['left_parent']['sequence'], window_size)
             seqs += gen_sequences.gen_sequences(sequences['parents']['right_parent']['sequence'], window_size)
             spectra = gen_spectra.gen_spectra(seqs)
-            output_files.append(write_spectra.write_mgf(output_path, output_file_name + str(window_size), spectra, title_prefix))
+            output_files.append(write_spectra.write_mzml(output_path, output_file_name + str(window_size), spectra, title_prefix))
     return output_files
 
 # if __name__ == '__main__':

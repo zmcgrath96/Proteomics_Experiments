@@ -2,7 +2,7 @@ import os
 import argparse
 import json
 from database import gen_db, load_dbs
-from spectra import gen_spectra_files
+from spectra import gen_spectra_files, load_spectra
 
 '''
     IMPORT DEFAULTS
@@ -50,8 +50,9 @@ def main(args):
     '''
     fasta_databases = gen_db.generate(db_args)
     spectra_files = gen_spectra_files.generate(spectra_args)
+    # reads are done via the pyteomics module
     loaded_databases = load_dbs.load_dbs(fasta_databases)
-    
+    loaded_spectra = load_spectra.load_spectra(spectra_files)
 
 
 

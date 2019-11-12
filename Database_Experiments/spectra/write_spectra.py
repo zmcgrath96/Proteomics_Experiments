@@ -11,6 +11,7 @@ def write_mgf(output_dir, file_name, spectra, title_prefix='Spectrum '):
         this_spectrum = {'m/z array': [], 'intensity array': [], 'params': {}}
         this_spectrum['m/z array'].append(spectrum)
         this_spectrum['params']['title'] = title_prefix + str(sp_count)
+        pyteomics_writable.append(this_spectrum)
         sp_count += 1
     mgf.write(pyteomics_writable, output=output_file)
     return output_file

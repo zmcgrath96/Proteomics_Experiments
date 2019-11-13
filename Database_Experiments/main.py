@@ -54,7 +54,7 @@ def main(args):
     spectra_files = gen_spectra_files.generate(spectra_args)
     
     # use the pyopenms search tools to do the work, don't do it yourself
-    score_peptides.score_peptides(spectra_files, fasta_databases)
+    score_peptides.score_peptides(spectra_files, fasta_databases, defaults['crux_cmd'], cwd + '/crux_output')
 
 
 

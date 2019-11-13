@@ -1,0 +1,34 @@
+INFO: CPU: Zachs-magic-clam-shell-thing.local
+INFO: Crux version: 3.2-e786b8bf
+INFO: Tue Nov 12 19:58:56 MST 2019
+COMMAND LINE: /Users/zacharymcgrath/Documents/Layer_Research/crux/bin/crux tide-search /Users/zacharymcgrath/Documents/Layer_Research/Proteomics_Experiments/Database_Experiments/flipped/fractionated_4.mzml /Users/zacharymcgrath/Documents/Layer_Research/Proteomics_Experiments/Database_Experiments/flipped/hybrid_db.fasta
+INFO: Beginning tide-search.
+INFO: Creating index from '/Users/zacharymcgrath/Documents/Layer_Research/Proteomics_Experiments/Database_Experiments/flipped/hybrid_db.fasta'
+INFO: Running tide-index...
+INFO: Writing results to output directory 'crux-output/tide-search.tempindex'.
+INFO: Reading /Users/zacharymcgrath/Documents/Layer_Research/Proteomics_Experiments/Database_Experiments/flipped/hybrid_db.fasta and computing unmodified peptides...
+INFO: Writing decoy fasta...
+INFO: Reading proteins
+INFO: Precomputing theoretical spectra...
+INFO: Running tide-search...
+INFO: Number of Threads: 4
+INFO: Reading index crux-output/tide-search.tempindex
+INFO: Read 1 target proteins
+INFO: Converting /Users/zacharymcgrath/Documents/Layer_Research/Proteomics_Experiments/Database_Experiments/flipped/fractionated_4.mzml to spectrumrecords format
+INFO: Elapsed time starting conversion: 0.0148 s
+INFO: Reading spectrum file crux-output/fractionated_4.mzml.spectrumrecords.tmp.
+INFO: Read 0 spectra.
+INFO: Starting search.
+INFO: [Thread 1]: Warning: no peaks found.
+INFO: [Thread 1]: Warning: no peaks retained.
+INFO: [Thread 0]: Warning: no peaks found.
+INFO: [Thread 0]: Warning: no peaks retained.
+INFO: [Thread 2]: Warning: no peaks found.
+INFO: [Thread 2]: Warning: no peaks retained.
+INFO: [Thread 3]: Warning: no peaks found.
+INFO: [Thread 3]: Warning: no peaks retained.
+INFO: Time per spectrum-charge combination: inf s.
+INFO: Average number of candidates per spectrum-charge combination: nan 
+INFO: Elapsed time: 0.0417 s
+INFO: Finished crux tide-search.
+INFO: Return Code:0

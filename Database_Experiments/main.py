@@ -56,7 +56,9 @@ def main(args):
     # use the pyopenms search tools to do the work, don't do it yourself
     score_peptides.score_peptides(spectra_files, fasta_databases, defaults['crux_cmd'], cwd + '/crux_output')
 
-
+    print('Finished.')
+    print('===================================')
+    print('SUMMARY\n\nRan {} experiment\nFASTA Databses:\n {}\n\nSpctra files: {}'.format(experiment, ', '.join(fasta_databases), ', '.join(spectra_files)))
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Entry file for the database experiments')

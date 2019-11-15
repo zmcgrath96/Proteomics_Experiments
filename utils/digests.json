@@ -1,0 +1,12 @@
+{
+    "trypsin": [
+        {
+            "site": "K", 
+            "terminus": "C"
+        }, 
+        {
+            "site": "R", 
+            "terminus": "C"
+        }
+    ]
+}

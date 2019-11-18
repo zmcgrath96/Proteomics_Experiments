@@ -12,14 +12,14 @@
     "hybrid": {
         "indices": {
             "left_parent": {
-                "start": 37, 
-                "end": 44
+                "start": 46, 
+                "end": 52
             },
             "right_parent": {
-                "start": 88,
-                "end": 93
+                "start": 22,
+                "end": 26
             }
         },
-        "sequence": "ALYLVCGELYTSRV"
+        "sequence": "GFFYTPKEANIR"
     }
 }

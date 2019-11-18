@@ -5,7 +5,8 @@ from database import gen_db
 from spectra import gen_spectra_files
 from scoring import score_peptides
 
-'''
+''' old hybrid "sequence": "ALYLVCGELYTSRV", 
+    second hybid: GFFYTPKEANIR
     IMPORT DEFAULTS
 '''
 cwd = os.path.dirname(os.path.realpath(__file__))

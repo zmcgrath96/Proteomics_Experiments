@@ -21,9 +21,12 @@ def generate(args):
     if 'fractionated' in str(experiment).lower():
         for window_size in window_sizes:
             seqs = []
+            parent_one_output_name = '{}_{}_{}'.format(output_file_name, sequences['parents']['left_parent']['name'], window_size)
+            parent_two_output_name = '{}_{}_{}'.format(output_file_name, sequences['parents']['right_parent']['name'], window_size)
             seqs = gen_sequences.gen_sequences(sequences['parents']['left_parent']['sequence'], window_size)
-            seqs += gen_sequences.gen_sequences(sequences['parents']['right_parent']['sequence'], window_size)
-            output_files.append(write_db.write_fasta(output_path, output_file_name + str(window_size), seqs, prefix))
+            output_files.append(write_db.write_fasta(output_path, parent_one_output_name, seqs, prefix))
+            seqs = gen_sequences.gen_sequences(sequences['parents']['right_parent']['sequence'], window_size)
+            output_files.append(write_db.write_fasta(output_path, parent_two_output_name, seqs, prefix))
 
     else: 
         seqs.append(sequences["hybrid"]["sequence"])

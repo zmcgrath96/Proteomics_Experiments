@@ -4,6 +4,7 @@ import json
 from database import gen_db
 from spectra import gen_spectra_files
 from scoring import score_peptides
+from plotting import sequence_and_score
 
 ''' old hybrid "sequence": "ALYLVCGELYTSRV", 
     second hybid: GFFYTPKEANIR
@@ -53,13 +54,12 @@ def main(args):
     '''
     fasta_databases = gen_db.generate(db_args)
     spectra_files = gen_spectra_files.generate(spectra_args)
-    
-    # use the pyopenms search tools to do the work, don't do it yourself
-    score_peptides.score_peptides(spectra_files, fasta_databases, defaults['crux_cmd'], cwd + '/crux_output')
+    score_output_files = score_peptides.score_peptides(spectra_files, fasta_databases, defaults['crux_cmd'], cwd + '/crux_output')
+    sequence_and_score.score_vs_position(score_output_files)
 
     print('Finished.')
     print('===================================')
-    print('SUMMARY\n\nRan {} experiment\nFASTA Databses:\n {}\n\nSpctra files: {}'.format(experiment, ', '.join(fasta_databases), ', '.join(spectra_files)))
+    print('SUMMARY\n\nRan {} experiment\nFASTA Databses:\n {}\n\nSpctra files: {}\n\nOutput files created: {}'.format(experiment, ', '.join(fasta_databases), ', '.join(spectra_files), ', '.join(score_output_files)))
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Entry file for the database experiments')

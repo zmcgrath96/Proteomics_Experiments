@@ -28,9 +28,14 @@ def generate(args):
 
     else: 
         for window_size in window_sizes:
-            seqs = gen_sequences.gen_sequences(sequences['parents']['left_parent']['sequence'], window_size)
-            seqs += gen_sequences.gen_sequences(sequences['parents']['right_parent']['sequence'], window_size)
-            spectra = gen_spectra.gen_spectra(seqs)
-            output_files.append(write_spectra.write_mzml(output_path, output_file_name + str(window_size), spectra, title_prefix))
-    return output_files
+            parent_one_output_name = '{}_{}_{}'.format(output_file_name, sequences['parents']['left_parent']['name'], window_size)
+            parent_two_output_name = '{}_{}_{}'.format(output_file_name, sequences['parents']['right_parent']['name'], window_size)
 
+            seqs = gen_sequences.gen_sequences(sequences['parents']['left_parent']['sequence'], window_size)
+            spectra = gen_spectra.gen_spectra(seqs)
+            output_files.append(write_spectra.write_mzml(output_path, parent_one_output_name, spectra, title_prefix))
+
+            seqs = gen_sequences.gen_sequences(sequences['parents']['right_parent']['sequence'], window_size)
+            spectra = gen_spectra.gen_spectra(seqs)
+            output_files.append(write_spectra.write_mzml(output_path, parent_two_output_name, spectra, title_prefix))
+    return output_files

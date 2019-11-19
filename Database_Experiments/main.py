@@ -33,13 +33,14 @@ def main(args):
     '''
         SETUP ARGUMENTS FOR EACH STEP
     '''
+    sequences_json = cwd + '/sequences.json'
     db_args = {
         'experiment': experiment, 
         'path': cwd + '/' + defaults['save_dirs'][experiment], 
         'name': defaults['database_names'][experiment], 
         'window_sizes': defaults['window_sizes'], 
         'prefix': defaults['database_name_prefix'][experiment], 
-        'sequences_json': cwd + '/sequences.json'
+        'sequences_json': sequences_json
         } 
     spectra_args = {
         'experiment': experiment, 
@@ -47,7 +48,7 @@ def main(args):
         'name': defaults['spectra_names'][experiment], 
         'window_sizes': defaults['window_sizes'], 
         'title_prefix': defaults['spectrum_title_prefix'][experiment],
-        'sequences_json': cwd + '/sequences.json'
+        'sequences_json': sequences_json
         } 
     '''
         END ARGUMENT SETUP
@@ -55,7 +56,7 @@ def main(args):
     fasta_databases = gen_db.generate(db_args)
     spectra_files = gen_spectra_files.generate(spectra_args)
     score_output_files = score_peptides.score_peptides(spectra_files, fasta_databases, defaults['crux_cmd'], cwd + '/crux_output')
-    sequence_and_score.score_vs_position(score_output_files)
+    sequence_and_score.plot_experiment(experiment, score_output_files, sequences_json)
 
     print('Finished.')
     print('===================================')

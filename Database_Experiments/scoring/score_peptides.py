@@ -22,7 +22,8 @@ def score_peptides(spectra_files, database_files, path_to_crux_cmd, output_dir):
                 '--output-dir', this_output_dir, 
                 '--overwrite', 'T', 
                 '--min-peaks', '2', 
-                '--precursor-window', '1000'
+                '--precursor-window', '1000000000',
+                '--enzyme', 'no-enzyme'
                 ] #'{} tide-search {} {} --output-dir {}_{} --overwrite T --min-peaks 2'.format(path_to_crux_cmd, str_spectra_files, database_file, output_dir, output_count)
             #call(index_cmd)
             call(search_cmd)

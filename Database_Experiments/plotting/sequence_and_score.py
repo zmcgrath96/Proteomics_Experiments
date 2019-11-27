@@ -39,16 +39,20 @@ RETUNS:
     list, list: lists of the scores, scan numbers
 '''
 def __get_scores_scan_pos_label(file, search_substring=''):
-    df = pd.read_csv(file, '\t', header=0)
-    df = df.sort_values(SCORE_COL, ascending=False)
-    df = df.drop_duplicates(subset=SCAN_NO_COL)
-    df = df.sort_values(SCAN_NO_COL)
-    df = df[df[FILE_NAME_COL].str.contains(search_substring)] if search_substring is not None and search_substring != '' else df
+    try:
+        df = pd.read_csv(file, '\t', header=0)
+        df = df.sort_values(SCORE_COL, ascending=False)
+        df = df.drop_duplicates(subset=SCAN_NO_COL)
+        df = df.sort_values(SCAN_NO_COL)
+        df = df[df[FILE_NAME_COL].str.contains(search_substring)] if search_substring is not None and search_substring != '' else df
 
-    if not len(df[FILE_NAME_COL]) > 0:
+        if not len(df[FILE_NAME_COL]) > 0:
+            return [], [], ''
+        aligned_scores, _ = __align_scan_pos(list(df[SCORE_COL]), list(df[SCAN_NO_COL]))
+        return aligned_scores, [], ''
+    except Exception:
+        print('could not open file: {}'.format(file))
         return [], [], ''
-    aligned_scores, _ = __align_scan_pos(list(df[SCORE_COL]), list(df[SCAN_NO_COL]))
-    return aligned_scores, [], '-mer'
 
 '''__align_scan_pos
 
@@ -161,7 +165,7 @@ PARAMS:
     sequences_json: string for path to json that holds parent info
 '''
 
-def plot_experiment(experiment, files, protein_names, subsequence_prefix, num_subsequences, hybrid_prefix, show_all=False, saving_dir='./'):
+def plot_experiment(experiment, files, protein_names, subsequence_prefix, num_subsequences, hybrid_prefix, agg_func='sum', show_all=False, saving_dir='./'):
     saving_dir = saving_dir + '/' if saving_dir[-1] != '/' else saving_dir
     if 'fractionated' in str(experiment).lower():
         pass
@@ -172,15 +176,16 @@ def plot_experiment(experiment, files, protein_names, subsequence_prefix, num_su
         total_scores = {}
         for protein_name in protein_names:
             prot_with_hybrid = __get_related_files(hybrid_related, protein_name)
-            total_scores[protein_name] = score_vs_position(prot_with_hybrid, aggregate='product')
+            total_scores[protein_name] = score_vs_position(prot_with_hybrid, aggregate=agg_func)
         for i, title in enumerate(total_scores):
             pyplot.plot([j for j in range(len(total_scores[title]))], total_scores[title], all_line_types[i].strip(), label=title)
         pyplot.legend()
         pyplot.title('hybrid sequence')
         pyplot.xlabel('k-mer starting position')
         pyplot.ylabel('product of k-mer scores')
-        pyplot.savefig(saving_dir + 'hybrid')
+        
         show_all and pyplot.show()
+        pyplot.savefig(saving_dir + 'hybrid')
         #clear up variables
         hybrid_related = None 
         total_scores = None 
@@ -193,15 +198,15 @@ def plot_experiment(experiment, files, protein_names, subsequence_prefix, num_su
             total_scores = {}
             for protein_name in protein_names:
                 prot_with_pep = __get_related_files(pep_related, protein_name)
-                total_scores[protein_name] = score_vs_position(prot_with_pep, aggregate='product')
+                total_scores[protein_name] = score_vs_position(prot_with_pep, aggregate=agg_func)
             for i, title in enumerate(total_scores):
                 pyplot.plot([j for j in range(len(total_scores[title]))], total_scores[title], all_line_types[i].strip(), label=title)
             pyplot.legend()
             pyplot.title(peptide_name)
             pyplot.xlabel('k-mer starting position')
             pyplot.ylabel('product of k-mer scores')
-            pyplot.savefig(saving_dir + peptide_name)
             show_all and pyplot.show()
+            pyplot.savefig(saving_dir + peptide_name)
 
             #clear up variables 
             total_scores = None

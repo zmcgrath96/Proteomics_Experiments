@@ -36,6 +36,9 @@ def main(args):
     '''
     experiment = 'fractionated' if 'fractionated' in str(args.experiment).lower() else 'flipped'
     num_peptides = args.num_peptides
+    agg_func = args.agg_func
+    show_all = args.show_all
+    save_dir = args.save_dir
     '''
         SETUP ARGUMENTS FOR EACH STEP
     '''
@@ -76,7 +79,7 @@ def main(args):
     score_output_files = score_peptides.score_peptides(spectra_files, fasta_databases, defaults['crux_cmd'], cwd + '/crux_output')
     # filter and plot scores
     protein_names = [x['name'] for x in sequences['sample']['proteins']]
-    sequence_and_score.plot_experiment(experiment, score_output_files, protein_names, 'peptide', num_peptides, 'hybrid')
+    sequence_and_score.plot_experiment(experiment, score_output_files, protein_names, 'peptide', num_peptides, 'hybrid', agg_func=agg_func, show_all=show_all, saving_dir=save_dir)
 
     print('Finished.')
     print('===================================')
@@ -85,7 +88,10 @@ def main(args):
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Entry file for the database experiments')
     parser.add_argument('experiment', metavar='E', type=str, help='The experiment to run. Options are: \nflipped, fractionated\n. Defualts to flipped')
-    parser.add_argument('--num_peptides', dest='num_peptides', metavar='N', type=int, default=49, help='Number of peptides to generate as the fake sample')
+    parser.add_argument('--num-peptides', dest='num_peptides', type=int, default=49, help='Number of peptides to generate as the fake sample. Default 49')
+    parser.add_argument('--aggregate-function', dest='agg_func', type=str, default='sum', help='Which aggregation function to use for combining k-mer scores. Pick either sum or product. Default sum')
+    parser.add_argument('--show-all-graphs', dest='show_all', type=bool, default=False, help='Show all the graphs generated. Defaults to False. Will save to directory either way.')
+    parser.add_argument('--save-directory', dest='save_dir', type=str, default='./', help='Directory to save all figures. Default is ./')
     args = parser.parse_args()
     main(args)
     

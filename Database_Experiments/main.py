@@ -5,6 +5,7 @@ from database import gen_db
 from spectra import gen_spectra_files
 from scoring import score_peptides
 from plotting import sequence_and_score
+from sequences import peptides
 
 ''' old hybrid "sequence": "ALYLVCGELYTSRV", 
     second hybid: GFFYTPKEANIR
@@ -22,25 +23,36 @@ with open(default_json_file, 'r') as o:
 def main(args):
     '''
     STEPS
-    1. Generate databases and get the file names
-    2. Generate the spectra and get the file names
-    3. Load the database into memory
-    4. Load the spectra into memory
-    5. Score each spectra against the database
-    6. Plot a graph of the score against the sequence position
+    1. Perform digest to get peptides
+    2. Save all peptides (generated and hybrid) as FASTA files -- return the file names/paths
+    3. Look at all proteins and generate k-mers and save as mzML files -- return the file names/paths
+    4. For each peptide:
+        For each protein: 
+            For each k-mer length:
+                score k-mers against peptide
+            keep an aggregation of all k-mer scores 
+        Compare how aggregations of each protein k-mer does, keep good ones (ones that aren't noise)
+    5. Plot relevant scores of proteins
     '''
     experiment = 'fractionated' if 'fractionated' in str(args.experiment).lower() else 'flipped'
+    num_peptides = args.num_peptides
     '''
         SETUP ARGUMENTS FOR EACH STEP
     '''
+    # load sequences once instead of all the time
     sequences_json = cwd + '/sequences.json'
+    sequences = None
+    with open(sequences_json, 'r') as seqfile:
+        sequences = json.load(seqfile)
+    
     db_args = {
         'experiment': experiment, 
         'path': cwd + '/' + defaults['save_dirs'][experiment], 
         'name': defaults['database_names'][experiment], 
         'window_sizes': defaults['window_sizes'], 
         'prefix': defaults['database_name_prefix'][experiment], 
-        'sequences_json': sequences_json
+        'sequences_dict': sequences, 
+        'peptide_index': defaults['peptide_index']
         } 
     spectra_args = {
         'experiment': experiment, 
@@ -48,15 +60,23 @@ def main(args):
         'name': defaults['spectra_names'][experiment], 
         'window_sizes': defaults['window_sizes'], 
         'title_prefix': defaults['spectrum_title_prefix'][experiment],
-        'sequences_json': sequences_json
+        'sequences_dict': sequences,
+        'peptide_index': defaults['peptide_index']
         } 
     '''
         END ARGUMENT SETUP
     '''
+    # create peptides
+    peptides.gen_peptides(sequences, num_peptides, peptide_index=defaults['peptide_index'])
+    # create database files
     fasta_databases = gen_db.generate(db_args)
+    # create spectrum files
     spectra_files = gen_spectra_files.generate(spectra_args)
+    # run scoring algorithm on database and k-mers
     score_output_files = score_peptides.score_peptides(spectra_files, fasta_databases, defaults['crux_cmd'], cwd + '/crux_output')
-    sequence_and_score.plot_experiment(experiment, score_output_files, sequences_json)
+    # filter and plot scores
+    protein_names = [x['name'] for x in sequences['sample']['proteins']]
+    sequence_and_score.plot_experiment(experiment, score_output_files, protein_names, 'peptide', num_peptides, 'hybrid')
 
     print('Finished.')
     print('===================================')
@@ -65,7 +85,7 @@ def main(args):
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Entry file for the database experiments')
     parser.add_argument('experiment', metavar='E', type=str, help='The experiment to run. Options are: \nflipped, fractionated\n. Defualts to flipped')
-    parser.add_argument('')
+    parser.add_argument('--num_peptides', dest='num_peptides', metavar='N', type=int, default=49, help='Number of peptides to generate as the fake sample')
     args = parser.parse_args()
     main(args)
     

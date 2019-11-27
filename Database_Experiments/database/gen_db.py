@@ -10,11 +10,8 @@ def generate(args):
     output_file_name = args['name']
     window_sizes = args['window_sizes']
     prefix = args['prefix']
-    sequences_json = args['sequences_json']
-
-    sequences = None
-    with open(sequences_json, 'r') as seqfile:
-        sequences = json.load(seqfile)
+    sequences = args['sequences_dict']
+    peptide_index = args['peptide_index']
 
     seqs = []
     output_files = []
@@ -29,8 +26,12 @@ def generate(args):
             output_files.append(write_db.write_fasta(output_path, parent_two_output_name, seqs, prefix))
 
     else: 
-        seqs.append(sequences["hybrid"]["sequence"])
+        seqs += [sequences['hybrid']['sequence']]
         output_files.append(write_db.write_fasta(output_path, output_file_name, seqs, prefix))
+        seqs = sequences[peptide_index]
+        output_name = 'peptide_{}'
+        for i, seq in enumerate(seqs):
+            output_files.append(write_db.write_fasta(output_path, output_name.format(i), [seq], prefix))
 
     return output_files
 

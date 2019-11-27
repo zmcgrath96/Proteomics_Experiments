@@ -1,6 +1,7 @@
 {
     "crux_cmd": "/Users/zacharymcgrath/Documents/Layer_Research/crux/bin/crux",
     "window_sizes": [3, 4, 6, 8, 10, 20, 1000],
+    "peptide_index": "peptides",
     "database_name_prefix": {
         "flipped": "HYBRID_", 
         "fractionated": "SUBSEQUENCE_"

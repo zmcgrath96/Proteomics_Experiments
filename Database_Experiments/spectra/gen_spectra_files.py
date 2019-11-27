@@ -12,11 +12,7 @@ def generate(args):
     output_file_name = args['name']
     window_sizes = args['window_sizes']
     title_prefix = args['title_prefix']
-    sequences_json = args['sequences_json']
-
-    sequences = None
-    with open(sequences_json, 'r') as seqfile:
-        sequences = json.load(seqfile)
+    sequences = args['sequences_dict']
 
     seqs = []
     output_files = []
@@ -28,14 +24,11 @@ def generate(args):
 
     else: 
         for window_size in window_sizes:
-            parent_one_output_name = '{}_{}_{}'.format(output_file_name, sequences['parents']['left_parent']['name'], window_size)
-            parent_two_output_name = '{}_{}_{}'.format(output_file_name, sequences['parents']['right_parent']['name'], window_size)
+            print('Generating k-mer {} spectra for all proteins...'.format(window_size))
+            for sequence in sequences['sample']['proteins']:
+                name = '{}_{}_{}'.format(output_file_name, sequence['name'], window_size)
+                seqs = gen_sequences.gen_sequences(sequence['sequence'], window_size)
+                spectra = gen_spectra.gen_spectra(seqs)
+                output_files.append(write_spectra.write_mzml(output_path, name, spectra, title_prefix))
 
-            seqs = gen_sequences.gen_sequences(sequences['parents']['left_parent']['sequence'], window_size)
-            spectra = gen_spectra.gen_spectra(seqs)
-            output_files.append(write_spectra.write_mzml(output_path, parent_one_output_name, spectra, title_prefix))
-
-            seqs = gen_sequences.gen_sequences(sequences['parents']['right_parent']['sequence'], window_size)
-            spectra = gen_spectra.gen_spectra(seqs)
-            output_files.append(write_spectra.write_mzml(output_path, parent_two_output_name, spectra, title_prefix))
     return output_files

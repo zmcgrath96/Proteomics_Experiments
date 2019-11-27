@@ -47,8 +47,8 @@ def __get_scores_scan_pos_label(file, search_substring=''):
 
     if not len(df[FILE_NAME_COL]) > 0:
         return [], [], ''
-    aligned_scores, aligned_scan_pos = __align_scan_pos(list(df[SCORE_COL]), list(df[SCAN_NO_COL]))
-    return aligned_scores, aligned_scan_pos, str(str(df[FILE_NAME_COL][0].split('/')[-1]).split('_')[-1]).split('.')[0] + '-mer'
+    aligned_scores, _ = __align_scan_pos(list(df[SCORE_COL]), list(df[SCAN_NO_COL]))
+    return aligned_scores, [], '-mer'
 
 '''__align_scan_pos
 
@@ -87,6 +87,22 @@ def __pad_scores(score_l1, score_l2):
     else:
         return score_l1 + [1 for _ in range(abs(diff))], score_l2
 
+'''__get_related_files
+
+DESC:
+    Given some substring, return all files with that substring
+PARAMS:
+    files: list of strings of file names
+    sub: string substring to find in the files
+OPTIONAL: 
+    not_sub: string a substring that if found in file name don't add
+'''
+def __get_related_files(files, sub, not_sub=None):
+    if not_sub is not None and not_sub != '':
+        return [x for x in files if sub in x and not_sub not in x]
+    return [x for x in files if sub in x]
+
+
 ####################################################
 #              END UTILITY FUNCTIONS
 ####################################################
@@ -100,7 +116,7 @@ PARAMS:
 RETRUNS:
     None
 '''
-def score_vs_position(files, search_substring='', title=''):
+def score_vs_position(files, aggregate='sum', search_substring='', title=''):
     i = 0
     total_score = []
     for score_file in files:
@@ -110,25 +126,30 @@ def score_vs_position(files, search_substring='', title=''):
         if not len(scores) > 0:
             continue
         # plot any score we have
-        pyplot.plot(scan_nos, scores, all_line_types[i].strip(), label=this_label)
+        # pyplot.plot(scan_nos, scores, all_line_types[i].strip(), label=this_label)
         i += 1
         total_score, scores = __pad_scores(total_score, scores)
         for j in range(len(scores)):
             if scores[j] <= 0:
                 continue
-            total_score[j] *= scores[j]
-    # plot the total sum of the scores
-    pyplot.plot([j for j in range(len(total_score))], total_score, all_line_types[i].strip(), label='Product of scores')
-    
-    global out_fig_count
-    title = 'output figure ' + str(out_fig_count) if title is None or title == '' else title
-    save_name =  './' + title
-    out_fig_count += 1
+            if aggregate == 'product' or 'product' in aggregate.lower():
+                total_score[j] *= scores[j]
+            else:
+                total_score[j] += scores[j]
 
-    pyplot.title(title)
-    pyplot.legend()
-    pyplot.savefig(save_name)
-    pyplot.show()
+    return total_score
+    # # plot the total sum of the scores
+    # pyplot.plot([j for j in range(len(total_score))], total_score, all_line_types[i].strip(), label='Product of scores')
+    
+    # global out_fig_count
+    # title = 'output figure ' + str(out_fig_count) if title is None or title == '' else title
+    # save_name =  './' + title
+    # out_fig_count += 1
+
+    # pyplot.title(title)
+    # pyplot.legend()
+    # pyplot.savefig(save_name)
+    # pyplot.show()
 
 '''plot_experiment
 
@@ -140,14 +161,52 @@ PARAMS:
     sequences_json: string for path to json that holds parent info
 '''
 
-def plot_experiment(experiment, files, sequences_json):
-    sequences = None
-    with open(sequences_json, 'r') as seqfile:
-        sequences = json.load(seqfile)
-
+def plot_experiment(experiment, files, protein_names, subsequence_prefix, num_subsequences, hybrid_prefix, show_all=False, saving_dir='./'):
+    saving_dir = saving_dir + '/' if saving_dir[-1] != '/' else saving_dir
     if 'fractionated' in str(experiment).lower():
-        score_vs_position(files)
+        pass
 
     else:
-        score_vs_position(files, sequences['parents']['left_parent']['name'], sequences['parents']['left_parent']['name'])
-        score_vs_position(files, sequences['parents']['right_parent']['name'], sequences['parents']['right_parent']['name'])
+        # hybrid first
+        hybrid_related = __get_related_files(files, hybrid_prefix)
+        total_scores = {}
+        for protein_name in protein_names:
+            prot_with_hybrid = __get_related_files(hybrid_related, protein_name)
+            total_scores[protein_name] = score_vs_position(prot_with_hybrid, aggregate='product')
+        for i, title in enumerate(total_scores):
+            pyplot.plot([j for j in range(len(total_scores[title]))], total_scores[title], all_line_types[i].strip(), label=title)
+        pyplot.legend()
+        pyplot.title('hybrid sequence')
+        pyplot.xlabel('k-mer starting position')
+        pyplot.ylabel('product of k-mer scores')
+        pyplot.savefig(saving_dir + 'hybrid')
+        show_all and pyplot.show()
+        #clear up variables
+        hybrid_related = None 
+        total_scores = None 
+
+        # do the rest
+        peptide_names = ['{}_{}'.format(subsequence_prefix, x) for x in range(num_subsequences)]
+        for i, peptide_name in enumerate(peptide_names):
+            print('Generating graphs for peptide sequences {}/{}[{}%]'.format(i+1, len(peptide_names), int(((i+1)/len(peptide_names)*100))))
+            pep_related = __get_related_files(files, peptide_name)
+            total_scores = {}
+            for protein_name in protein_names:
+                prot_with_pep = __get_related_files(pep_related, protein_name)
+                total_scores[protein_name] = score_vs_position(prot_with_pep, aggregate='product')
+            for i, title in enumerate(total_scores):
+                pyplot.plot([j for j in range(len(total_scores[title]))], total_scores[title], all_line_types[i].strip(), label=title)
+            pyplot.legend()
+            pyplot.title(peptide_name)
+            pyplot.xlabel('k-mer starting position')
+            pyplot.ylabel('product of k-mer scores')
+            pyplot.savefig(saving_dir + peptide_name)
+            show_all and pyplot.show()
+
+            #clear up variables 
+            total_scores = None
+            pep_related = None 
+
+        
+
+

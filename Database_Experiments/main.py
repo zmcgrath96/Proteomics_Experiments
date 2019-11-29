@@ -39,6 +39,7 @@ def main(args):
     agg_func = args.agg_func
     show_all = args.show_all
     save_dir = args.save_dir
+    min_length = args.min_length
     '''
         SETUP ARGUMENTS FOR EACH STEP
     '''
@@ -70,13 +71,13 @@ def main(args):
         END ARGUMENT SETUP
     '''
     # create peptides
-    peptides.gen_peptides(sequences, num_peptides, peptide_index=defaults['peptide_index'])
+    peptides.gen_peptides(sequences, num_peptides, peptide_index=defaults['peptide_index'], min_length=min_length, save_dir=save_dir)
     # create database files
     fasta_databases = gen_db.generate(db_args)
     # create spectrum files
     spectra_files = gen_spectra_files.generate(spectra_args)
     # run scoring algorithm on database and k-mers
-    score_output_files = score_peptides.score_peptides(spectra_files, fasta_databases, defaults['crux_cmd'], cwd + '/crux_output')
+    score_output_files = score_peptides.score_peptides(spectra_files, fasta_databases, defaults['crux_cmd'], save_dir + '/crux_output')
     # filter and plot scores
     protein_names = [x['name'] for x in sequences['sample']['proteins']]
     sequence_and_score.plot_experiment(experiment, score_output_files, protein_names, 'peptide', num_peptides, 'hybrid', agg_func=agg_func, show_all=show_all, saving_dir=save_dir)
@@ -92,6 +93,7 @@ if __name__ == '__main__':
     parser.add_argument('--aggregate-function', dest='agg_func', type=str, default='sum', help='Which aggregation function to use for combining k-mer scores. Pick either sum or product. Default sum')
     parser.add_argument('--show-all-graphs', dest='show_all', type=bool, default=False, help='Show all the graphs generated. Defaults to False. Will save to directory either way.')
     parser.add_argument('--save-directory', dest='save_dir', type=str, default='./', help='Directory to save all figures. Default is ./')
+    parser.add_argument('--min-length', dest='min_length', type=int, default=3, help='Minimum length peptide to create. Default is 3')
     args = parser.parse_args()
     main(args)
     

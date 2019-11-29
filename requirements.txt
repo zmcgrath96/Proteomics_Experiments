@@ -2,3 +2,4 @@ pyopenms
 pyteomics
 matplotlib
 pandas
+numpy

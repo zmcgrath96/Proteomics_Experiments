@@ -24,7 +24,7 @@ def generate(args):
 
     else: 
         for window_size in window_sizes:
-            print('Generating k-mer {} spectra for all proteins...'.format(window_size))
+            print('Generating {}-mer spectra for all proteins...'.format(window_size))
             for sequence in sequences['sample']['proteins']:
                 name = '{}_{}_{}'.format(output_file_name, sequence['name'], window_size)
                 seqs = gen_sequences.gen_sequences(sequence['sequence'], window_size)

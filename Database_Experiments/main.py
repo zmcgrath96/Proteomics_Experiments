@@ -4,8 +4,8 @@ import json
 from database import gen_db
 from spectra import gen_spectra_files
 from scoring import score_peptides
-from plotting import sequence_and_score
 from sequences import peptides
+from plotting import plot_experiment
 
 ''' old hybrid "sequence": "ALYLVCGELYTSRV", 
     second hybid: GFFYTPKEANIR
@@ -80,7 +80,7 @@ def main(args):
     score_output_files = score_peptides.score_peptides(spectra_files, fasta_databases, defaults['crux_cmd'], save_dir + '/crux_output')
     # filter and plot scores
     protein_names = [x['name'] for x in sequences['sample']['proteins']]
-    sequence_and_score.plot_experiment(experiment, score_output_files, protein_names, 'peptide', num_peptides, 'hybrid', agg_func=agg_func, show_all=show_all, saving_dir=save_dir)
+    plot_experiment(experiment, score_output_files, protein_names, 'peptide', num_peptides, 'hybrid', agg_func=agg_func, show_all=show_all, saving_dir=save_dir)
 
     print('Finished.')
     print('===================================')

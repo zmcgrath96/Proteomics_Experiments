@@ -16,7 +16,7 @@ def load_fasta(db_file_path):
 def load_digests():
     cwd = os.path.dirname(os.path.realpath(__file__))
     parent_dir_idx = cwd.split('/').index('Proteomics_Experiments')
-    digest_json = '/'.join(cwd.split('/')[:parent_dir_idx].append('utils/digests.json'))
+    digest_json = '/'.join(cwd.split('/')[:parent_dir_idx].append('digests.json'))
     digest = None
     with open(digest_json, 'r') as o:
         digest = json.load(o)

@@ -4,6 +4,8 @@ import json
 import itertools
 import os
 import numpy as np
+from sequences.digest import load_digest
+from utils import __get_related_files, __make_dir, __make_valid_dir_string, __make_valid_text_name
 
 ####################################################
 #               CONSTANTS
@@ -24,6 +26,7 @@ digests = None
 cwd = os.path.dirname(os.path.realpath(__file__))
 save_fig_count = 0
 save_fig_prefix = 'figure_{}'
+
 ####################################################
 #              END CONSTANTS
 ####################################################
@@ -96,44 +99,6 @@ def __pad_scores(score_l1, score_l2):
     else:
         return score_l1 + [1 for _ in range(abs(diff))], score_l2
 
-'''__get_related_files
-
-DESC:
-    Given some substring, return all files with that substring
-PARAMS:
-    files: list of strings of file names
-    sub: string substring to find in the files
-OPTIONAL: 
-    not_sub: string a substring that if found in file name don't add
-'''
-def __get_related_files(files, sub, not_sub=None):
-    if not_sub is not None and not_sub != '':
-        return [x for x in files if sub in x and not_sub not in x]
-    return [x for x in files if sub in x]
-
-'''__load_digest
-
-DESC:
-    load the digests from the digestion tsv
-PARAMS:
-    digest_file: string file path for the digestion tsv
-RETURNS:
-    None
-'''
-def __load_digest(digest_file):
-    global digests
-    if digests is not None:
-        return 
-    digests = {}
-    with open(digest_file, 'r') as o:
-        for i, line in enumerate(o):
-            if i == 0:
-                continue
-            l = line.split('\t')
-            name = 'peptide_' + str(i-1)
-            entry = {'peptide_sequence': l[0], 'parent_name': l[1], 'parent_sequence': l[2], 'start_index': int(l[3])}
-            digests[name] = entry 
-
 '''__get_peptide
 DESC:
     given a name, get the entry associated with it
@@ -144,10 +109,10 @@ RETURNS:
 '''
 def __get_peptide(peptide_name, saving_dir='./'):
     global digests
-    saving_dir = saving_dir + '/' if not saving_dir[-1] == '/' else saving_dir
+    saving_dir = __make_valid_dir_string(saving_dir)
     if not digests:
         file_name =  saving_dir + 'digestion.tsv'
-        __load_digest(file_name)
+        digests = load_digest(file_name)
     return digests[peptide_name] if peptide_name in digests else None
 
 '''__parse_output_name
@@ -166,10 +131,10 @@ def __parse_output_name(crux_output):
 #              END UTILITY FUNCTIONS
 ####################################################
 
-'''plot_subsequence
+'''plot_subsequence_vs_protein
 
 DESC:
-    generate and save all graphs for a subsequence
+    generate and save a subsequence vs a protein graph
 PARAMS:
     files: list of strings each entry is an output crux file who's contents are related
 OPTIONAL:
@@ -178,15 +143,15 @@ OPTIONAL:
     aggregate: string which type of aggregation of scores to perfrom. Default=sum
     show_graph: bool whether or not to show the graph
 '''
-def plot_subsequence(files, title='', save_dir='./', aggregate='sum', show_graph=False):
+def plot_subsequence_vs_protein(files, title='', save_dir='./', aggregate='sum', show_graph=False):
     global save_fig_count, save_fig_prefix
     if title is None or title == '':
         title = save_fig_prefix.format(save_fig_count)
         save_fig_count += 1
 
     # create the saving directory if it doesn't exits
-    if not os.path.exists(save_dir): 
-        os.makedirs(save_dir)
+    save_dir = __make_valid_dir_string(save_dir)
+    __make_dir(save_dir)
 
     plot.figure(figsize=(10,7))
     total_score, all_scores = score_vs_position(files, aggregate=aggregate)
@@ -203,7 +168,63 @@ def plot_subsequence(files, title='', save_dir='./', aggregate='sum', show_graph
     plot.ylabel('k-mer score')
     plot.savefig(save_dir + title)
     show_graph and plot.show()
+    plot.close()
     return total_score
+
+'''plot_subsequence
+
+DESC:
+    Generate and save all plots for a subsequence and all its proteins
+PARAMS:
+    subsequence_files
+    protein_names
+    subsequence_prefix
+OPTIONAL:
+    agg_func: string aggregate function to use. Default=sum
+    saving_dir: string path to directory to save figures under. Default=./
+    show_all: bool whether or not to show all graphs. Default=False
+    peptide_entry: dictionary optional info to add to the plot. keys should be
+    {
+        'peptide_sequence': string,
+        'parent_name': string,
+        'start_index': int
+    }
+RETURNS:
+    None
+'''
+def plot_subsequence(subsequence_files, protein_names, subsequence_prefix, agg_func='sum', saving_dir='./', show_all=False, peptide_entry={}):
+    saving_dir = __make_valid_dir_string(saving_dir) + subsequence_prefix + '/'
+    __make_dir(saving_dir)
+    total_scores = {}
+    max_score_position = 0
+    max_score = 0
+    for protein_name in protein_names:
+        prot_with_subsequenc = __get_related_files(subsequence_files, protein_name)
+        total_scores[protein_name] = plot_subsequence_vs_protein(prot_with_subsequenc, title='{} vs {}'.format(subsequence_prefix, protein_name), aggregate=agg_func, save_dir=saving_dir + '{}_{}/'.format(subsequence_prefix, protein_name), show_graph=show_all)
+    plot.figure(figsize=(10,7))
+    for i, title in enumerate(total_scores):
+        if max(total_scores[title]) > max_score:
+            max_score = max(total_scores[title])
+            max_score_position = np.argmax(total_scores[title])
+
+        plot.plot([j for j in range(len(total_scores[title]))], total_scores[title], all_line_types[i].strip(), label=title)
+    
+    # make the axes labeled and whatnot
+    plot.legend()
+    plot.title('{} sequence'.format(subsequence_prefix))
+    plot.xlabel('k-mer starting position')
+    plot.ylabel('{} of k-mer scores'.format(agg_func))
+
+    # extra good info for the plot
+    'peptide_sequence' in peptide_entry and plot.figtext(0.55, 0.98, 'peptide sequence: {}'.format(peptide_entry['peptide_sequence']))
+    'parent_name' in peptide_entry and plot.figtext(0.55, 0.96, 'parent protein: {}'.format(peptide_entry['parent_name']))
+    'start_index' in peptide_entry and plot.figtext(0.55, 0.94, 'peptide starting position in parent: {}'.format(peptide_entry['start_index']))
+    plot.figtext(0.55, 0.92, 'maximum scoring position: {}'.format(max_score_position))
+
+    #show and save
+    plot.savefig(saving_dir + subsequence_prefix)
+    show_all and plot.show()
+    plot.close()
 
 '''score_vs_position
 
@@ -248,11 +269,9 @@ PARAMS:
 '''
 
 def plot_experiment(experiment, files, protein_names, subsequence_prefix, num_subsequences, hybrid_prefix, agg_func='sum', show_all=False, saving_dir='./'):
-    saving_dir = saving_dir + '/' if saving_dir[-1] != '/' else saving_dir
-
     #create the saving directory
-    if not os.path.exists(saving_dir): 
-        os.makedirs(saving_dir)
+    saving_dir = __make_valid_dir_string(saving_dir)
+    __make_dir(saving_dir)
 
     if 'fractionated' in str(experiment).lower():
         pass
@@ -261,23 +280,11 @@ def plot_experiment(experiment, files, protein_names, subsequence_prefix, num_su
         print('\nGenerating plots...')
         # hybrid first
         hybrid_related = __get_related_files(files, hybrid_prefix)
-        total_scores = {}
-        for protein_name in protein_names:
-            prot_with_hybrid = __get_related_files(hybrid_related, protein_name)
-            total_scores[protein_name] = plot_subsequence(prot_with_hybrid, title='hybrid vs {}'.format(protein_name), aggregate=agg_func, save_dir=saving_dir + 'hybrid_{}/'.format(protein_name), show_graph=show_all)
-        for i, title in enumerate(total_scores):
-            plot.plot([j for j in range(len(total_scores[title]))], total_scores[title], all_line_types[i].strip(), label=title)
-        
-        plot.legend()
-        plot.title('hybrid sequence')
-        plot.xlabel('k-mer starting position')
-        plot.ylabel('{} of k-mer scores'.format(agg_func))
-        plot.figure(figsize=(10,7))
-        show_all and plot.show()
-        plot.savefig(saving_dir + 'hybrid')
+        hybrid_saving_dir = saving_dir + 'hybrid/'
+        __make_dir(hybrid_saving_dir)
+        plot_subsequence(hybrid_related, protein_names, hybrid_prefix, agg_func=agg_func, saving_dir=hybrid_saving_dir, show_all=show_all)
         #clear up variables
         hybrid_related = None 
-        total_scores = None 
 
         # do the rest
         peptide_names = ['{}_{}'.format(subsequence_prefix, x) for x in range(num_subsequences)]
@@ -285,36 +292,8 @@ def plot_experiment(experiment, files, protein_names, subsequence_prefix, num_su
             print('Generating graphs for peptide sequences {}/{}[{}%]'.format(i+1, len(peptide_names), int(((i+1)/len(peptide_names)*100))))
             peptide_entry = __get_peptide(peptide_name, saving_dir=saving_dir)
             pep_related = __get_related_files(files, peptide_name)
-            total_scores = {}
-            max_score_position = 0
-            max_score = 0
-            for protein_name in protein_names:
-                prot_with_pep = __get_related_files(pep_related, protein_name)
-                total_scores[protein_name] = plot_subsequence(prot_with_pep, title='{} vs {}'.format(peptide_name, protein_name), aggregate=agg_func, save_dir=saving_dir+ '{}_{}/'.format(peptide_name, protein_name), show_graph=show_all)
-            for i, title in enumerate(total_scores):
-                if max(total_scores[title]) > max_score:
-                    max_score = max(total_scores[title])
-                    max_score_position = np.argmax(total_scores[title])
+            pep_saving_dir = saving_dir + peptide_name + '/'
+            __make_dir(pep_saving_dir)
+            plot_subsequence(pep_related, protein_names, peptide_name, agg_func=agg_func, saving_dir=saving_dir, show_all=show_all, peptide_entry=peptide_entry)
 
-                plot.plot([j for j in range(len(total_scores[title]))], total_scores[title], all_line_types[i].strip(), label=title)
-            
-            plot.legend()
-            plot.title(peptide_name)
-            plot.figtext(0.55, 0.98, 'peptide sequence: {}'.format(peptide_entry['peptide_sequence']))
-            plot.figtext(0.55, 0.96, 'parent protein: {}'.format(peptide_entry['parent_name']))
-            plot.figtext(0.55, 0.94, 'peptide starting position in parent: {}'.format(peptide_entry['start_index']))
-            plot.figtext(0.55, 0.92, 'maximum scoring position: {}'.format(max_score_position))
-            plot.xlabel('k-mer starting position')
-            plot.ylabel('{} of k-mer scores'.format(agg_func))
-            plot.figure(figsize=(10,7))
-            show_all and plot.show()
-            plot.savefig(saving_dir + peptide_name)
-
-            #clear up variables 
-            total_scores = None
-            pep_related = None 
         print('Finished')
-
-        
-
-

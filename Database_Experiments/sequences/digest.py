@@ -1,4 +1,34 @@
 from random import randint, choice, random
+import sys 
+sys.path.append('../')
+from utils import __make_dir, __make_valid_dir_string
+
+'''load_digest
+
+DESC:
+    load the digests from the digestion tsv
+PARAMS:
+    digest_file: string file path for the digestion tsv
+RETURNS:
+    dictionary: keys are peptide names and entries have 
+    {
+        'peptide_sequence': string,
+        'parent_name': string,
+        'parent_sequence': string,
+        'start_index': int
+    }
+'''
+def load_digest(digest_file):
+    digests = {}
+    with open(digest_file, 'r') as o:
+        for i, line in enumerate(o):
+            if i == 0:
+                continue
+            l = line.split('\t')
+            name = 'peptide_' + str(i-1)
+            entry = {'peptide_sequence': l[0], 'parent_name': l[1], 'parent_sequence': l[2], 'start_index': int(l[3])}
+            digests[name] = entry 
+    return digests
 
 '''__tryptic_digest
 
@@ -67,7 +97,8 @@ OPTIONAL:
     min_length: int minimum length peptide to generate. Default=3
 '''
 def tryptic(sequences, number_digests, miss_prob=0, save_dir='./', save_name='digestion.tsv', min_length=3):
-    save_dir = save_dir + '/' if save_dir[-1] != '/' else save_dir
+    save_dir = __make_valid_dir_string(save_dir)
+    __make_dir(save_dir)
 
     to_digest = []
     if number_digests <= len(sequences):

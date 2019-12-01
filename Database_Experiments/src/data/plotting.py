@@ -4,8 +4,9 @@ import json
 import itertools
 import os
 import numpy as np
-from src.sequences.digest import load_digest
-from src.utils import __get_related_files, __make_dir, __make_valid_dir_string, __make_valid_text_name
+from sequences.digest import load_digest
+from utils import __get_related_files, __make_dir, __make_valid_dir_string
+from data.analysis import get_top_n, __get_argmax_max
 
 ####################################################
 #               CONSTANTS
@@ -189,10 +190,12 @@ OPTIONAL:
         'parent_name': string,
         'start_index': int
     }
+    use_top_n: bool wether or not to report only the top n scores for a subsequence. Default=False
+    n: int the top n scores to keep for a subsequence if use_top_n is True. Default=5
 RETURNS:
     None
 '''
-def plot_subsequence(subsequence_files, protein_names, subsequence_prefix, agg_func='sum', saving_dir='./', show_all=False, peptide_entry={}):
+def plot_subsequence(subsequence_files, protein_names, subsequence_prefix, agg_func='sum', saving_dir='./', show_all=False, peptide_entry={}, use_top_n=False, n=5, measure='average'):
     saving_dir = __make_valid_dir_string(saving_dir) + subsequence_prefix + '/'
     __make_dir(saving_dir)
     total_scores = {}
@@ -202,16 +205,30 @@ def plot_subsequence(subsequence_files, protein_names, subsequence_prefix, agg_f
         prot_with_subsequenc = __get_related_files(subsequence_files, protein_name)
         total_scores[protein_name] = plot_subsequence_vs_protein(prot_with_subsequenc, title='{} vs {}'.format(subsequence_prefix, protein_name), aggregate=agg_func, save_dir=saving_dir + '{}_{}/'.format(subsequence_prefix, protein_name), show_graph=show_all)
     plot.figure(figsize=(10,7))
+
+    # issue with running out of line types to use
+    too_long = len(total_scores) > len(all_line_types)
+    total_scores = get_top_n(total_scores, n=len(total_scores), measure=measure) if too_long else total_scores
+    # only use the top n number of scores if specified
+    if use_top_n:
+        t = get_top_n(total_scores, n=n, measure=measure) 
+        total_scores = {}
+        for entry in t:
+            total_scores[entry[1]] = entry[0]
+
     for i, title in enumerate(total_scores):
-        if max(total_scores[title]) > max_score:
-            max_score = max(total_scores[title])
-            max_score_position = np.argmax(total_scores[title])
+        ag, m = __get_argmax_max(total_scores[title])
+        max_score_position, max_score = (ag, m) if m > max_score else (max_score_position, max_score)
+        # if max(total_scores[title]) > max_score:
+        #     max_score = max(total_scores[title])
+        #     max_score_position = np.argmax(total_scores[title])
 
         plot.plot([j for j in range(len(total_scores[title]))], total_scores[title], all_line_types[i].strip(), label=title)
     
     # make the axes labeled and whatnot
+    plot_title_format = '{} sequence' if not too_long and not use_top_n else '{} sequence (top ' + str(len(total_scores)) + ' scores)'
     plot.legend()
-    plot.title('{} sequence'.format(subsequence_prefix))
+    plot.title(plot_title_format.format(subsequence_prefix))
     plot.xlabel('k-mer starting position')
     plot.ylabel('{} of k-mer scores'.format(agg_func))
 
@@ -266,9 +283,18 @@ PARAMS:
     experiment: a string to determine which experiemnt to plot. Defaults flipped
     files: a list of strings of file paths for results
     sequences_json: string for path to json that holds parent info
+OPTIONAL:
+    agg_func: string aggregate function to use. Default=sum
+    saving_dir: string path to directory to save figures under. Default=./
+    show_all: bool whether or not to show all graphs. Default=False
+    use_top_n: bool wether or not to report only the top n scores for a subsequence. Default=False
+    n: int the top n scores to keep for a subsequence if use_top_n is True. Default=5
+    measure: string the measuring function for determining the top n scores
+RETURNS: 
+    None
 '''
 
-def plot_experiment(experiment, files, protein_names, subsequence_prefix, num_subsequences, hybrid_prefix, agg_func='sum', show_all=False, saving_dir='./'):
+def plot_experiment(experiment, files, protein_names, subsequence_prefix, num_subsequences, hybrid_prefix, agg_func='sum', show_all=False, saving_dir='./', use_top_n=False, n=5, measure='average'):
     #create the saving directory
     saving_dir = __make_valid_dir_string(saving_dir)
     __make_dir(saving_dir)
@@ -280,9 +306,9 @@ def plot_experiment(experiment, files, protein_names, subsequence_prefix, num_su
         print('\nGenerating plots...')
         # hybrid first
         hybrid_related = __get_related_files(files, hybrid_prefix)
-        hybrid_saving_dir = saving_dir + 'hybrid/'
+        hybrid_saving_dir = saving_dir + hybrid_prefix + '/'
         __make_dir(hybrid_saving_dir)
-        plot_subsequence(hybrid_related, protein_names, hybrid_prefix, agg_func=agg_func, saving_dir=hybrid_saving_dir, show_all=show_all)
+        plot_subsequence(hybrid_related, protein_names, hybrid_prefix, agg_func=agg_func, saving_dir=hybrid_saving_dir, show_all=show_all, use_top_n=use_top_n, n=n, measure=measure)
         #clear up variables
         hybrid_related = None 
 
@@ -294,6 +320,6 @@ def plot_experiment(experiment, files, protein_names, subsequence_prefix, num_su
             pep_related = __get_related_files(files, peptide_name)
             pep_saving_dir = saving_dir + peptide_name + '/'
             __make_dir(pep_saving_dir)
-            plot_subsequence(pep_related, protein_names, peptide_name, agg_func=agg_func, saving_dir=saving_dir, show_all=show_all, peptide_entry=peptide_entry)
+            plot_subsequence(pep_related, protein_names, peptide_name, agg_func=agg_func, saving_dir=saving_dir, show_all=show_all, peptide_entry=peptide_entry, use_top_n=use_top_n, n=n, measure=measure)
 
         print('Finished')

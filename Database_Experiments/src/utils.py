@@ -27,18 +27,6 @@ RETURNS:
 def __make_valid_dir_string(dir_path):
     return dir_path + '/' if dir_path[-1] != '/' else dir_path
 
-'''__make_valid_text_name
-
-DESC:
-    make a string into the name for a text file
-PARAMS:
-    file_name: string a name of the file to save
-RETURNS:
-    file name with .txt after
-'''
-def __make_valid_text_name(file_name):
-    return file_name + '.txt' if '.txt' not in file_name else file_name
-
 '''__make_dir
 
 DESC:
@@ -49,5 +37,36 @@ RETURNS:
     None
 '''
 def __make_dir(dir_path):
+    dir_path = __make_valid_dir_string(dir_path)
     if not os.path.exists(dir_path): 
         os.makedirs(dir_path)
+
+'''__make_valid_text_file
+
+DESC:
+    make a string into the name for a text file and make sure directory exists
+PARAMS:
+    file_name: string a name of the file to save
+RETURNS:
+    file name with .txt after
+'''
+def __make_valid_text_file(file_name):
+    file_name = file_name + '.txt' if '.txt' not in file_name else file_name
+    d = '/'.join(file_name.split('/')[:-1])
+    __make_dir(d)
+    return file_name
+
+'''__make_valid_json_file
+
+DESC:
+    make a string into the name for a text file and make sure the directory exists
+PARAMS:
+    file_name: string of the file to save
+RETURNS:
+    file name with .json after it
+'''
+def __make_valid_json_file(file_name):
+    file_name = file_name + '.json' if '.json' not in file_name else file_name
+    d = '/'.join(file_name.split('/')[:-1])
+    __make_dir(d)
+    return file_name

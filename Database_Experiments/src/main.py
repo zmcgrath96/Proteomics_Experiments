@@ -1,17 +1,17 @@
 import os
 import argparse
 import json
-from src.database import gen_db
-from src.spectra import gen_spectra_files
-from src.scoring import score_peptides
-from src.sequences import peptides
-from src.data.plotting import plot_experiment
+from database import gen_db
+from spectra import gen_spectra_files
+from scoring import score_peptides
+from sequences import peptides
+from data.plotting import plot_experiment
 
 ''' old hybrid "sequence": "ALYLVCGELYTSRV", 
     second hybid: GFFYTPKEANIR
     IMPORT DEFAULTS
 '''
-cwd = os.path.dirname(os.path.realpath(__file__))
+cwd = '/'.join(str(os.path.dirname(os.path.realpath(__file__))).split('/')[:-1])
 default_json_file = cwd + '/defaults.json'
 defaults = None
 with open(default_json_file, 'r') as o:
@@ -40,11 +40,15 @@ def main(args):
     show_all = args.show_all
     save_dir = args.save_dir
     min_length = args.min_length
+    top_n = args.top_n
+    n = args.n
+    m_func = args.m_func
+    test_seq = args.test_seq
     '''
         SETUP ARGUMENTS FOR EACH STEP
     '''
     # load sequences once instead of all the time
-    sequences_json = cwd + '/sequences.json'
+    sequences_json = cwd + '/sequences.json' if not test_seq else '/test-sequences.json'
     sequences = None
     with open(sequences_json, 'r') as seqfile:
         sequences = json.load(seqfile)
@@ -80,7 +84,7 @@ def main(args):
     score_output_files = score_peptides.score_peptides(spectra_files, fasta_databases, defaults['crux_cmd'], save_dir + '/crux_output')
     # filter and plot scores
     protein_names = [x['name'] for x in sequences['sample']['proteins']]
-    plot_experiment(experiment, score_output_files, protein_names, 'peptide', num_peptides, 'hybrid', agg_func=agg_func, show_all=show_all, saving_dir=save_dir)
+    plot_experiment(experiment, score_output_files, protein_names, 'peptide', num_peptides, 'hybrid', agg_func=agg_func, show_all=show_all, saving_dir=save_dir, use_top_n=top_n, n=n, measure=m_func)
 
     print('Finished.')
     print('===================================')
@@ -88,12 +92,16 @@ def main(args):
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Entry file for the database experiments')
-    parser.add_argument('experiment', metavar='E', type=str, help='The experiment to run. Options are: \nflipped, fractionated\n. Defualts to flipped')
-    parser.add_argument('--num-peptides', dest='num_peptides', type=int, default=49, help='Number of peptides to generate as the fake sample. Default 49')
-    parser.add_argument('--aggregate-function', dest='agg_func', type=str, default='sum', help='Which aggregation function to use for combining k-mer scores. Pick either sum or product. Default sum')
-    parser.add_argument('--show-all-graphs', dest='show_all', type=bool, default=False, help='Show all the graphs generated. Defaults to False. Will save to directory either way.')
-    parser.add_argument('--save-directory', dest='save_dir', type=str, default='./', help='Directory to save all figures. Default is ./')
-    parser.add_argument('--min-length', dest='min_length', type=int, default=3, help='Minimum length peptide to create. Default is 3')
+    parser.add_argument('--experiment', dest='experiment', type=str, default='flipped', help='The experiment to run. Options are: \nflipped, fractionated\n. Defualt=flipped')
+    parser.add_argument('--num-peptides', dest='num_peptides', type=int, default=49, help='Number of peptides to generate as the fake sample. Default=49')
+    parser.add_argument('--aggregate-function', dest='agg_func', type=str, default='sum', help='Which aggregation function to use for combining k-mer scores. Pick either sum or product. Default=sum')
+    parser.add_argument('--show-all-graphs', dest='show_all', type=bool, default=False, help='Show all the graphs generated. Will save to directory either way. Default=False.')
+    parser.add_argument('--save-directory', dest='save_dir', type=str, default='./', help='Directory to save all figures. Default=./')
+    parser.add_argument('--min-length', dest='min_length', type=int, default=3, help='Minimum length peptide to create. Default=3')
+    parser.add_argument('--top-n', dest='top_n', type=bool, default=False, help='When recording how well a peptide scores against a protein, only use the top n proteins. Default=False')
+    parser.add_argument('--n', dest='n', type=int, default=5, help='n to use if using --top-n. Default=5')
+    parser.add_argument('--measure-func', dest='m_func', type=str, default='average', help='Measuring function for determining the top n proteins. Options are: sum, average, max. Default=average')
+    parser.add_argument('--test-seq', dest='test_seq', type=bool, default=False, help='FOR TESTING ON SMALLER SEQUENCES. DEFAULT=False')
     args = parser.parse_args()
     main(args)
     

@@ -1,7 +1,7 @@
 import os
 import argparse 
 import json
-from src.database import gen_sequences, write_db
+from database import gen_sequences, write_db
 
 def generate(args):
     experiment = args['experiment']

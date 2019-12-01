@@ -1,9 +1,7 @@
 import argparse 
 import json
-from spectra import gen_spectra, write_spectra
-import sys 
-sys.path.append('../')
-from database import gen_sequences
+from src.spectra import gen_spectra, write_spectra
+from src.database import gen_sequences
 
 
 def generate(args):

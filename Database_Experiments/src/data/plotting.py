@@ -4,8 +4,8 @@ import json
 import itertools
 import os
 import numpy as np
-from sequences.digest import load_digest
-from utils import __get_related_files, __make_dir, __make_valid_dir_string, __make_valid_text_name
+from src.sequences.digest import load_digest
+from src.utils import __get_related_files, __make_dir, __make_valid_dir_string, __make_valid_text_name
 
 ####################################################
 #               CONSTANTS

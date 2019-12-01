@@ -1,4 +1,4 @@
-from sequences import digest
+from src.sequences import digest
 
 def gen_peptides(sequence_dict, number_peptides, peptide_index='peptides', min_length=3, save_dir='./'):
     proteins = sequence_dict['sample']['proteins']

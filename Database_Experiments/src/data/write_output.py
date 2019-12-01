@@ -1,4 +1,5 @@
-from utils import __make_valid_text_name
+import sys 
+from src.utils import __make_valid_text_name
 
 SUMMARY_HEADER = '''
 ###############################################

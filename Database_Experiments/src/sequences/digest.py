@@ -1,7 +1,5 @@
 from random import randint, choice, random
-import sys 
-sys.path.append('../')
-from utils import __make_dir, __make_valid_dir_string
+from src.utils import __make_dir, __make_valid_dir_string
 
 '''load_digest
 

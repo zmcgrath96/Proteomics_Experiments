@@ -1,11 +1,11 @@
 import os
 import argparse
 import json
-from database import gen_db
-from spectra import gen_spectra_files
-from scoring import score_peptides
-from sequences import peptides
-from plotting import plot_experiment
+from src.database import gen_db
+from src.spectra import gen_spectra_files
+from src.scoring import score_peptides
+from src.sequences import peptides
+from src.data.plotting import plot_experiment
 
 ''' old hybrid "sequence": "ALYLVCGELYTSRV", 
     second hybid: GFFYTPKEANIR

@@ -1,6 +1,6 @@
 import json
-from src.utils import __make_valid_text_file, __make_valid_json_file
-from src.data import analysis
+from utils import __make_valid_text_file, __make_valid_json_file
+from data import analysis
 
 SUMMARY_HEADER = '''
 ###############################################
@@ -30,11 +30,11 @@ def write_summary(file, data, title=''):
     with open(file, 'w') as o:
         o.write(str(title) + '\n')
         o.write(SUMMARY_HEADER)
-        protein_line = 'proteins: {}\n'.format(' '.join(key for key in data))
+        protein_line = 'proteins: {}\n'.format(', '.join(key for key in data))
         o.write(protein_line)
         top_5 = analysis.get_top_n(data)
         for i in range(len(top_5)):
-            line = '{}: {}, {}\n'.format(i, top_5[i][1], top_5[i][0])
+            line = '{}:\n {},\n {}\n'.format(i, top_5[i][1], top_5[i][0])
             o.write(line)
         o.write(RAW_HEADER)
     with open(file, 'a') as o:

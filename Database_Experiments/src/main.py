@@ -48,7 +48,7 @@ def main(args):
         SETUP ARGUMENTS FOR EACH STEP
     '''
     # load sequences once instead of all the time
-    sequences_json = cwd + '/sequences.json' if not test_seq else '/test-sequences.json'
+    sequences_json = cwd + '/sequences.json' if not test_seq else cwd + '/test-sequences.json'
     sequences = None
     with open(sequences_json, 'r') as seqfile:
         sequences = json.load(seqfile)

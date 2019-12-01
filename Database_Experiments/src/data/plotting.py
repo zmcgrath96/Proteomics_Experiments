@@ -7,6 +7,7 @@ import numpy as np
 from sequences.digest import load_digest
 from utils import __get_related_files, __make_dir, __make_valid_dir_string
 from data.analysis import get_top_n, __get_argmax_max
+from data.write_output import write_json, write_summary
 
 ####################################################
 #               CONSTANTS
@@ -162,14 +163,18 @@ def plot_subsequence_vs_protein(files, title='', save_dir='./', aggregate='sum',
         plot.plot([j for j in range(len(scores))], scores, all_line_types[i].strip(), label=this_label)
         i += 1
     plot.plot([j for j in range(len(total_score))], total_score, all_line_types[len(all_scores)], label='{} of scores'.format(aggregate))
+    
+    # add labels and whatnot
     plot.legend()
     plot.title(title)
-    
     plot.xlabel('k-mer starting position')
     plot.ylabel('k-mer score')
+
+    # show and save data
     plot.savefig(save_dir + title)
     show_graph and plot.show()
     plot.close()
+    write_json(save_dir + title, total_score)
     return total_score
 
 '''plot_subsequence
@@ -219,10 +224,7 @@ def plot_subsequence(subsequence_files, protein_names, subsequence_prefix, agg_f
     for i, title in enumerate(total_scores):
         ag, m = __get_argmax_max(total_scores[title])
         max_score_position, max_score = (ag, m) if m > max_score else (max_score_position, max_score)
-        # if max(total_scores[title]) > max_score:
-        #     max_score = max(total_scores[title])
-        #     max_score_position = np.argmax(total_scores[title])
-
+        # add to the plot
         plot.plot([j for j in range(len(total_scores[title]))], total_scores[title], all_line_types[i].strip(), label=title)
     
     # make the axes labeled and whatnot
@@ -238,10 +240,12 @@ def plot_subsequence(subsequence_files, protein_names, subsequence_prefix, agg_f
     'start_index' in peptide_entry and plot.figtext(0.55, 0.94, 'peptide starting position in parent: {}'.format(peptide_entry['start_index']))
     plot.figtext(0.55, 0.92, 'maximum scoring position: {}'.format(max_score_position))
 
-    #show and save
+    #show and save data
     plot.savefig(saving_dir + subsequence_prefix)
     show_all and plot.show()
     plot.close()
+    write_json(saving_dir + subsequence_prefix, total_scores)
+    write_summary(saving_dir + subsequence_prefix, total_scores)
 
 '''score_vs_position
 

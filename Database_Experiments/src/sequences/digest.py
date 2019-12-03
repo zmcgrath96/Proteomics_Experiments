@@ -13,7 +13,8 @@ RETURNS:
         'peptide_sequence': string,
         'parent_name': string,
         'parent_sequence': string,
-        'start_index': int
+        'start_index': int, 
+        'end_index': int
     }
 '''
 def load_digest(digest_file):
@@ -24,7 +25,7 @@ def load_digest(digest_file):
                 continue
             l = line.split('\t')
             name = 'peptide_' + str(i-1)
-            entry = {'peptide_sequence': l[0], 'parent_name': l[1], 'parent_sequence': l[2], 'start_index': int(l[3])}
+            entry = {'peptide_sequence': l[0], 'parent_name': l[1], 'parent_sequence': l[2], 'start_index': int(l[3]), 'end_index': int(l[4])}
             digests[name] = entry 
     return digests
 
@@ -79,7 +80,7 @@ def __tryptic_digest(sequence, miss_prob):
             end += 1
         this_pep = sequence[start+1:end+1]
     
-    return this_pep, start + 1
+    return this_pep, sequence.index(this_pep)
 
 '''tryptic
 
@@ -109,18 +110,19 @@ def tryptic(sequences, number_digests, miss_prob=0, save_dir='./', save_name='di
 
     peptides = []
     o = open(save_dir + save_name, 'w')
-    form = '{}\t{}\t{}\t{}\n'
-    o.write(form.format('peptide', 'parent-name', 'parent-sequence', 'start-location'))
+    form = '{}\t{}\t{}\t{}\t{}\n'
+    o.write(form.format('peptide', 'parent-name', 'parent-sequence', 'start-location', 'end-location'))
 
     for digest in to_digest:
         seq = digest['sequence']
         name = digest['name']
         this_pep, start = __tryptic_digest(seq, miss_prob)
+        end = start + len(this_pep)
         #ensure that no peptide is shorter than the minimum length
         while len(this_pep) < min_length:
             this_pep, start = __tryptic_digest(seq, miss_prob)
 
         peptides.append(this_pep)
-        o.write(form.format(this_pep, name, seq, start))
+        o.write(form.format(this_pep, name, seq, start, end))
 
     return peptides

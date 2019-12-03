@@ -84,7 +84,7 @@ def main(args):
     score_output_files = score_peptides.score_peptides(spectra_files, fasta_databases, defaults['crux_cmd'], save_dir + '/crux_output')
     # filter and plot scores
     protein_names = [x['name'] for x in sequences['sample']['proteins']]
-    plot_experiment(experiment, score_output_files, protein_names, 'peptide', num_peptides, 'hybrid', agg_func=agg_func, show_all=show_all, saving_dir=save_dir, use_top_n=top_n, n=n, measure=m_func)
+    plot_experiment(experiment, score_output_files, protein_names, 'peptide', num_peptides, 'hybrid', sequences, agg_func=agg_func, show_all=show_all, saving_dir=save_dir, use_top_n=top_n, n=n, measure=m_func)
 
     print('Finished.')
     print('===================================')

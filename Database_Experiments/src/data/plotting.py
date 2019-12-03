@@ -4,10 +4,11 @@ import json
 import itertools
 import os
 import numpy as np
+from copy import deepcopy
 from sequences.digest import load_digest
 from utils import __get_related_files, __make_dir, __make_valid_dir_string
 from data.analysis import get_top_n, __get_argmax_max
-from data.write_output import write_json, write_summary
+from data.write_output import write_raw_json, write_summary
 
 ####################################################
 #               CONSTANTS
@@ -24,11 +25,30 @@ plot_markers = [
 ]
 all_line_types = [''.join(x) for x in list(itertools.product(plot_colors, plot_markers))]
 all_line_types.sort(key=lambda x: x[1])
+
 digests = None
+
 cwd = os.path.dirname(os.path.realpath(__file__))
 save_fig_count = 0
 save_fig_prefix = 'figure_{}'
 
+# experiment-json specific
+experiment_json_file_name = 'experiment_data'
+EXPERIMENT_ENTRY = 'experiment'
+EXPERIMENT_HEADER = 'header'
+EXPERIMENT_PROTEIN_HEADER = 'proteins'
+EXPERIMENT_PEPTIDE_HEADER = 'peptides'
+SAMPLE_ENTRY = 'sample'
+SAMPLE_PROTEINS = 'proteins'
+experiment_json = {
+    EXPERIMENT_HEADER: {
+        EXPERIMENT_PROTEIN_HEADER: None, 
+        EXPERIMENT_PEPTIDE_HEADER: []
+    }, 
+    EXPERIMENT_ENTRY: {
+
+    }
+}
 ####################################################
 #              END CONSTANTS
 ####################################################
@@ -115,7 +135,19 @@ def __get_peptide(peptide_name, saving_dir='./'):
     if not digests:
         file_name =  saving_dir + 'digestion.tsv'
         digests = load_digest(file_name)
+
     return digests[peptide_name] if peptide_name in digests else None
+
+'''__add_header_info
+DESC:
+    add all header info to the experiment json
+'''
+def __add_header_info(sequences, saving_dir='./'):
+    global digests
+    experiment_json[EXPERIMENT_HEADER][EXPERIMENT_PROTEIN_HEADER] = deepcopy(sequences[SAMPLE_ENTRY][SAMPLE_PROTEINS])
+    _ = __get_peptide('', saving_dir=saving_dir)
+    for key in digests:
+        experiment_json[EXPERIMENT_HEADER][EXPERIMENT_PEPTIDE_HEADER].append(deepcopy(digests[key]))
 
 '''__parse_output_name
 
@@ -146,7 +178,7 @@ OPTIONAL:
     show_graph: bool whether or not to show the graph
 '''
 def plot_subsequence_vs_protein(files, title='', save_dir='./', aggregate='sum', show_graph=False):
-    global save_fig_count, save_fig_prefix
+    global save_fig_count, save_fig_prefix, experiment_json
     if title is None or title == '':
         title = save_fig_prefix.format(save_fig_count)
         save_fig_count += 1
@@ -155,11 +187,26 @@ def plot_subsequence_vs_protein(files, title='', save_dir='./', aggregate='sum',
     save_dir = __make_valid_dir_string(save_dir)
     __make_dir(save_dir)
 
-    plot.figure(figsize=(10,7))
+    # dict to save all k-mer data for this subsequence
+    k_mers = {}
     total_score, all_scores = score_vs_position(files, aggregate=aggregate)
+
+    # save all k-mers to the experiment json
+    for lab, scores in all_scores.items():
+        this_k = str([int(j) for j in str(lab).replace('_', ' ').split() if j.isdigit()][0])
+        this_k_equal = 'k=' + this_k
+        k_mers[this_k_equal] = scores
+    experiment_json[EXPERIMENT_ENTRY][title] = k_mers
+
+    # if we have too many scores shorten it
+    if len(all_scores) > len(all_line_types) - 1:
+        total_score = get_top_n(total_score, n=(len(all_line_types)-1))
+    
+    #add each k-mer to the plot
+    plot.figure(figsize=(10,7))
     i = 0
     for lab, scores in all_scores.items():
-        this_label = str([int(i) for i in str(lab).replace('_', ' ').split() if i.isdigit()][0]) + '-mer'
+        this_label = str([int(j) for j in str(lab).replace('_', ' ').split() if j.isdigit()][0]) + '-mer'
         plot.plot([j for j in range(len(scores))], scores, all_line_types[i].strip(), label=this_label)
         i += 1
     plot.plot([j for j in range(len(total_score))], total_score, all_line_types[len(all_scores)], label='{} of scores'.format(aggregate))
@@ -174,7 +221,7 @@ def plot_subsequence_vs_protein(files, title='', save_dir='./', aggregate='sum',
     plot.savefig(save_dir + title)
     show_graph and plot.show()
     plot.close()
-    write_json(save_dir + title, total_score)
+    write_raw_json(save_dir + title, total_score)
     return total_score
 
 '''plot_subsequence
@@ -244,7 +291,7 @@ def plot_subsequence(subsequence_files, protein_names, subsequence_prefix, agg_f
     plot.savefig(saving_dir + subsequence_prefix)
     show_all and plot.show()
     plot.close()
-    write_json(saving_dir + subsequence_prefix, total_scores)
+    write_raw_json(saving_dir + subsequence_prefix, total_scores)
     write_summary(saving_dir + subsequence_prefix, total_scores)
 
 '''score_vs_position
@@ -298,10 +345,12 @@ RETURNS:
     None
 '''
 
-def plot_experiment(experiment, files, protein_names, subsequence_prefix, num_subsequences, hybrid_prefix, agg_func='sum', show_all=False, saving_dir='./', use_top_n=False, n=5, measure='average'):
+def plot_experiment(experiment, files, protein_names, subsequence_prefix, num_subsequences, hybrid_prefix, sequences, agg_func='sum', show_all=False, saving_dir='./', use_top_n=False, n=5, measure='average'):
+    global experiment_json_file_name, experiment_json
     #create the saving directory
     saving_dir = __make_valid_dir_string(saving_dir)
     __make_dir(saving_dir)
+    __add_header_info(sequences, saving_dir=saving_dir)
 
     if 'fractionated' in str(experiment).lower():
         pass
@@ -326,4 +375,5 @@ def plot_experiment(experiment, files, protein_names, subsequence_prefix, num_su
             __make_dir(pep_saving_dir)
             plot_subsequence(pep_related, protein_names, peptide_name, agg_func=agg_func, saving_dir=saving_dir, show_all=show_all, peptide_entry=peptide_entry, use_top_n=use_top_n, n=n, measure=measure)
 
+        write_raw_json(saving_dir + experiment_json_file_name, experiment_json)
         print('Finished')

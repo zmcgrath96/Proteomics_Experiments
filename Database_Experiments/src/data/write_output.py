@@ -36,12 +36,12 @@ def write_summary(file, data, title=''):
         for i in range(len(top_5)):
             line = '{}:\n {},\n {}\n'.format(i, top_5[i][1], top_5[i][0])
             o.write(line)
-        o.write(RAW_HEADER)
-    with open(file, 'a') as o:
-        json.dump(data, file)
+    #     o.write(RAW_HEADER)
+    # with open(file, 'a') as o:
+    #     json.dump(data, file)
         
             
-'''write_json
+'''write_raw_json
 
 DESC:
     save the score data in a json file in dictionary or list form
@@ -51,7 +51,7 @@ PARAMS:
 RETURNS:
     none
 '''
-def write_json(file, scores):
+def write_raw_json(file, scores):
     file = __make_valid_json_file(file)
     if not type(scores) == dict and not type(scores) == list:
         raise Exception('scores should be type dict or list. is {}'.format(type(scores)))

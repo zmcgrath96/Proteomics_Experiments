@@ -11,6 +11,7 @@ def __parse_db_name(db_name):
     return  str(db_name.split('/')[-1]).replace('.fasta', '')
 
 def score_peptides(spectra_files, database_files, path_to_crux_cmd, output_dir):
+    print('Scoring..')
     output_dir = output_dir + '/' if output_dir[-1] != '/' else output_dir
     # str_spectra_files = ' '.join(spectra_files)
     output_count = 0
@@ -30,8 +31,8 @@ def score_peptides(spectra_files, database_files, path_to_crux_cmd, output_dir):
                 'tide-search', 
                 spec_file, 
                 database_file, 
-                '--min-length', '3', 
-                '--min-mass', '100', 
+                '--min-length', '2', 
+                '--min-mass', '50', 
                 '--output-dir', this_output_dir, 
                 '--overwrite', 'T', 
                 '--min-peaks', '2', 

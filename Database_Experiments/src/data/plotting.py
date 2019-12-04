@@ -9,6 +9,7 @@ from utils import __get_related_files, __make_dir, __make_valid_dir_string
 from data.analysis import get_top_n, __get_argmax_max
 from data.write_output import write_raw_json, write_summary
 from data.score_utils import __align_scan_pos, __get_scores_scan_pos_label, __pad_scores
+from data.aggregations import __sum, __product, __z_score_sum
 
 ####################################################
 #               CONSTANTS
@@ -261,6 +262,9 @@ RETRUNS:
 def score_vs_position(files, aggregate='sum', search_substring=''):
     total_score = []
     all_scores = {}
+
+    agg = __product if 'product' in aggregate.lower() else (__z_score_sum if 'z_score_sum' in aggregate.lower() else __sum)
+
     for score_file in files:
         # get scores, scan numbers, and labels
         scores, _, _ = __get_scores_scan_pos_label(score_file, search_substring)
@@ -269,15 +273,8 @@ def score_vs_position(files, aggregate='sum', search_substring=''):
             continue
         this_label = __parse_output_name(score_file)
         all_scores[this_label] = scores
-        total_score, scores = __pad_scores(total_score, scores)
-        for j in range(len(scores)):
-            if aggregate == 'product' or 'product' in aggregate.lower():
-                if scores[j] <= 0:
-                    continue
-                total_score[j] *= scores[j]
-            else:
-                total_score[j] += scores[j]
 
+    total_score = agg(all_scores)
     return total_score, all_scores
 
 '''plot_experiment

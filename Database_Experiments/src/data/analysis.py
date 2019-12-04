@@ -25,29 +25,26 @@ RETURNS:
     list, val: the list and the index or key of the best score list
 '''
 def get_highest_scoring(scores, measure='average'):
-    func = average
-    if 'sum' in measure.lower():
-        func = sum 
-    elif 'max' in measure.lower():
-        func = max
+    func = sum if 'sum' in measure.lower() else (max if 'max' in measure.lower() else average)
     
-    l = [0]
+    l = None
     v = None
     if type(scores) is dict:
-        for key in scores:
-            if func(scores[key]) > func(l):
-                l = scores[key]
+        for key, score in scores.items():
+            if l is None:
+                l = score
                 v = key
-
-    elif type(scores) is list:
+            if func(score) > func(l):
+                l = score
+                v = key
+    else:
         for i, score in enumerate(scores):
+            if l is None:
+                l = score
+                v = i
             if func(score) > func(l):
                 l = score 
                 v = i
-    else:
-        l = []
-        v = 0
-
     return l, v
 
 '''get_top_n

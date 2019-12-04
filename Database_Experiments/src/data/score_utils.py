@@ -63,14 +63,16 @@ DESC:
 PARAMS:
     score_l1: list of floats for the first set of scores
     score_l2: list of floats for the second set of scores
+OPTIONAL:    
+    padding: float number to pad the list with. Default=0
 RETURNS:
     list, list of modified score_l1, modified score_l2
 '''
-def __pad_scores(score_l1, score_l2):
+def __pad_scores(score_l1, score_l2, padding=0):
     diff = len(score_l1) - len(score_l2)
     if diff == 0:
         return score_l1, score_l2
     elif diff > 0:
-        return score_l1, score_l2 + [0 for _ in range(diff)]
+        return score_l1, score_l2 + [padding for _ in range(abs(diff))]
     else:
-        return score_l1 + [1 for _ in range(abs(diff))], score_l2
+        return score_l1 + [padding for _ in range(abs(diff))], score_l2

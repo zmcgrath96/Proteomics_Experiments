@@ -40,6 +40,10 @@ EXPERIMENT_PROTEIN_HEADER = 'proteins'
 EXPERIMENT_PEPTIDE_HEADER = 'peptides'
 SAMPLE_ENTRY = 'sample'
 SAMPLE_PROTEINS = 'proteins'
+SAMPLE_HYBRID_ENTRY = 'hybrid'
+SAMPLE_HYBRID_SEQUENCE = 'sequence'
+SAMPLE_HYBRID_PARENT = 'full_parent'
+SAMPLE_HYBRID_INDICES = 'parent_indices'
 experiment_json = {
     EXPERIMENT_HEADER: {
         EXPERIMENT_PROTEIN_HEADER: None, 
@@ -98,7 +102,8 @@ def __align_scan_pos(scores, scan_nos):
     aligned_scores = [0 for _ in range(max(scan_nos) + 1)]
     aligned_scan_nos = [i for i in range(max(scan_nos) + 1)]
     for i, insert_index in enumerate(scan_nos):
-        aligned_scores[insert_index] = scores[i]
+        # NOTE: for the mzML files, the first scan starts at 1, not at 0 so minus 1
+        aligned_scores[insert_index-1] = scores[i]
 
     return aligned_scores, aligned_scan_nos
 
@@ -148,6 +153,16 @@ def __add_header_info(sequences, saving_dir='./'):
     _ = __get_peptide('', saving_dir=saving_dir)
     for key in digests:
         experiment_json[EXPERIMENT_HEADER][EXPERIMENT_PEPTIDE_HEADER].append(deepcopy(digests[key]))
+
+    hybrid_entry = sequences[SAMPLE_HYBRID_ENTRY]
+    experiment_json[EXPERIMENT_HEADER][EXPERIMENT_PEPTIDE_HEADER].append({
+        "peptide_name": "hybrid",
+        "peptide_sequence": hybrid_entry[SAMPLE_HYBRID_SEQUENCE], 
+        "parent_name": "hybrid_parent",
+        "parent_sequence": hybrid_entry[SAMPLE_HYBRID_PARENT],
+        "start_index": hybrid_entry[SAMPLE_HYBRID_INDICES]["start"],
+        "end_index": hybrid_entry[SAMPLE_HYBRID_INDICES]["end"]
+        })
 
 '''__parse_output_name
 
@@ -366,7 +381,10 @@ def plot_experiment(experiment, files, protein_names, subsequence_prefix, num_su
         hybrid_related = None 
 
         # do the rest
-        peptide_names = ['{}_{}'.format(subsequence_prefix, x) for x in range(num_subsequences)]
+        peptide_names = []
+        for x in range(num_subsequences):
+            num = str(x) if x > 9 else '0' + str(x)
+            peptide_names.append('{}_{}'.format(subsequence_prefix, num))
         for i, peptide_name in enumerate(peptide_names):
             print('Generating graphs for peptide sequences {}/{}[{}%]'.format(i+1, len(peptide_names), int(((i+1)/len(peptide_names)*100))))
             peptide_entry = __get_peptide(peptide_name, saving_dir=saving_dir)

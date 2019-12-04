@@ -30,7 +30,8 @@ def generate(args):
         seqs = sequences[peptide_index]
         output_name = 'peptide_{}'
         for i, seq in enumerate(seqs):
-            output_files.append(write_db.write_fasta(output_path, output_name.format(i), [seq], prefix))
+            num = str(i) if i > 9 else '0' + str(i)
+            output_files.append(write_db.write_fasta(output_path, output_name.format(num), [seq], prefix))
 
     return output_files
 

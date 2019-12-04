@@ -40,6 +40,7 @@ def main(args):
     show_all = args.show_all
     save_dir = args.save_dir
     min_length = args.min_length
+    max_length = args.max_length
     top_n = args.top_n
     n = args.n
     m_func = args.m_func
@@ -75,7 +76,7 @@ def main(args):
         END ARGUMENT SETUP
     '''
     # create peptides
-    peptides.gen_peptides(sequences, num_peptides, peptide_index=defaults['peptide_index'], min_length=min_length, save_dir=save_dir)
+    peptides.gen_peptides(sequences, num_peptides, peptide_index=defaults['peptide_index'], min_length=min_length, max_length=max_length, save_dir=save_dir)
     # create database files
     fasta_databases = gen_db.generate(db_args)
     # create spectrum files
@@ -84,7 +85,7 @@ def main(args):
     score_output_files = score_peptides.score_peptides(spectra_files, fasta_databases, defaults['crux_cmd'], save_dir + '/crux_output')
     # filter and plot scores
     protein_names = [x['name'] for x in sequences['sample']['proteins']]
-    plot_experiment(experiment, score_output_files, protein_names, 'peptide', num_peptides, 'hybrid', sequences, agg_func=agg_func, show_all=show_all, saving_dir=save_dir, use_top_n=top_n, n=n, measure=m_func)
+    plot_experiment(experiment, score_output_files, protein_names, 'peptide', num_peptides, 'hybrid_db', sequences, agg_func=agg_func, show_all=show_all, saving_dir=save_dir, use_top_n=top_n, n=n, measure=m_func)
 
     print('Finished.')
     print('===================================')
@@ -98,6 +99,7 @@ if __name__ == '__main__':
     parser.add_argument('--show-all-graphs', dest='show_all', type=bool, default=False, help='Show all the graphs generated. Will save to directory either way. Default=False.')
     parser.add_argument('--save-directory', dest='save_dir', type=str, default='./', help='Directory to save all figures. Default=./')
     parser.add_argument('--min-length', dest='min_length', type=int, default=3, help='Minimum length peptide to create. Default=3')
+    parser.add_argument('--max-length', dest='max_length', type=int, default=20, help='Maximum length peptide to create. Cuts from N terminus (left) side. Default=20')
     parser.add_argument('--top-n', dest='top_n', type=bool, default=False, help='When recording how well a peptide scores against a protein, only use the top n proteins. Default=False')
     parser.add_argument('--n', dest='n', type=int, default=5, help='n to use if using --top-n. Default=5')
     parser.add_argument('--measure-func', dest='m_func', type=str, default='average', help='Measuring function for determining the top n proteins. Options are: sum, average, max. Default=average')

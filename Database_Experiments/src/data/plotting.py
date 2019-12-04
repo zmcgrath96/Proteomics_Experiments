@@ -1,5 +1,4 @@
 from matplotlib import pyplot as plot 
-import pandas as pd
 import json
 import itertools
 import os
@@ -9,14 +8,11 @@ from sequences.digest import load_digest
 from utils import __get_related_files, __make_dir, __make_valid_dir_string
 from data.analysis import get_top_n, __get_argmax_max
 from data.write_output import write_raw_json, write_summary
+from data.score_utils import __align_scan_pos, __get_scores_scan_pos_label, __pad_scores
 
 ####################################################
 #               CONSTANTS
 ####################################################
-FILE_NAME_COL = 'file'
-SCORE_COL = 'xcorr score'
-SCAN_NO_COL = 'scan'
-
 plot_colors = [
     'r', 'b', 'g', 'y', 'k', 'c', 'm'
 ]
@@ -60,71 +56,6 @@ experiment_json = {
 ####################################################
 #               UTILITY FUNCTIONS
 ####################################################
-
-'''__get_scores_and_scan_pos
-
-DESC:
-    Extract the scores and the scan positions from the file
-PARAMS:
-    file: a string for the filepath to extract results from
-OPTIONAL:
-    search_substring: a string to search through filenames to limit the search. Defaults to empty
-RETUNS:
-    list, list: lists of the scores, scan numbers
-'''
-def __get_scores_scan_pos_label(file, search_substring=''):
-    try:
-        df = pd.read_csv(file, '\t', header=0)
-        df = df.sort_values(SCORE_COL, ascending=False)
-        df = df.drop_duplicates(subset=SCAN_NO_COL)
-        df = df.sort_values(SCAN_NO_COL)
-        df = df[df[FILE_NAME_COL].str.contains(search_substring)] if search_substring is not None and search_substring != '' else df
-
-        if not len(df[FILE_NAME_COL]) > 0:
-            return [], [], ''
-        aligned_scores, _ = __align_scan_pos(list(df[SCORE_COL]), list(df[SCAN_NO_COL]))
-        return aligned_scores, [], ''
-    except Exception:
-        print('could not open file: {}'.format(file))
-        return [], [], ''
-
-'''__align_scan_pos
-
-DESC:
-    Align scores list to the correspondeing position from the scan numbers
-PARAMS:
-    scores: list of floats of scores
-    scan_nos: list of ints of positions where the scores should go
-RETURNS:
-    list, list: aligned scores, aligned scan positions
-'''
-def __align_scan_pos(scores, scan_nos):
-    aligned_scores = [0 for _ in range(max(scan_nos) + 1)]
-    aligned_scan_nos = [i for i in range(max(scan_nos) + 1)]
-    for i, insert_index in enumerate(scan_nos):
-        # NOTE: for the mzML files, the first scan starts at 1, not at 0 so minus 1
-        aligned_scores[insert_index-1] = scores[i]
-
-    return aligned_scores, aligned_scan_nos
-
-'''__pad_scores
-
-DESC:
-    Makes two lists the same length (filled with 0s)
-PARAMS:
-    score_l1: list of floats for the first set of scores
-    score_l2: list of floats for the second set of scores
-RETURNS:
-    list, list of modified score_l1, modified score_l2
-'''
-def __pad_scores(score_l1, score_l2):
-    diff = len(score_l1) - len(score_l2)
-    if diff == 0:
-        return score_l1, score_l2
-    elif diff > 0:
-        return score_l1, score_l2 + [0 for _ in range(diff)]
-    else:
-        return score_l1 + [1 for _ in range(abs(diff))], score_l2
 
 '''__get_peptide
 DESC:
@@ -204,6 +135,8 @@ def plot_subsequence_vs_protein(files, title='', save_dir='./', aggregate='sum',
 
     # dict to save all k-mer data for this subsequence
     k_mers = {}
+
+    # get total aggregate of protein k-mer scores and each k-mer score in all_scores
     total_score, all_scores = score_vs_position(files, aggregate=aggregate)
 
     # save all k-mers to the experiment json
@@ -213,7 +146,7 @@ def plot_subsequence_vs_protein(files, title='', save_dir='./', aggregate='sum',
         k_mers[this_k_equal] = scores
     experiment_json[EXPERIMENT_ENTRY][title] = k_mers
 
-    # if we have too many scores shorten it
+    # if we have too many scores to plot, shorten it
     if len(all_scores) > len(all_line_types) - 1:
         total_score = get_top_n(total_score, n=(len(all_line_types)-1))
     
@@ -265,17 +198,21 @@ RETURNS:
 def plot_subsequence(subsequence_files, protein_names, subsequence_prefix, agg_func='sum', saving_dir='./', show_all=False, peptide_entry={}, use_top_n=False, n=5, measure='average'):
     saving_dir = __make_valid_dir_string(saving_dir) + subsequence_prefix + '/'
     __make_dir(saving_dir)
+
+    # dict to save all the aggregate scores for each protein against the current subsequence
     total_scores = {}
     max_score_position = 0
     max_score = 0
     for protein_name in protein_names:
-        prot_with_subsequenc = __get_related_files(subsequence_files, protein_name)
-        total_scores[protein_name] = plot_subsequence_vs_protein(prot_with_subsequenc, title='{} vs {}'.format(subsequence_prefix, protein_name), aggregate=agg_func, save_dir=saving_dir + '{}_{}/'.format(subsequence_prefix, protein_name), show_graph=show_all)
+        prot_with_subsequence = __get_related_files(subsequence_files, protein_name)
+        total_scores[protein_name] = plot_subsequence_vs_protein(prot_with_subsequence, title='{} vs {}'.format(subsequence_prefix, protein_name), aggregate=agg_func, save_dir=saving_dir + '{}_{}/'.format(subsequence_prefix, protein_name), show_graph=show_all)
     plot.figure(figsize=(10,7))
 
     # issue with running out of line types to use
     too_long = len(total_scores) > len(all_line_types)
     total_scores = get_top_n(total_scores, n=len(total_scores), measure=measure) if too_long else total_scores
+    n = n if n < len(total_scores) else len(total_scores)
+
     # only use the top n number of scores if specified
     if use_top_n:
         t = get_top_n(total_scores, n=n, measure=measure) 
@@ -283,9 +220,11 @@ def plot_subsequence(subsequence_files, protein_names, subsequence_prefix, agg_f
         for entry in t:
             total_scores[entry[1]] = entry[0]
 
+    # add each protein's aggregate score to the plot
     for i, title in enumerate(total_scores):
-        ag, m = __get_argmax_max(total_scores[title])
-        max_score_position, max_score = (ag, m) if m > max_score else (max_score_position, max_score)
+        # keep track of 1) the highest scoreing position 2) the highest score
+        argmax, m = __get_argmax_max(total_scores[title])
+        max_score_position, max_score = (argmax, m) if m > max_score else (max_score_position, max_score)
         # add to the plot
         plot.plot([j for j in range(len(total_scores[title]))], total_scores[title], all_line_types[i].strip(), label=title)
     
@@ -312,7 +251,7 @@ def plot_subsequence(subsequence_files, protein_names, subsequence_prefix, agg_f
 '''score_vs_position
 
 DESC:
-    Plot the peptide score vs position in the sequnce
+    put the scores in the correct x coordinate from the output file
 PARAMS:
     files -- list of strings to crux output files
 RETRUNS:
@@ -359,7 +298,6 @@ OPTIONAL:
 RETURNS: 
     None
 '''
-
 def plot_experiment(experiment, files, protein_names, subsequence_prefix, num_subsequences, hybrid_prefix, sequences, agg_func='sum', show_all=False, saving_dir='./', use_top_n=False, n=5, measure='average'):
     global experiment_json_file_name, experiment_json
     #create the saving directory

@@ -6,6 +6,7 @@ from spectra import gen_spectra_files
 from scoring import score_peptides
 from sequences import peptides
 from data.plotting import plot_experiment
+from data.save_experiment import save
 
 ''' old hybrid "sequence": "ALYLVCGELYTSRV", 
     second hybid: GFFYTPKEANIR
@@ -82,10 +83,16 @@ def main(args):
     # create spectrum files
     spectra_files = gen_spectra_files.generate(spectra_args)
     # run scoring algorithm on database and k-mers
+    print('Scoring...')
     score_output_files = score_peptides.score_peptides(spectra_files, fasta_databases, defaults['crux_cmd'], save_dir + '/crux_output')
-    # filter and plot scores
+    print('Done.')
+    # save scores to json
     protein_names = [x['name'] for x in sequences['sample']['proteins']]
-    plot_experiment(experiment, score_output_files, protein_names, 'peptide', num_peptides, 'hybrid_db', sequences, agg_func=agg_func, show_all=show_all, saving_dir=save_dir, use_top_n=top_n, n=n, measure=m_func)
+    print('Saving experiment...')
+    exp_json_path = save(experiment, score_output_files, protein_names, 'peptide', num_peptides, 'hybrid_db', sequences, saving_dir=save_dir)
+    print('Done.')
+    # load the experiment and plot it
+    plot_experiment(experiment, exp_json_path, agg_func=agg_func, show_all=show_all, saving_dir=save_dir, use_top_n=top_n, n=n, measure=m_func)
 
     print('Finished.')
     print('===================================')

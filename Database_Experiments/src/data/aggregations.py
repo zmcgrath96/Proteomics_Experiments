@@ -39,13 +39,13 @@ def __product(all_scores):
             score_prod, score = __pad_scores(score_prod, score, padding=1)
             for i in range(len(score_prod)):
                 if score[i] > 0:
-                    score_prod *= score
+                    score_prod[i] *= score[i]
     else:
         for score in all_scores:
             score_prod, score = __pad_scores(score_prod, score, padding=1)
             for i in range(len(score_prod)):
                 if score[i] > 0:
-                    score_prod *= score
+                    score_prod[i] *= score[i]
 
     return list(score_prod)
 

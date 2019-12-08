@@ -56,8 +56,15 @@ OPTIONAL:
     title: string to label this plot. Also saving name for the plot. Default=''
     save_dir: string name of directory to save all output under. Default =./
     show_graph: bool whether or not to show the graph. Default=False
+    peaks: list of dictionaries of the form
+            [{
+                'protein_name': str,
+                'position': int,
+                'score': float
+            }]
+            these are the points of interest to mark
 '''
-def __plot_subsequence(aggs, title='', save_dir='./', show_graph=False, agg_func='sum'):
+def __plot_subsequence(aggs, title='', save_dir='./', show_graph=False, agg_func='sum', peaks=None):
     save_dir = __make_valid_dir_string(save_dir)
     __make_dir(save_dir)
 
@@ -70,6 +77,10 @@ def __plot_subsequence(aggs, title='', save_dir='./', show_graph=False, agg_func
         plt.plot([j for j in range(len(score))], score, all_line_types[i].strip(), label=str(agg))
         i += 1
     
+    if peaks is not None and type(peaks[0]) is dict:
+        label_peaks_pos = [x['position'] for x in peaks]
+        label_peaks_h = [x['score'] for x in peaks]
+        plt.plot(label_peaks_pos, label_peaks_h, 'ox')
     plt.xlabel('subsequence start position')
     plt.ylabel('{} of k-mer scores'.format(agg_func))
     plt.legend()
@@ -157,9 +168,11 @@ def plot_experiment(experiment, experiment_json_file, agg_func='sum', show_all=F
             agg_scores[peptide] = {}
             __make_dir(pep_saving_dir)
             for prot, k_mers in prots.items():
+                if prot == 'predicted_parents':
+                    continue
                 plot_title = '{} vs {}'.format(peptide, prot)
                 pep_prot_saving_dir = __make_valid_dir_string(pep_saving_dir + prot)
                 __make_dir(pep_prot_saving_dir)
                 agg_scores[prot] = __plot_subsequence_vs_protein(k_mers, title=plot_title, save_dir=pep_prot_saving_dir, aggregate=agg_func, show_graph=show_all)
-            __plot_subsequence(agg_scores, title=str(peptide), save_dir=pep_saving_dir, show_graph=show_all, agg_func=agg_func)
+            __plot_subsequence(agg_scores, title=str(peptide), save_dir=pep_saving_dir, show_graph=show_all, agg_func=agg_func, peaks=prots['predicted_parents'])
         print('Finished')

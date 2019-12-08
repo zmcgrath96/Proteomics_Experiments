@@ -6,7 +6,7 @@ from spectra import gen_spectra_files
 from scoring import score_peptides
 from sequences import peptides
 from data.plotting import plot_experiment
-from data.save_experiment import save
+from data.analyze_experiment import analyze
 
 ''' old hybrid "sequence": "ALYLVCGELYTSRV", 
     second hybid: GFFYTPKEANIR
@@ -89,7 +89,7 @@ def main(args):
     # save scores to json
     protein_names = [x['name'] for x in sequences['sample']['proteins']]
     print('Saving experiment...')
-    exp_json_path = save(experiment, score_output_files, protein_names, 'peptide', num_peptides, 'hybrid_db', sequences, saving_dir=save_dir)
+    exp_json_path = analyze(experiment, score_output_files, protein_names, 'peptide', num_peptides, 'hybrid_db', sequences, saving_dir=save_dir, predicting_agg_func=agg_func)
     print('Done.')
     # load the experiment and plot it
     plot_experiment(experiment, exp_json_path, agg_func=agg_func, show_all=show_all, saving_dir=save_dir, use_top_n=top_n, n=n, measure=m_func)

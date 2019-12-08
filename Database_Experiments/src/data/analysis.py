@@ -1,5 +1,6 @@
-from numpy import argmax, average
+from numpy import argmax, average, argsort
 from math import inf
+from scipy.signal import find_peaks
 
 '''__get_argmax_max
 
@@ -70,4 +71,52 @@ def get_top_n(scores, measure='average', n=5):
         del scores[v]
     
     return top_n
+
+'''__find_top_n_peaks
+
+DESC: 
+    finds the top n peaks of a signal 
+PARAMS:
+    signal: a list of floats 
+OPTIONAL: 
+    n: top number of peaks to find. Default=5
+    height: float lowest number to consider for peaks
+RETURNS:
+    list of ints. These are the positions of the top peaks
+'''
+def __find_top_n_peaks(signal, n=5, height=0):
+    peaks, _ = find_peaks(signal, height=height)
+    # returns indices that would sort it lowest to hightest
+    peak_w_values = [(x, signal[x]) for x in peaks]
+    peak_w_values.sort(key = lambda x: x[1])
+    top_n = peak_w_values[-n:]
+    top_n_indx = [x[0] for x in top_n]
+    return top_n_indx 
         
+'''get_top_n_prots
+
+DESC:
+    find the top n scoring proteins
+    May return 5 of the same protein or mixture
+PARAMS:
+    prots: dictionary of scores. Keys should be the name of the proteins
+OPTIONAL:
+    n: number of top scores to find. Default=5
+RETURNS:
+    List of dictionaries of the form:
+        [{protein_name:str, score: float, position: int}]
+    In order by score
+'''
+def get_top_n_prots(prots, n=5):
+    if type(prots) is not dict:
+        raise Exception('prots should be a dictionary. Type is {}'.format(type(prots)))
+    
+    top_n_each = []
+    for prot_name, score in prots.items():
+        top_n = __find_top_n_peaks(score)
+        top_n_each += [{'protein_name': prot_name, 'score': score[i], 'position': int(i)} for i in top_n]
+
+    top_n_each.sort(key = lambda x: x['score'])
+    top_n_tot = top_n_each[-n:]
+    top_n_tot.reverse()
+    return top_n_tot

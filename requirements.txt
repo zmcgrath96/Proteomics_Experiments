@@ -3,3 +3,4 @@ pyteomics
 matplotlib
 pandas
 numpy
+scipy

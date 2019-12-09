@@ -1,6 +1,6 @@
 import json
 from utils import __make_valid_text_file, __make_valid_json_file
-from data import analysis
+from analysis import analysis_utils
 
 SUMMARY_HEADER = '''
 ###############################################

@@ -1,4 +1,4 @@
-from data.score_utils import __pad_scores
+from analysis.score_utils import __pad_scores
 import numpy as np
 
 '''__sum

@@ -6,10 +6,10 @@ import numpy as np
 from copy import deepcopy
 from sequences.digest import load_digest
 from utils import __get_related_files, __make_dir, __make_valid_dir_string
-from data.analysis import get_top_n, __get_argmax_max
-from data.write_output import write_raw_json, write_summary
-from data.score_utils import __align_scan_pos, __get_scores_scan_pos_label, __pad_scores
-from data.aggregations import __sum, __product, __z_score_sum
+from analysis.analysis_utils import get_top_n, __get_argmax_max
+from analysis.write_output import write_raw_json, write_summary
+from analysis.score_utils import __align_scan_pos, __get_scores_scan_pos_label, __pad_scores
+from analysis.aggregations import __sum, __product, __z_score_sum
 
 ####################################################
 #               CONSTANTS

@@ -1,10 +1,10 @@
 from copy import deepcopy
 import utils
 from sequences.digest import load_digest
-from data.write_output import write_raw_json
-from data import score_utils
-from data.aggregations import __z_score_sum, __sum, __product
-from data.analysis import get_top_n_prots
+from analysis.write_output import write_raw_json
+from analysis import score_utils
+from analysis.aggregations import __z_score_sum, __sum, __product
+from analysis.analysis_utils import get_top_n_prots
 import utils
 
 #######################################################

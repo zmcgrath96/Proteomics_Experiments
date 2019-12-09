@@ -5,8 +5,8 @@ from database import gen_db
 from spectra import gen_spectra_files
 from scoring import score_peptides
 from sequences import peptides
-from data.plotting import plot_experiment
-from data.analyze_experiment import analyze
+from analysis.plotting import plot_experiment
+from analysis.analyze_experiment import analyze
 from utils import __file_exists
 
 ''' old hybrid "sequence": "ALYLVCGELYTSRV", 
@@ -109,7 +109,7 @@ if __name__ == '__main__':
     parser.add_argument('--num-peptides', dest='num_peptides', type=int, default=49, help='Number of peptides to generate as the fake sample. Default=49')
     parser.add_argument('--aggregate-function', dest='agg_func', type=str, default='sum', help='Which aggregation function to use for combining k-mer scores. Pick either sum or product. Default=sum')
     parser.add_argument('--show-all-graphs', dest='show_all', type=bool, default=False, help='Show all the graphs generated. Will save to directory either way. Default=False.')
-    parser.add_argument('--save-directory', dest='save_dir', type=str, default='./', help='Directory to save all figures. Default=./')
+    parser.add_argument('--output-dir', dest='save_dir', type=str, default='./', help='Directory to save all figures. Default=./')
     parser.add_argument('--min-length', dest='min_length', type=int, default=3, help='Minimum length peptide to create. Default=3')
     parser.add_argument('--max-length', dest='max_length', type=int, default=20, help='Maximum length peptide to create. Cuts from N terminus (left) side. Default=20')
     parser.add_argument('--top-n', dest='top_n', type=bool, default=False, help='When recording how well a peptide scores against a protein, only use the top n proteins. Default=False')

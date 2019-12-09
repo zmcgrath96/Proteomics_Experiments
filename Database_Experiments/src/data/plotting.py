@@ -80,7 +80,7 @@ def __plot_subsequence(aggs, title='', save_dir='./', show_graph=False, agg_func
     if peaks is not None and type(peaks[0]) is dict:
         label_peaks_pos = [x['position'] for x in peaks]
         label_peaks_h = [x['score'] for x in peaks]
-        plt.plot(label_peaks_pos, label_peaks_h, 'ox')
+        plt.plot(label_peaks_pos, label_peaks_h, 'x')
     plt.xlabel('subsequence start position')
     plt.ylabel('{} of k-mer scores'.format(agg_func))
     plt.legend()

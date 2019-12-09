@@ -6,7 +6,7 @@ def write_fasta(output_path, output_name, sequences, prefix):
 
     output_path = __make_valid_dir_string(output_path)
     __make_dir(output_path)
-    output_file = output_path + '/' + output_name
+    output_file = output_path + output_name
     count = 0
     with open(output_file, 'w') as o:
         for sequence in sequences:

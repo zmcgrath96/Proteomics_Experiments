@@ -7,6 +7,7 @@ from scoring import score_peptides
 from sequences import peptides
 from data.plotting import plot_experiment
 from data.analyze_experiment import analyze
+from utils import __file_exists
 
 ''' old hybrid "sequence": "ALYLVCGELYTSRV", 
     second hybid: GFFYTPKEANIR
@@ -46,6 +47,7 @@ def main(args):
     n = args.n
     m_func = args.m_func
     test_seq = args.test_seq
+    old_digest = args.d_file 
     '''
         SETUP ARGUMENTS FOR EACH STEP
     '''
@@ -77,7 +79,10 @@ def main(args):
         END ARGUMENT SETUP
     '''
     # create peptides
-    peptides.gen_peptides(sequences, num_peptides, peptide_index=defaults['peptide_index'], min_length=min_length, max_length=max_length, save_dir=save_dir)
+    if not old_digest or old_digest == '' or not __file_exists(old_digest):
+        peptides.gen_peptides(sequences, num_peptides, peptide_index=defaults['peptide_index'], min_length=min_length, max_length=max_length, save_dir=save_dir)
+    else:
+        peptides.load_peptides(sequences, old_digest, peptide_index=defaults['peptide_index']) 
     # create database files
     fasta_databases = gen_db.generate(db_args)
     # create spectrum files
@@ -89,7 +94,7 @@ def main(args):
     # save scores to json
     protein_names = [x['name'] for x in sequences['sample']['proteins']]
     print('Saving experiment...')
-    exp_json_path = analyze(experiment, score_output_files, protein_names, 'peptide', num_peptides, 'hybrid_db', sequences, saving_dir=save_dir, predicting_agg_func=agg_func)
+    exp_json_path = analyze(experiment, score_output_files, protein_names, 'peptide', num_peptides, 'hybrid_db', sequences, saving_dir=save_dir, predicting_agg_func=agg_func, digestion_file=old_digest)
     print('Done.')
     # load the experiment and plot it
     plot_experiment(experiment, exp_json_path, agg_func=agg_func, show_all=show_all, saving_dir=save_dir, use_top_n=top_n, n=n, measure=m_func)
@@ -111,6 +116,7 @@ if __name__ == '__main__':
     parser.add_argument('--n', dest='n', type=int, default=5, help='n to use if using --top-n. Default=5')
     parser.add_argument('--measure-func', dest='m_func', type=str, default='average', help='Measuring function for determining the top n proteins. Options are: sum, average, max. Default=average')
     parser.add_argument('--test-seq', dest='test_seq', type=bool, default=False, help='FOR TESTING ON SMALLER SEQUENCES. DEFAULT=False')
+    parser.add_argument('--digestion-file', dest='d_file', type=str, default='', help='Digestion from a past experiment. Default=None')
     args = parser.parse_args()
     main(args)
     

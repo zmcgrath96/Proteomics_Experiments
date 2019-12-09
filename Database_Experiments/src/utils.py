@@ -70,3 +70,15 @@ def __make_valid_json_file(file_name):
     d = '/'.join(file_name.split('/')[:-1])
     __make_dir(d)
     return file_name
+
+'''__file_exists
+
+DESC:
+    find out if a file exists
+PARAMS:
+    file_name: string name of the file to check for
+RETURNS:
+    bool true if file exists false otherwise
+'''
+def __file_exists(file_name):
+    return os.path.isfile(file_name)

@@ -5,6 +5,7 @@ from data.write_output import write_raw_json
 from data import score_utils
 from data.aggregations import __z_score_sum, __sum, __product
 from data.analysis import get_top_n_prots
+import utils
 
 #######################################################
 #                   CONSTANTS
@@ -67,11 +68,14 @@ PARAMS:
 RETURNS:
     dictionary entry if it exists else None
 '''
-def __get_peptide(peptide_name, saving_dir='./'):
+def __get_peptide(peptide_name, saving_dir='./', digestion_file = None):
     global digests
     saving_dir = utils.__make_valid_dir_string(saving_dir)
     if not digests:
-        file_name =  saving_dir + 'digestion.tsv'
+        file_name = digestion_file
+        if file_name is None or file_name == '' or not utils.__file_exists(file_name):
+            file_name =  saving_dir + 'digestion.tsv'
+
         digests = load_digest(file_name)
 
     return digests[peptide_name] if peptide_name in digests else None
@@ -80,10 +84,10 @@ def __get_peptide(peptide_name, saving_dir='./'):
 DESC:
     add all header info to the experiment json
 '''
-def __add_header_info(sequences, saving_dir='./'):
+def __add_header_info(sequences, saving_dir='./', digestion_file=None):
     global digests
     experiment_json[EXPERIMENT_HEADER][EXPERIMENT_PROTEIN_HEADER] = deepcopy(sequences[SAMPLE_ENTRY][SAMPLE_PROTEINS])
-    _ = __get_peptide('', saving_dir=saving_dir)
+    _ = __get_peptide('', saving_dir=saving_dir, digestion_file=digestion_file)
     for key in digests:
         experiment_json[EXPERIMENT_HEADER][EXPERIMENT_PEPTIDE_HEADER].append(deepcopy(digests[key]))
 
@@ -149,12 +153,12 @@ PARAMS:
 RETURNS:
     Path to the experiment json
 '''
-def analyze(experiment, files, protein_names, subsequence_prefix, num_subsequences, hybrid_prefix, sequences, predicting_agg_func='sum', saving_dir='/'):
+def analyze(experiment, files, protein_names, subsequence_prefix, num_subsequences, hybrid_prefix, sequences, predicting_agg_func='sum', saving_dir='/', digestion_file=None):
     global experiment_json_file_name, experiment_json
     #create the saving directory
     saving_dir = utils.__make_valid_dir_string(saving_dir)
     utils.__make_dir(saving_dir)
-    __add_header_info(sequences, saving_dir=saving_dir)
+    __add_header_info(sequences, saving_dir=saving_dir, digestion_file=digestion_file)
 
     # do everything for the hybrid sequence first
     hybrid_related = utils.__get_related_files(files, hybrid_prefix)

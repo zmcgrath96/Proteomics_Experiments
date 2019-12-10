@@ -1,7 +1,7 @@
 import argparse 
 import json
 from spectra import gen_spectra, write_spectra
-from database import gen_sequences
+from sequence_generation.gen_k_mers import k_mers
 
 
 def generate(args):

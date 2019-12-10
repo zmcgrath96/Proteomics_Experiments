@@ -1,4 +1,4 @@
-def gen_sequences(original_sequence, window_size):
+def k_mers(original_sequence, window_size):
     seqs = []
     if window_size > len(original_sequence):
         seqs = [original_sequence]

@@ -1,7 +1,7 @@
 import os
 import argparse
 import json
-from database import gen_db
+import database
 from spectra import gen_spectra_files
 from scoring import score_peptides
 from sequence_generation import peptides
@@ -48,6 +48,7 @@ def main(args):
     n = args.n
     m_func = args.m_func
     old_digest = args.d_file 
+    mix = args.mix
     '''
         SETUP ARGUMENTS FOR EACH STEP
     '''
@@ -82,9 +83,14 @@ def main(args):
     # create hybrids
     hyb_peps, hyb_prots = generate_hybrids.generate_hybrids(hyb_pep_file=hyb_pep, hyb_prot_file=hyb_prot, prots=prots, num_gen=num_hybs, min_length=min_length, max_length=max_length, save_dir=save_dir)
 
+    # combine them for later use
+    all_proteins = prots + [{'name': x['name'] , 'sequence': x['hybrid_protein']} for x in hyb_prots]
+    all_peptides = [{'name': x['peptide_name'], 'sequence': x['peptide_sequence']} for x in non_hybrid_peps] + [{'name': x['hybrid_peptide_name'], 'sequence': x['hybrid_peptide_sequence']} for x in hyb_peps]
+
     # create database files
-    # NOTE: BROKEN FROM HERE ON FOR NOW
-    fasta_databases = gen_db.generate(db_args)
+    fasta_databases = database.generate(all_peptides, save_dir=save_dir)
+    
+    # NOTE: BROKEN UP TO HERE
     # create spectrum files
     spectra_files = gen_spectra_files.generate(spectra_args)
     # run scoring algorithm on database and k-mers
@@ -119,6 +125,7 @@ if __name__ == '__main__':
     parser.add_argument('--n', dest='n', type=int, default=5, help='n to use if using --top-n. Default=5')
     parser.add_argument('--measure-func', dest='m_func', type=str, default='average', help='Measuring function for determining the top n proteins. Options are: sum, average, max. Default=average')
     parser.add_argument('--peptide-file', dest='d_file', type=str, default='', help='Peptides from a past experiment. Default=None')
+    parser.add_argument('--mix-prots', dest='mix', type=bool, default=False, help='Whether or not to also use huybrid proteins when calculating scores. Default=False')
     args = parser.parse_args()
     main(args)
     

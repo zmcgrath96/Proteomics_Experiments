@@ -127,7 +127,7 @@ def tryptic(sequences, number_digests, peptide_prefix='peptide_', miss_prob=0, s
     for digest in to_digest:
         seq = digest['sequence']
         name = digest['name']
-        pep_name = peptide_prefix + str(digest).zfill(ceil(number_digests/10))
+        pep_name = peptide_prefix + str(digest_count).zfill(ceil(number_digests/10))
         this_pep, start = __tryptic_digest(seq, miss_prob)
         end = start + len(this_pep)
         #ensure that no peptide is shorter than the minimum length

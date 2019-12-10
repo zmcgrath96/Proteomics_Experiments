@@ -4,7 +4,7 @@ import itertools
 import os
 import numpy as np
 from copy import deepcopy
-from sequences.digest import load_digest
+from sequence_generation.digest import load_digest
 from utils import __get_related_files, __make_dir, __make_valid_dir_string
 from analysis.analysis_utils import get_top_n, __get_argmax_max
 from analysis.write_output import write_raw_json, write_summary
@@ -159,7 +159,7 @@ OPTIONAL:
 RETURNS: 
     None
 '''
-def plot_experiment(experiment, experiment_json_file, agg_func='sum', show_all=False, saving_dir='./', use_top_n=False, n=5, measure='average'):
+def plot_experiment(experiment_json_file, agg_func='sum', show_all=False, saving_dir='./', use_top_n=False, n=5, measure='average'):
     #create the saving directory
     saving_dir = __make_valid_dir_string(saving_dir)
     __make_dir(saving_dir)
@@ -167,28 +167,24 @@ def plot_experiment(experiment, experiment_json_file, agg_func='sum', show_all=F
     with open(experiment_json_file, 'r') as exp_file:
         exp = json.load(exp_file)
 
-    if 'fractionated' in str(experiment).lower():
-        pass
-
-    else:
-        print('\nGenerating plots...')
-        header_peps = exp[json_header][json_header_peps]
-        for peptide, prots in exp[json_exp].items():
-            # generate plots for all the proteins against the peptide
-            agg_scores = {}
-            pep_saving_dir = __make_valid_dir_string(saving_dir + peptide)
-            __make_dir(pep_saving_dir)
-            for prot, k_mers in prots.items():
-                if prot == 'predicted_parents':
-                    continue
-                plot_title = '{} vs {}'.format(peptide, prot)
-                pep_prot_saving_dir = __make_valid_dir_string(pep_saving_dir + prot)
-                __make_dir(pep_prot_saving_dir)
-                agg_scores[prot] = __plot_subsequence_vs_protein(k_mers, title=plot_title, save_dir=pep_prot_saving_dir, aggregate=agg_func, show_graph=show_all)
-            info = None
-            for pep in header_peps:
-                if pep['peptide_name'] == peptide:
-                    info = pep 
-                    break
-            __plot_subsequence(agg_scores, title=str(peptide), save_dir=pep_saving_dir, show_graph=show_all, agg_func=agg_func, peaks=prots['predicted_parents'], sequence_info=info)
-        print('Finished')
+    print('\nGenerating plots...')
+    header_peps = exp[json_header][json_header_peps]
+    for peptide, prots in exp[json_exp].items():
+        # generate plots for all the proteins against the peptide
+        agg_scores = {}
+        pep_saving_dir = __make_valid_dir_string(saving_dir + peptide)
+        __make_dir(pep_saving_dir)
+        for prot, k_mers in prots.items():
+            if prot == 'predicted_parents':
+                continue
+            plot_title = '{} vs {}'.format(peptide, prot)
+            pep_prot_saving_dir = __make_valid_dir_string(pep_saving_dir + prot)
+            __make_dir(pep_prot_saving_dir)
+            agg_scores[prot] = __plot_subsequence_vs_protein(k_mers, title=plot_title, save_dir=pep_prot_saving_dir, aggregate=agg_func, show_graph=show_all)
+        info = None
+        for pep in header_peps:
+            if pep['peptide_name'] == peptide:
+                info = pep 
+                break
+        __plot_subsequence(agg_scores, title=str(peptide), save_dir=pep_saving_dir, show_graph=show_all, agg_func=agg_func, peaks=prots['predicted_parents'], sequence_info=info)
+    print('Finished')

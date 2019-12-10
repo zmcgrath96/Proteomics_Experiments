@@ -1,6 +1,6 @@
 from copy import deepcopy
 import utils
-from sequences.digest import load_digest
+from sequence_generation.digest import load_digest
 from analysis.write_output import write_raw_json
 from analysis import score_utils
 from analysis.aggregations import __z_score_sum, __sum, __product
@@ -153,7 +153,7 @@ PARAMS:
 RETURNS:
     Path to the experiment json
 '''
-def analyze(experiment, files, protein_names, subsequence_prefix, num_subsequences, hybrid_prefix, sequences, predicting_agg_func='sum', saving_dir='/', digestion_file=None):
+def analyze(files, protein_names, subsequence_prefix, num_subsequences, hybrid_prefix, sequences, predicting_agg_func='sum', saving_dir='/', digestion_file=None):
     global experiment_json_file_name, experiment_json
     #create the saving directory
     saving_dir = utils.__make_valid_dir_string(saving_dir)

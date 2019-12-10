@@ -4,7 +4,7 @@ import json
 from database import gen_db
 from spectra import gen_spectra_files
 from scoring import score_peptides
-from sequences import peptides
+from sequence_generation import peptides
 from analysis.plotting import plot_experiment
 from analysis.analyze_experiment import analyze
 from utils import __file_exists
@@ -32,7 +32,6 @@ def main(args):
     5. Score all the k-mers against all the peptides
     6. Perform analysis on these scores
     '''
-    experiment = 'fractionated' if 'fractionated' in str(args.experiment).lower() else 'flipped'
     num_peptides = args.num_peptides
     agg_func = args.agg_func
     show_all = args.show_all
@@ -54,20 +53,18 @@ def main(args):
         sequences = json.load(seqfile)
     
     db_args = {
-        'experiment': experiment, 
-        'path': cwd + '/' + defaults['save_dirs'][experiment], 
-        'name': defaults['database_names'][experiment], 
+        'path': cwd + '/' + defaults['save_dirs'], 
+        'name': defaults['database_names'], 
         'window_sizes': defaults['window_sizes'], 
-        'prefix': defaults['database_name_prefix'][experiment], 
+        'prefix': defaults['database_name_prefix'], 
         'sequences_dict': sequences, 
         'peptide_index': defaults['peptide_index']
         } 
     spectra_args = {
-        'experiment': experiment, 
-        'path': cwd + '/' + defaults['save_dirs'][experiment], 
-        'name': defaults['spectra_names'][experiment], 
+        'path': cwd + '/' + defaults['save_dirs'], 
+        'name': defaults['spectra_names'], 
         'window_sizes': defaults['window_sizes'], 
-        'title_prefix': defaults['spectrum_title_prefix'][experiment],
+        'title_prefix': defaults['spectrum_title_prefix'],
         'sequences_dict': sequences,
         'peptide_index': defaults['peptide_index']
         } 
@@ -90,10 +87,10 @@ def main(args):
     # save scores to json
     protein_names = [x['name'] for x in sequences['sample']['proteins']]
     print('Saving experiment...')
-    exp_json_path = analyze(experiment, score_output_files, protein_names, 'peptide', num_peptides, 'hybrid_db', sequences, saving_dir=save_dir, predicting_agg_func=agg_func, digestion_file=old_digest)
+    exp_json_path = analyze(score_output_files, protein_names, 'peptide', num_peptides, 'hybrid_db', sequences, saving_dir=save_dir, predicting_agg_func=agg_func, digestion_file=old_digest)
     print('Done.')
     # load the experiment and plot it
-    plot_experiment(experiment, exp_json_path, agg_func=agg_func, show_all=show_all, saving_dir=save_dir, use_top_n=top_n, n=n, measure=m_func)
+    plot_experiment(exp_json_path, agg_func=agg_func, show_all=show_all, saving_dir=save_dir, use_top_n=top_n, n=n, measure=m_func)
 
     print('Finished.')
     print('===================================')
@@ -101,7 +98,6 @@ def main(args):
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Entry file for the database experiments')
-    parser.add_argument('--experiment', dest='experiment', type=str, default='flipped', help='The experiment to run. Options are: \nflipped, fractionated\n. Defualt=flipped')
     parser.add_argument('--num-peptides', dest='num_peptides', type=int, default=49, help='Number of peptides to generate as the fake sample. Default=49')
     parser.add_argument('--aggregate-function', dest='agg_func', type=str, default='sum', help='Which aggregation function to use for combining k-mer scores. Pick either sum or product. Default=sum')
     parser.add_argument('--show-all-graphs', dest='show_all', type=bool, default=False, help='Show all the graphs generated. Will save to directory either way. Default=False.')

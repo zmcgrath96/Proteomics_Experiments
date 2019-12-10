@@ -2,24 +2,9 @@
     "crux_cmd": "/Users/zacharymcgrath/Documents/Layer_Research/crux/bin/crux",
     "window_sizes": [3, 4, 6, 8, 10, 20, 1000],
     "peptide_index": "peptides",
-    "database_name_prefix": {
-        "flipped": "HYBRID_", 
-        "fractionated": "SUBSEQUENCE_"
-    },
-    "spectrum_title_prefix": {
-        "flipped": "SUBSEQUENCE_", 
-        "fractionated": "HYBRID_"
-    },
-    "save_dirs": {
-        "flipped": "flipped",
-        "fractionated": "fractionated"
-    }, 
-    "database_names": {
-        "flipped": "hybrid_db", 
-        "fractionated": "fractionated_db_"
-    }, 
-    "spectra_names": {
-        "flipped": "fractionated_",
-        "fractionated": "hybrid"
-    }
+    "database_name_prefix": "HYBRID_", 
+    "spectrum_title_prefix": "SUBSEQUENCE_", 
+    "save_dirs": "flipped",
+    "database_names": "hybrid_db", 
+    "spectra_names": "fractionated_"
 }

@@ -78,7 +78,7 @@ RETURNS:
         }]
     l2: list of hybrid_proteins of the input form
 '''
-def generate_peptides(hybrid_prots, num_gen=10, peptide_name_prefix='HYBRID_PEPTIDE', min_length=4, max_length=20):
+def generate_peptides(hybrid_prots, num_gen=10, peptide_name_prefix='HYBRID_PEPTIDE_', min_length=4, max_length=20):
     first_round = num_gen if num_gen <= len(hybrid_prots) else len(hybrid_prots)
     second_round = num_gen if num_gen > len(hybrid_prots) else 0
     hybrid_peps = []
@@ -90,13 +90,15 @@ def generate_peptides(hybrid_prots, num_gen=10, peptide_name_prefix='HYBRID_PEPT
         name_c += 1
 
     if second_round == 0: 
-        return hybrid_peps, hybrid_peps
+        return hybrid_peps, hybrid_prots
 
     for _ in range(second_round):
         hyb_pep = __make_hybrid_pep(choice(hybrid_prots), min_length=min_length, max_length=max_length)
         hyb_pep['hybrid_peptide_name'] = peptide_name_prefix + str(name_c).zfill(ceil(num_gen/10))
         hybrid_peps.append(hyb_pep)
         name_c += 1
+
+    return hybrid_peps, hybrid_prots
 
 '''generate_proteins
 

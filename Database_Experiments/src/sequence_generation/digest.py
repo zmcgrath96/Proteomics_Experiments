@@ -1,5 +1,6 @@
 from random import randint, choice, random
 from utils import __make_dir, __make_valid_dir_string
+from math import ceil
 
 '''load_digest
 
@@ -18,16 +19,14 @@ RETURNS:
     }
 '''
 def load_digest(digest_file):
-    digests = {}
+    digests = []
     with open(digest_file, 'r') as o:
         for i, line in enumerate(o):
             if i == 0: # skip the header line
                 continue
             l = line.split('\t')
-            num = '0' + str(i-1) if i < 11 else str(i-1)
-            name = 'peptide_' + num
             entry = {'peptide_name': l[0], 'peptide_sequence': l[1], 'parent_name': l[2], 'parent_sequence': l[3], 'start_index': int(l[4]), 'end_index': int(l[5])}
-            digests[name] = entry 
+            digests.append(entry)
     return digests
 
 '''__tryptic_digest
@@ -93,10 +92,20 @@ PARAMS:
 OPTIONAL:
     miss_prob: float the probability of a missed cleavage. Should range [0, 1). Default=0
     save_dir: string the directory in which to save the digestion file. Default=./
-    save_name: string the name to save the digestion information in. Default=digestion.tsv
+    save_name: string the name to save the digestion information in. Default=peptides.tsv
     min_length: int minimum length peptide to generate. Default=3
+RETURNS:
+    list of dictionaries of form 
+    {
+        'peptide_name': str,
+        'peptide_sequence': str,
+        'parent_name': str,
+        'parent_sequence': str,
+        'start_index': int, 
+        'end_index': int
+    }
 '''
-def tryptic(sequences, number_digests, peptide_prefix='peptide_', miss_prob=0, save_dir='./', save_name='digestion.tsv', min_length=3, max_length=20):
+def tryptic(sequences, number_digests, peptide_prefix='peptide_', miss_prob=0, save_dir='./', save_name='peptides.tsv', min_length=3, max_length=20):
     save_dir = __make_valid_dir_string(save_dir)
     __make_dir(save_dir)
 
@@ -112,13 +121,13 @@ def tryptic(sequences, number_digests, peptide_prefix='peptide_', miss_prob=0, s
     peptides = []
     o = open(save_dir + save_name, 'w')
     form = '{}\t{}\t{}\t{}\t{}\t{}\n'
-    o.write(form.format('peptide-name', 'peptide', 'parent-name', 'parent-sequence', 'start-location', 'end-location'))
+    o.write(form.format('peptide_name', 'peptide', 'parent_name', 'parent_sequence', 'start_location', 'end_location'))
 
     digest_count = 0
     for digest in to_digest:
         seq = digest['sequence']
         name = digest['name']
-        pep_name = peptide_prefix + str(digest_count) if digest_count > 9 else peptide_prefix + '0' + str(digest_count)
+        pep_name = peptide_prefix + str(digest).zfill(ceil(number_digests/10))
         this_pep, start = __tryptic_digest(seq, miss_prob)
         end = start + len(this_pep)
         #ensure that no peptide is shorter than the minimum length
@@ -131,7 +140,15 @@ def tryptic(sequences, number_digests, peptide_prefix='peptide_', miss_prob=0, s
             this_pep = this_pep[start_pep:]
             start = seq.index(this_pep)
 
-        peptides.append(this_pep)
+        pep_obj = {
+            'peptide_name': pep_name,
+            'peptide_sequence': this_pep,
+            'parent_name': name,
+            'parent_sequence': seq,
+            'start_index': start, 
+            'end_index': end
+        }
+        peptides.append(pep_obj)
         o.write(form.format(pep_name, this_pep, name, seq, start, end))
         digest_count += 1
 

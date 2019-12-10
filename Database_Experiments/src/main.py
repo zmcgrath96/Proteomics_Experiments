@@ -8,6 +8,8 @@ from sequence_generation import peptides
 from analysis.plotting import plot_experiment
 from analysis.analyze_experiment import analyze
 from utils import __file_exists
+from protein_utils import read_proteins
+from sequence_generation import generate_hybrids
 
 ''' old hybrid "sequence": "ALYLVCGELYTSRV", 
     second hybid: GFFYTPKEANIR
@@ -32,7 +34,11 @@ def main(args):
     5. Score all the k-mers against all the peptides
     6. Perform analysis on these scores
     '''
+    prot_file = args.protein_sequences
+    hyb_pep = args.hyb_pep
+    hyb_prot = args.hyb_prot
     num_peptides = args.num_peptides
+    num_hybs = args.num_hybrids
     agg_func = args.agg_func
     show_all = args.show_all
     save_dir = args.save_dir
@@ -41,23 +47,15 @@ def main(args):
     top_n = args.top_n
     n = args.n
     m_func = args.m_func
-    test_seq = args.test_seq
     old_digest = args.d_file 
     '''
         SETUP ARGUMENTS FOR EACH STEP
     '''
-    # load sequences once instead of all the time
-    sequences_json = cwd + '/sequences.json' if not test_seq else cwd + '/test-sequences.json'
-    sequences = None
-    with open(sequences_json, 'r') as seqfile:
-        sequences = json.load(seqfile)
-    
     db_args = {
         'path': cwd + '/' + defaults['save_dirs'], 
         'name': defaults['database_names'], 
         'window_sizes': defaults['window_sizes'], 
         'prefix': defaults['database_name_prefix'], 
-        'sequences_dict': sequences, 
         'peptide_index': defaults['peptide_index']
         } 
     spectra_args = {
@@ -65,18 +63,27 @@ def main(args):
         'name': defaults['spectra_names'], 
         'window_sizes': defaults['window_sizes'], 
         'title_prefix': defaults['spectrum_title_prefix'],
-        'sequences_dict': sequences,
         'peptide_index': defaults['peptide_index']
         } 
     '''
         END ARGUMENT SETUP
     '''
-    # create peptides
-    if not old_digest or old_digest == '' or not __file_exists(old_digest):
-        peptides.gen_peptides(sequences, num_peptides, peptide_index=defaults['peptide_index'], min_length=min_length, max_length=max_length, save_dir=save_dir)
+
+    # load in a list of proteins from a source file
+    prots = None 
+    if '.csv' in prot_file or '.fasta' in prot_file:
+        prots = read_proteins.from_csv(prot_file) if '.csv' in prot_file else read_proteins.from_fasta(prot_file) 
     else:
-        peptides.load_peptides(sequences, old_digest, peptide_index=defaults['peptide_index']) 
+        raise Exception('Protein file should be csv or fasta. File passed in: {}'.format(prot_file))
+
+    # create peptides
+    non_hybrid_peps = peptides.get_peptides(prots=prots, number_peptides=num_peptides, min_length=min_length, max_length=max_length, save_dir=save_dir, peptide_file=old_digest)
+
+    # create hybrids
+    hyb_peps, hyb_prots = generate_hybrids.generate_hybrids(hyb_pep_file=hyb_pep, hyb_prot_file=hyb_prot, prots=prots, num_gen=num_hybs, min_length=min_length, max_length=max_length, save_dir=save_dir)
+
     # create database files
+    # NOTE: BROKEN FROM HERE ON FOR NOW
     fasta_databases = gen_db.generate(db_args)
     # create spectrum files
     spectra_files = gen_spectra_files.generate(spectra_args)
@@ -85,20 +92,24 @@ def main(args):
     score_output_files = score_peptides.score_peptides(spectra_files, fasta_databases, defaults['crux_cmd'], save_dir + '/crux_output')
     print('Done.')
     # save scores to json
-    protein_names = [x['name'] for x in sequences['sample']['proteins']]
+    protein_names = []
     print('Saving experiment...')
-    exp_json_path = analyze(score_output_files, protein_names, 'peptide', num_peptides, 'hybrid_db', sequences, saving_dir=save_dir, predicting_agg_func=agg_func, digestion_file=old_digest)
+    exp_json_path = analyze(score_output_files, protein_names, 'peptide', num_peptides, 'hybrid_db', saving_dir=save_dir, predicting_agg_func=agg_func, digestion_file=old_digest)
     print('Done.')
     # load the experiment and plot it
     plot_experiment(exp_json_path, agg_func=agg_func, show_all=show_all, saving_dir=save_dir, use_top_n=top_n, n=n, measure=m_func)
 
     print('Finished.')
     print('===================================')
-    print('SUMMARY\n\nRan {} experiment\nFASTA Databses:\n {}\n\nSpctra files: {}\n\nOutput files created: {}'.format(experiment, ', '.join(fasta_databases), ', '.join(spectra_files), ', '.join(score_output_files)))
+    print('SUMMARY\n\\nFASTA Databses:\n {}\n\nSpctra files: {}\n\nOutput files created: {}'.format( ', '.join(fasta_databases), ', '.join(spectra_files), ', '.join(score_output_files)))
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Entry file for the database experiments')
-    parser.add_argument('--num-peptides', dest='num_peptides', type=int, default=49, help='Number of peptides to generate as the fake sample. Default=49')
+    parser.add_argument('protein_sequences', type=str, metavar='P', help='Path to a file (csv or fasta) with protein name and sequences')
+    parser.add_argument('--hybrid-peptide-file', dest='hyb_pep', type=str, default='', help='Path to a hybrid peptide file. If none is given, new hybrid peptides generated. Default=')
+    parser.add_argument('--hybrid-protein-file', dest='hyb_prot', type=str, default='', help='Path to a hybrid protein file. If none is given, new hybrid proteins generated. Default=')
+    parser.add_argument('--num-peptides', dest='num_peptides', type=int, default=50, help='Number of peptides to generate as the fake sample. Default=50')
+    parser.add_argument('--num-hybrids', dest='num_hybrids', type=int, default=10, help='Number of hybrid proteins and peptides to generate. Default=10')
     parser.add_argument('--aggregate-function', dest='agg_func', type=str, default='sum', help='Which aggregation function to use for combining k-mer scores. Pick either sum or product. Default=sum')
     parser.add_argument('--show-all-graphs', dest='show_all', type=bool, default=False, help='Show all the graphs generated. Will save to directory either way. Default=False.')
     parser.add_argument('--output-dir', dest='save_dir', type=str, default='./', help='Directory to save all figures. Default=./')
@@ -107,8 +118,7 @@ if __name__ == '__main__':
     parser.add_argument('--top-n', dest='top_n', type=bool, default=False, help='When recording how well a peptide scores against a protein, only use the top n proteins. Default=False')
     parser.add_argument('--n', dest='n', type=int, default=5, help='n to use if using --top-n. Default=5')
     parser.add_argument('--measure-func', dest='m_func', type=str, default='average', help='Measuring function for determining the top n proteins. Options are: sum, average, max. Default=average')
-    parser.add_argument('--test-seq', dest='test_seq', type=bool, default=False, help='FOR TESTING ON SMALLER SEQUENCES. DEFAULT=False')
-    parser.add_argument('--digestion-file', dest='d_file', type=str, default='', help='Digestion from a past experiment. Default=None')
+    parser.add_argument('--peptide-file', dest='d_file', type=str, default='', help='Peptides from a past experiment. Default=None')
     args = parser.parse_args()
     main(args)
     

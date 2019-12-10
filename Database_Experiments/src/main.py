@@ -25,16 +25,12 @@ with open(default_json_file, 'r') as o:
 def main(args):
     '''
     STEPS
-    1. Perform digest to get peptides
-    2. Save all peptides (generated and hybrid) as FASTA files -- return the file names/paths
-    3. Look at all proteins and generate k-mers and save as mzML files -- return the file names/paths
-    4. For each peptide:
-        For each protein: 
-            For each k-mer length:
-                score k-mers against peptide
-            keep an aggregation of all k-mer scores 
-        Compare how aggregations of each protein k-mer does, keep good ones (ones that aren't noise)
-    5. Plot relevant scores of proteins
+    1. Generate hybrid proteins and sequences (or load from file)
+    2. Load proteins and generate (or load) peptides from digestion of proteins
+    3. Save all peptides as .FASTA files
+    4. For each protein, create k-mers and save to mzml files
+    5. Score all the k-mers against all the peptides
+    6. Perform analysis on these scores
     '''
     experiment = 'fractionated' if 'fractionated' in str(args.experiment).lower() else 'flipped'
     num_peptides = args.num_peptides

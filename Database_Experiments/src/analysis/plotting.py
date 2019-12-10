@@ -64,7 +64,7 @@ OPTIONAL:
             }]
             these are the points of interest to mark
 '''
-def __plot_subsequence(aggs, title='', save_dir='./', show_graph=False, agg_func='sum', peaks=None):
+def __plot_subsequence(aggs, title='', save_dir='./', show_graph=False, agg_func='sum', peaks=None, sequence_info=None):
     save_dir = __make_valid_dir_string(save_dir)
     __make_dir(save_dir)
 
@@ -80,16 +80,27 @@ def __plot_subsequence(aggs, title='', save_dir='./', show_graph=False, agg_func
     if peaks is not None and type(peaks[0]) is dict:
         label_peaks_pos = [x['position'] for x in peaks]
         label_peaks_h = [x['score'] for x in peaks]
+        max_peak_value = max([x['score'] for x in peaks])
+        max_peak_pos = None
+        for x in peaks:
+            if x['score'] == max_peak_value:
+                max_peak_pos = x['position']
         plt.plot(label_peaks_pos, label_peaks_h, 'x')
+        plt.text(.1, .975, 'max peak position: {}'.format(max_peak_pos), transform=plt.gcf().transFigure)
+        plt.text(.1, .96, 'max peak value: {}'.format(max_peak_value),transform=plt.gcf().transFigure)
+    if type(sequence_info) is dict:
+        plt.text(.5, .975, 'sequence: {}'.format(sequence_info['peptide_sequence']), transform=plt.gcf().transFigure)
+        plt.text(.5, .95, 'actual starting position: {}'.format(sequence_info['start_index']), transform=plt.gcf().transFigure)
+        plt.text(.5, .925, 'actual parent protein: {}'.format(sequence_info['parent_name']), transform=plt.gcf().transFigure)
+
     plt.xlabel('subsequence start position')
     plt.ylabel('{} of k-mer scores'.format(agg_func))
     plt.legend()
     plt.title(title)
-    show_graph and plt.show()
     plt.savefig(save_dir + title)
-    plt.close()
+    show_graph and plt.show()
     write_raw_json(save_dir + title, aggs)
-
+    plt.close()
 '''plot_subsequence_vs_protein
 
 DESC:
@@ -121,10 +132,10 @@ def __plot_subsequence_vs_protein(k_mers, title='', save_dir='./', aggregate='su
     plt.ylabel('k-mer scores')
     plt.title(title)
     plt.legend()
-    show_graph and plt.show()
     plt.savefig(save_dir + title)
-    plt.close()
+    show_graph and plt.show()
     write_raw_json(save_dir + title, k_mers)
+    plt.close()
     return agg_scores
 
 #####################################################
@@ -161,11 +172,11 @@ def plot_experiment(experiment, experiment_json_file, agg_func='sum', show_all=F
 
     else:
         print('\nGenerating plots...')
+        header_peps = exp[json_header][json_header_peps]
         for peptide, prots in exp[json_exp].items():
             # generate plots for all the proteins against the peptide
             agg_scores = {}
             pep_saving_dir = __make_valid_dir_string(saving_dir + peptide)
-            agg_scores[peptide] = {}
             __make_dir(pep_saving_dir)
             for prot, k_mers in prots.items():
                 if prot == 'predicted_parents':
@@ -174,5 +185,10 @@ def plot_experiment(experiment, experiment_json_file, agg_func='sum', show_all=F
                 pep_prot_saving_dir = __make_valid_dir_string(pep_saving_dir + prot)
                 __make_dir(pep_prot_saving_dir)
                 agg_scores[prot] = __plot_subsequence_vs_protein(k_mers, title=plot_title, save_dir=pep_prot_saving_dir, aggregate=agg_func, show_graph=show_all)
-            __plot_subsequence(agg_scores, title=str(peptide), save_dir=pep_saving_dir, show_graph=show_all, agg_func=agg_func, peaks=prots['predicted_parents'])
+            info = None
+            for pep in header_peps:
+                if pep['peptide_name'] == peptide:
+                    info = pep 
+                    break
+            __plot_subsequence(agg_scores, title=str(peptide), save_dir=pep_saving_dir, show_graph=show_all, agg_func=agg_func, peaks=prots['predicted_parents'], sequence_info=info)
         print('Finished')

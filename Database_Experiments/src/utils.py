@@ -71,6 +71,21 @@ def __make_valid_json_file(file_name):
     __make_dir(d)
     return file_name
 
+'''__make_valid_csv_file
+
+DESC:
+    make a string into the name for a text file and make sure the directory exists
+PARAMS:
+    file_name: string of the file to save
+RETURNS:
+    file name with .csv after it
+'''
+def __make_valid_csv_file(file_name):
+    file_name = file_name + '.csv' if '.csv' not in file_name else file_name
+    d = '/'.join(file_name.split('/')[:-1])
+    __make_dir(d)
+    return file_name
+
 '''__file_exists
 
 DESC:

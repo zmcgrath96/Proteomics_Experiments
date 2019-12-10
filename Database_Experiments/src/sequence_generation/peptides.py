@@ -1,4 +1,4 @@
-from sequences import digest
+from sequence_generation import digest
 from utils import __file_exists
 
 def gen_peptides(sequence_dict, number_peptides, peptide_index='peptides', min_length=3, max_length=20, save_dir='./'):

@@ -52,8 +52,6 @@ RETURNS:
 '''
 def __make_valid_text_file(file_name):
     file_name = file_name + '.txt' if '.txt' not in file_name else file_name
-    d = '/'.join(file_name.split('/')[:-1])
-    __make_dir(d)
     return file_name
 
 '''__make_valid_json_file
@@ -67,14 +65,12 @@ RETURNS:
 '''
 def __make_valid_json_file(file_name):
     file_name = file_name + '.json' if '.json' not in file_name else file_name
-    d = '/'.join(file_name.split('/')[:-1])
-    __make_dir(d)
     return file_name
 
 '''__make_valid_csv_file
 
 DESC:
-    make a string into the name for a text file and make sure the directory exists
+    make a string into the name for a text file 
 PARAMS:
     file_name: string of the file to save
 RETURNS:
@@ -82,8 +78,19 @@ RETURNS:
 '''
 def __make_valid_csv_file(file_name):
     file_name = file_name + '.csv' if '.csv' not in file_name else file_name
-    d = '/'.join(file_name.split('/')[:-1])
-    __make_dir(d)
+    return file_name
+
+'''__make_valid_fasta_file
+
+DESC:
+    make a string into the name for a text file 
+PARAMS:
+    file_name: string of the file to save
+RETURNS:
+    file name with .fasta after it
+'''
+def __make_valid_fasta_file(file_name):
+    file_name = file_name + '.fasta' if '.fasta' not in file_name else file_name
     return file_name
 
 '''__file_exists

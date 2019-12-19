@@ -49,26 +49,6 @@ def main(args):
     m_func = args.m_func
     old_digest = args.d_file 
     mix = args.mix
-    '''
-        SETUP ARGUMENTS FOR EACH STEP
-    '''
-    db_args = {
-        'path': cwd + '/' + defaults['save_dirs'], 
-        'name': defaults['database_names'], 
-        'window_sizes': defaults['window_sizes'], 
-        'prefix': defaults['database_name_prefix'], 
-        'peptide_index': defaults['peptide_index']
-        } 
-    spectra_args = {
-        'path': cwd + '/' + defaults['save_dirs'], 
-        'name': defaults['spectra_names'], 
-        'window_sizes': defaults['window_sizes'], 
-        'title_prefix': defaults['spectrum_title_prefix'],
-        'peptide_index': defaults['peptide_index']
-        } 
-    '''
-        END ARGUMENT SETUP
-    '''
 
     # load in a list of proteins from a source file
     prots = None 
@@ -90,9 +70,9 @@ def main(args):
     # create database files
     fasta_databases = database.generate(all_peptides, save_dir=save_dir)
     
-    # NOTE: BROKEN UP TO HERE
     # create spectrum files
-    spectra_files = gen_spectra_files.generate(spectra_args)
+    spectra_files = gen_spectra_files.generate(all_proteins, defaults['window_sizes'], save_dir=save_dir)
+    
     # run scoring algorithm on database and k-mers
     print('Scoring...')
     score_output_files = score_peptides.score_peptides(spectra_files, fasta_databases, defaults['crux_cmd'], save_dir + '/crux_output')

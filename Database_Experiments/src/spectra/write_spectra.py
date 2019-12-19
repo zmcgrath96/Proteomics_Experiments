@@ -1,9 +1,26 @@
 from pyopenms import MSExperiment, MSSpectrum, MzMLFile, Peak1D, Precursor
+from utils import __make_valid_dir_string, __make_dir
 
-def write_mzml(output_dir, file_name, spectra, title_prefix='Spectrum '):
-    if '.mgf' not in file_name:
-        file_name += '.mzml'
-    output_file = output_dir + '/' + file_name
+'''write_mzml
+
+DESC:
+    create a mass spectrum file in mzml of sequences
+PARAMS:
+    file_name: str name to save the file in
+    spectra: list of dictionaries of the form [{spectrum: list[floats], precursor_mass: float, sequence: str}]
+             This data is written to file (the spectrum and the precursor)
+OPTIONAL:
+    title_prefix: str name to give as prefix to the name of each spectrum. Default=Spectrum
+    output_dir: str name of the directory to save files to. Default=./
+RETURNS:
+    list of strings of file paths
+'''
+def write_mzml(file_name, spectra, title_prefix='Spectrum ', output_dir='./'):
+    if '.mzml' not in file_name.lower():
+        file_name += '.mzML'
+    output_dir = __make_valid_dir_string(output_dir)
+    __make_dir(output_dir)
+    output_file = output_dir + file_name
 
     exp = MSExperiment()
     sp_count = 0

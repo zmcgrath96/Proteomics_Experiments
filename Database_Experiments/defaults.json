@@ -6,5 +6,5 @@
     "spectrum_title_prefix": "SUBSEQUENCE_", 
     "save_dirs": "flipped",
     "database_names": "hybrid_db", 
-    "spectra_names": "fractionated_"
+    "spectra_names": "kmers"
 }

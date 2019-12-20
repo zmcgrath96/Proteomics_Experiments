@@ -7,7 +7,7 @@ from scoring import score_peptides
 from sequence_generation import peptides
 from analysis.plotting import plot_experiment
 from analysis.analyze_experiment import analyze
-from utils import __file_exists
+from utils import __file_exists, __make_valid_dir_string, __make_dir
 from protein_utils import read_proteins
 from sequence_generation import generate_hybrids
 
@@ -41,7 +41,8 @@ def main(args):
     num_hybs = args.num_hybrids
     agg_func = args.agg_func
     show_all = args.show_all
-    save_dir = args.save_dir
+    save_dir = __make_valid_dir_string(args.save_dir)
+    __make_dir(save_dir)
     min_length = args.min_length
     max_length = args.max_length
     top_n = args.top_n
@@ -64,24 +65,28 @@ def main(args):
     hyb_peps, hyb_prots = generate_hybrids.generate_hybrids(hyb_pep_file=hyb_pep, hyb_prot_file=hyb_prot, prots=prots, num_gen=num_hybs, min_length=min_length, max_length=max_length, save_dir=save_dir)
 
     # combine them for later use
-    all_proteins = prots + [{'name': x['name'] , 'sequence': x['hybrid_protein']} for x in hyb_prots]
-    all_peptides = [{'name': x['peptide_name'], 'sequence': x['peptide_sequence']} for x in non_hybrid_peps] + [{'name': x['hybrid_peptide_name'], 'sequence': x['hybrid_peptide_sequence']} for x in hyb_peps]
+    all_proteins_raw = prots + hyb_prots
+    all_proteins_cleaned = prots + [{'name': x['name'] , 'sequence': x['protein']} for x in hyb_prots]
+    all_peptides_raw = non_hybrid_peps + hyb_peps
+    all_peptides_cleaned = [{'name': x['peptide_name'], 'sequence': x['peptide_sequence']} for x in non_hybrid_peps] + [{'name': x['peptide_name'], 'sequence': x['peptide_sequence']} for x in hyb_peps]
 
     # create database files
-    fasta_databases = database.generate(all_peptides, save_dir=save_dir)
+    fasta_databases = database.generate(all_peptides_cleaned, save_dir=save_dir)
     
     # create spectrum files
-    spectra_files = gen_spectra_files.generate(all_proteins, defaults['window_sizes'], save_dir=save_dir)
+    spectra_files = gen_spectra_files.generate(all_proteins_cleaned, defaults['window_sizes'], save_dir=save_dir)
     
     # run scoring algorithm on database and k-mers
     print('Scoring...')
-    score_output_files = score_peptides.score_peptides(spectra_files, fasta_databases, defaults['crux_cmd'], save_dir + '/crux_output')
+    score_output_files = score_peptides.score_peptides(spectra_files, fasta_databases, defaults['crux_cmd'], save_dir)
     print('Done.')
+
     # save scores to json
     protein_names = []
     print('Saving experiment...')
-    exp_json_path = analyze(score_output_files, protein_names, 'peptide', num_peptides, 'hybrid_db', saving_dir=save_dir, predicting_agg_func=agg_func, digestion_file=old_digest)
+    exp_json_path = analyze(all_proteins_raw, all_peptides_raw, score_output_files, predicting_agg_func=agg_func, saving_dir=save_dir)
     print('Done.')
+
     # load the experiment and plot it
     plot_experiment(exp_json_path, agg_func=agg_func, show_all=show_all, saving_dir=save_dir, use_top_n=top_n, n=n, measure=m_func)
 

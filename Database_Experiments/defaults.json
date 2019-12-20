@@ -1,10 +1,4 @@
 {
     "crux_cmd": "/Users/zacharymcgrath/Documents/Layer_Research/crux/bin/crux",
-    "window_sizes": [3, 4, 6, 8, 10, 20, 1000],
-    "peptide_index": "peptides",
-    "database_name_prefix": "HYBRID_", 
-    "spectrum_title_prefix": "SUBSEQUENCE_", 
-    "save_dirs": "flipped",
-    "database_names": "hybrid_db", 
-    "spectra_names": "kmers"
+    "window_sizes": [3, 4, 6, 8, 10, 20]
 }

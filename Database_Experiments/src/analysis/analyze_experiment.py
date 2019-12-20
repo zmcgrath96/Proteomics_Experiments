@@ -5,7 +5,6 @@ from analysis.write_output import write_raw_json
 from analysis import score_utils
 from analysis.aggregations import __z_score_sum, __sum, __product
 from analysis.analysis_utils import get_top_n_prots
-import utils
 
 #######################################################
 #                   CONSTANTS
@@ -48,65 +47,25 @@ digests = None
 #                "PRIVATE" FUNCTIONS
 #####################################################
 
-'''__parse_output_name
-
-DESC:
-    get a usable label for a comparision 
-PARAMS: 
-    crux_output: a string that will use the parent dir of the output as the label
-RETURNS:
-    a string with the title 
-'''
-def __parse_output_name(crux_output):
-    return crux_output.split('/')[-2]
-
-'''__get_peptide
-DESC:
-    given a name, get the entry associated with it
-PARAMS:
-    peptide_name: string name of a peptide entry (peptide_{integer})
-RETURNS:
-    dictionary entry if it exists else None
-'''
-def __get_peptide(peptide_name, saving_dir='./', digestion_file = None):
-    global digests
-    saving_dir = utils.__make_valid_dir_string(saving_dir)
-    if not digests:
-        file_name = digestion_file
-        if file_name is None or file_name == '' or not utils.__file_exists(file_name):
-            file_name =  saving_dir + 'digestion.tsv'
-
-        digests = load_digest(file_name)
-
-    return digests[peptide_name] if peptide_name in digests else None
-
 '''__add_header_info
 DESC:
     add all header info to the experiment json
-'''
-def __add_header_info(sequences, saving_dir='./', digestion_file=None):
-    global digests
-    experiment_json[EXPERIMENT_HEADER][EXPERIMENT_PROTEIN_HEADER] = deepcopy(sequences[SAMPLE_ENTRY][SAMPLE_PROTEINS])
-    _ = __get_peptide('', saving_dir=saving_dir, digestion_file=digestion_file)
-    for key in digests:
-        experiment_json[EXPERIMENT_HEADER][EXPERIMENT_PEPTIDE_HEADER].append(deepcopy(digests[key]))
-
-    hybrid_entry = sequences[SAMPLE_HYBRID_ENTRY]
-    experiment_json[EXPERIMENT_HEADER][EXPERIMENT_PEPTIDE_HEADER].append({
-        "peptide_name": "hybrid",
-        "peptide_sequence": hybrid_entry[SAMPLE_HYBRID_SEQUENCE], 
-        "parent_name": "hybrid_parent",
-        "parent_sequence": hybrid_entry[SAMPLE_HYBRID_PARENT],
-        "start_index": hybrid_entry[SAMPLE_HYBRID_INDICES]["start"],
-        "end_index": hybrid_entry[SAMPLE_HYBRID_INDICES]["end"]
-        })
-
-'''__find_parents
-DESC:
-    Find the top n scoring proteins of a peptide
 PARAMS:
-
+    proteins: list of dictionaries of the form {name: str, sequence: str}
+    peptides: list of dictionaries of the form 
+    {    
+        'peptide_name': str,
+        'peptide_sequence': str,
+        'parent_name': str,
+        'parent_sequence': str,
+        'start_index': int, 
+        'end_index': int
+    }
+    json: dictionary object in which to save the header info
 '''
+def __add_header_info(proteins, peptides, json):
+    json[EXPERIMENT_HEADER][EXPERIMENT_PROTEIN_HEADER] = deepcopy(proteins)
+    json[EXPERIMENT_HEADER][EXPERIMENT_PEPTIDE_HEADER] = deepcopy(peptides)
 
 '''__save_subsequence_info
 
@@ -117,17 +76,19 @@ PARAMS:
     subsequence_files: list of strings filepaths to files of the experiment
     subsequence_name: string name of the subsequence
     protein_names: names of all the proteins 
+    json: dictionary object where all items are saved
 RETURNS: 
     None
 '''
-def __save_subsequence_info(subsequence_files, subsequence_name, protein_names, predicting_agg_func='sum'):
-    global experiment_json
-    predicting_agg_func = __z_score_sum if 'z_score_sum' in predicting_agg_func.lower() else ( __product if 'product' in predicting_agg_func.lower() else __sum)
+def __save_subsequence_info(subsequence_files, subsequence_name, protein_names, json, predicting_agg_func='sum'):
+    agg_func = __z_score_sum if 'z_score_sum' in predicting_agg_func.lower() else ( __product if 'product' in predicting_agg_func.lower() else __sum)
     subsequence_dict = {}
     subsequence_aggs = {}
     for prot_name in protein_names:
         subsequence_dict[prot_name] = {}
-        prot_with_subseq = utils.__get_related_files(subsequence_files, prot_name)
+        prot_with_subseq = utils.__get_related_files(subsequence_files, str(prot_name).lower())
+        if prot_with_subseq is None or len(prot_with_subseq) == 0: 
+            print('No files scoring {} against {} were found. Skipping'.format(prot_name, subsequence_name))
         this_prot_kmers = []
         for f in prot_with_subseq:
             scores, _, _ = score_utils.__get_scores_scan_pos_label(f)
@@ -135,43 +96,54 @@ def __save_subsequence_info(subsequence_files, subsequence_name, protein_names, 
             k = 'k=' + mer
             subsequence_dict[prot_name][k] = scores
             this_prot_kmers.append(scores)
-        subsequence_aggs[prot_name] = predicting_agg_func(this_prot_kmers)
+        agged = agg_func(this_prot_kmers)
+        subsequence_aggs[prot_name] = deepcopy(agged)
+        subsequence_dict[predicting_agg_func] = deepcopy(agged)
     
     subsequence_dict[EXPERIMENT_PARENT_PREDICTION] = get_top_n_prots(subsequence_aggs)
-    experiment_json[EXPERIMENT_ENTRY][subsequence_name] = subsequence_dict
+    json[EXPERIMENT_ENTRY][subsequence_name] = subsequence_dict
 
 #####################################################
 #               END "PRIVATE" FUNCTIONS
 #####################################################
 
-'''save
+'''analyze
 
 DESC:
     entry point to save all raw data into an experiment json
 PARAMS:
-    experiment, files, protein_names, subsequence_prefix, num_subsequences, hybrid_prefix, sequences, agg_func='sum', show_all=False, saving_dir='./', use_top_n=False, n=5, measure='average'
+    proteins: list of dictionaries of the form {name: str, sequence: str}
+    peptides: list of dictionaries of the form 
+    {    
+        'peptide_name': str,
+        'peptide_sequence': str,
+        'parent_name': str,
+        'parent_sequence': str,
+        'start_index': int, 
+        'end_index': int
+    }
+    files: list of str output files from the scoring algorithm
+OPTIONAL:
+    predicting_agg_func: str name of the aggregation function to use. Default=sum
+    saving_dir: str the name of the directory to save the experiment in. Default=./
 RETURNS:
-    Path to the experiment json
+    str file path to the experiment json generated
 '''
-def analyze(files, protein_names, subsequence_prefix, num_subsequences, hybrid_prefix, sequences, predicting_agg_func='sum', saving_dir='/', digestion_file=None):
+def analyze(proteins, peptides, files, predicting_agg_func='sum', saving_dir='./'):
     global experiment_json_file_name, experiment_json
-    #create the saving directory
     saving_dir = utils.__make_valid_dir_string(saving_dir)
     utils.__make_dir(saving_dir)
-    __add_header_info(sequences, saving_dir=saving_dir, digestion_file=digestion_file)
 
-    # do everything for the hybrid sequence first
-    hybrid_related = utils.__get_related_files(files, hybrid_prefix)
-    __save_subsequence_info(hybrid_related, hybrid_prefix, protein_names, predicting_agg_func=predicting_agg_func)
+    # add header information to the json
+    __add_header_info(proteins, peptides, experiment_json)
 
-    # do the rest of the peptides
-    peptide_names = []
-    for x in range(num_subsequences):
-        num = str(x) if x > 9 else '0' + str(x)
-        peptide_names.append('{}_{}'.format(subsequence_prefix, num))
-    for peptide_name in peptide_names:
+    # isolate the protein names
+    protein_names = [x['name'] for x in proteins]
+
+    for pep in peptides:
+        peptide_name = pep['peptide_name']
         pep_related = utils.__get_related_files(files, peptide_name)
-        __save_subsequence_info(pep_related, peptide_name, protein_names, predicting_agg_func=predicting_agg_func)
+        __save_subsequence_info(pep_related, peptide_name, protein_names, experiment_json, predicting_agg_func=predicting_agg_func)
     
     # save to file
     write_raw_json(saving_dir + experiment_json_file_name, experiment_json)

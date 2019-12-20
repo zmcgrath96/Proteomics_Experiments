@@ -25,7 +25,8 @@ RETURNS:
         hybrid_peptide_sequence: str,
         hybrid_parent_name: str,
         hybrid_parent_sequence: str,
-        starting_position: int
+        start_index: int, 
+        end_index: int
     }
 '''
 def __make_hybrid_pep(hybrid_prot, min_length=4, max_length=20):
@@ -33,12 +34,13 @@ def __make_hybrid_pep(hybrid_prot, min_length=4, max_length=20):
     left_contr = randint(1, l-1)
     right_contr = l - left_contr
     j_site = hybrid_prot['left_parent_end']
-    pep = hybrid_prot['hybrid_protein'][j_site-left_contr:j_site+right_contr]
+    pep = hybrid_prot['protein'][j_site-left_contr:j_site+right_contr]
     return {
-        'hybrid_peptide_sequence': pep,
-        'hybrid_parent_name': hybrid_prot['name'],
-        'hybrid_parent_sequence': hybrid_prot['hybrid_protein'],
-        'starting_position': hybrid_prot['hybrid_protein'].index(pep)
+        'peptide_sequence': pep,
+        'parent_name': hybrid_prot['name'],
+        'parent_sequence': hybrid_prot['protein'],
+        'start_index': hybrid_prot['protein'].index(pep),
+        'end_index': hybrid_prot['protein'].index(pep) + len(pep)
     }
 
 
@@ -74,7 +76,8 @@ RETURNS:
             hybrid_peptide_name: str,
             hybrid_parent_name: str,
             hybrid_parent_sequence: str,
-            starting_position: int
+            start_index: int,
+            end_index: int
         }]
     l2: list of hybrid_proteins of the input form
 '''
@@ -85,7 +88,7 @@ def generate_peptides(hybrid_prots, num_gen=10, peptide_name_prefix='HYBRID_PEPT
     name_c = 0
     for i in range(first_round):
         hyb_pep = __make_hybrid_pep(hybrid_prots[i], min_length=min_length, max_length=max_length)
-        hyb_pep['hybrid_peptide_name'] = peptide_name_prefix + str(name_c).zfill(ceil(num_gen/10))
+        hyb_pep['peptide_name'] = peptide_name_prefix + str(name_c).zfill(ceil(num_gen/10))
         hybrid_peps.append(hyb_pep)
         name_c += 1
 
@@ -94,7 +97,7 @@ def generate_peptides(hybrid_prots, num_gen=10, peptide_name_prefix='HYBRID_PEPT
 
     for _ in range(second_round):
         hyb_pep = __make_hybrid_pep(choice(hybrid_prots), min_length=min_length, max_length=max_length)
-        hyb_pep['hybrid_peptide_name'] = peptide_name_prefix + str(name_c).zfill(ceil(num_gen/10))
+        hyb_pep['peptide_name'] = peptide_name_prefix + str(name_c).zfill(ceil(num_gen/10))
         hybrid_peps.append(hyb_pep)
         name_c += 1
 
@@ -151,7 +154,7 @@ def generate_proteins(num_gen, prots, min_contribution=10, name_prefix='HYBRID_'
             'right_parent_start': right_start,
             'left_parent_contribution': left_end - 1,
             'right_parent_contribution': len(right_parent) - right_start,
-            'hybrid_protein': hybrid,
+            'protein': hybrid,
             'name': name
         }
         hybrids.append(hybrid_d)
@@ -174,9 +177,9 @@ def save_peptides(hybrid_peps, save_dir='./'):
     __make_valid_csv_file(f)
     form = '{},{},{},{},{}\n'
     with open(f, 'w') as o:
-        o.write(form.format('hybrid_peptide_sequence', 'hybrid_peptide_name', 'hybrid_parent_name', 'hybrid_parent_sequence', 'starting_position'))
+        o.write(form.format('peptide_sequence', 'peptide_name', 'parent_name', 'parent_sequence', 'start_index', 'end_index'))
         for pep in hybrid_peps:
-            o.write(form.format(pep['hybrid_peptide_sequence'], pep['hybrid_peptide_name'], pep['hybrid_parent_name'], pep['hybrid_parent_sequence'], pep['starting_position']))
+            o.write(form.format(pep['peptide_sequence'], pep['peptide_name'], pep['parent_name'], pep['parent_sequence'], pep['start_index'], pep['end_index']))
     return f
 
 '''save_proteins
@@ -196,9 +199,9 @@ def save_proteins(hybrid_prots, save_dir='./'):
     __make_valid_csv_file(f)
     form = '{},{},{},{},{},{},{},{},{},{}\n'
     with open(f, 'w') as o:
-        o.write(form.format('name', 'hybrid_protein', 'left_parent_name', 'right_parent_name', 'left_parent_sequence', 'right_parent_sequence', 'left_parent_end', 'right_parent_start', 'left_parent_contribution', 'right_parent_contribution'))
+        o.write(form.format('name', 'protein', 'left_parent_name', 'right_parent_name', 'left_parent_sequence', 'right_parent_sequence', 'left_parent_end', 'right_parent_start', 'left_parent_contribution', 'right_parent_contribution'))
         for p in hybrid_prots:
-            o.write(form.format(p['name'], p['hybrid_protein'], p['left_parent_name'], p['right_parent_name'], p['left_parent_sequence'], p['right_parent_sequence'], p['left_parent_end'], p['right_parent_start'], p['left_parent_contribution'], p['right_parent_contribution']))
+            o.write(form.format(p['name'], p['protein'], p['left_parent_name'], p['right_parent_name'], p['left_parent_sequence'], p['right_parent_sequence'], p['left_parent_end'], p['right_parent_start'], p['left_parent_contribution'], p['right_parent_contribution']))
     return f
 
 '''read_peptides
@@ -214,7 +217,8 @@ RETURNS:
         hybrid_peptide_name: str,
         hybrid_parent_name: str,
         hybrid_parent_sequence: str,
-        starting_position: int
+        start_index: int,
+        end_index: int
     }]
 '''
 def read_peptides(hybrid_pep_file):
@@ -229,11 +233,12 @@ def read_peptides(hybrid_pep_file):
                 continue
             l = line.split(',')
             p = {
-                'hybrid_peptide_sequence': l[0],
-                'hybrid_peptide_name': l[1],
-                'hybrid_parent_name': l[2],
-                'hybrid_parent_sequence': l[3],
-                'starting_position': l[4]
+                'peptide_sequence': l[0],
+                'peptide_name': l[1],
+                'parent_name': l[2],
+                'parent_sequence': l[3],
+                'start_index': l[4], 
+                'end_index': l[5]
             }
             peps.append(p)
     return peps
@@ -279,7 +284,7 @@ def read_proteins(hybrid_prot_file):
                 'right_parent_start': l[7], 
                 'left_parent_contribution': l[8],
                 'right_parent_contribution': l[9],
-                'hybrid_protein': l[1], 
+                'protein': l[1], 
                 'name': l[0], 
             }
             prots.append(p)

@@ -84,7 +84,7 @@ def main(args):
     # save scores to json
     protein_names = []
     print('Saving experiment...')
-    exp_json_path = analyze(all_proteins_raw, all_peptides_raw, score_output_files, predicting_agg_func=agg_func, saving_dir=save_dir)
+    exp_json_path = analyze(all_proteins_raw, all_peptides_raw, score_output_files, predicting_agg_func=agg_func, saving_dir=save_dir, mix_in_hybrids=mix)
     print('Done.')
 
     # load the experiment and plot it

@@ -22,6 +22,8 @@ SAMPLE_HYBRID_SEQUENCE = 'sequence'
 SAMPLE_HYBRID_PARENT = 'full_parent'
 SAMPLE_HYBRID_INDICES = 'parent_indices'
 SAMPLE_PROTEIN_ANALYSIS = 'analysis'
+
+HYBRID_SEACH_STRING = 'HYBRID'
 #####################################################
 #               END CONSTANTS
 #####################################################
@@ -85,25 +87,33 @@ PARAMS:
     subsequence_files: list of strings filepaths to files of the experiment
     subsequence_name: string name of the subsequence
     protein_names: names of all the proteins 
-    json: dictionary object where all items are saved
+    json: dictionary object where all items are save
+OPTIONAL:
+    predicting_agg_func: str name of the function used for aggregation. Default=sum
+    mix_in_hybrids: bool whether or not include hybrid proteins in analysis. Default=False
 RETURNS: 
     None
 '''
-def __save_subsequence_info(subsequence_files, subsequence_name, protein_names, json, predicting_agg_func='sum'):
+def __save_subsequence_info(subsequence_files, subsequence_name, protein_names, json, predicting_agg_func='sum', mix_in_hybrids=False):
     agg_func = __z_score_sum if 'z_score_sum' in predicting_agg_func.lower() else ( __product if 'product' in predicting_agg_func.lower() else __sum)
     subsequence_dict = {}
     subsequence_aggs = {}
     for prot_name in protein_names:
+        if HYBRID_SEACH_STRING.lower() in str(prot_name).lower() and not mix_in_hybrids:
+            continue
+
         subsequence_dict[prot_name] = {}
         prot_with_subseq = utils.__get_related_files(subsequence_files, str(prot_name).lower())
         if prot_with_subseq is None or len(prot_with_subseq) == 0: 
             print('No files scoring {} against {} were found. Skipping'.format(prot_name, subsequence_name))
+
         this_prot_kmers = []
         for f in prot_with_subseq:
             scores, _, _ = score_utils.__get_scores_scan_pos_label(f)
             k = 'k=' + str(__get_k_number(f))
             subsequence_dict[prot_name][k] = scores
             this_prot_kmers.append(scores)
+            
         agged = agg_func(this_prot_kmers)
         subsequence_aggs[prot_name] = deepcopy(agged)
         subsequence_dict[prot_name][predicting_agg_func] = deepcopy(agged)
@@ -136,10 +146,11 @@ PARAMS:
 OPTIONAL:
     predicting_agg_func: str name of the aggregation function to use. Default=sum
     saving_dir: str the name of the directory to save the experiment in. Default=./
+    mix_in_hybrids: bool whether or not to include using hybrid proteins in analysis. Default=False
 RETURNS:
     str file path to the experiment json generated
 '''
-def analyze(proteins, peptides, files, predicting_agg_func='sum', saving_dir='./'):
+def analyze(proteins, peptides, files, predicting_agg_func='sum', saving_dir='./', mix_in_hybrids=False):
     global experiment_json_file_name, experiment_json
     saving_dir = utils.__make_valid_dir_string(saving_dir)
     utils.__make_dir(saving_dir)

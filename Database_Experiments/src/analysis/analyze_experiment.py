@@ -21,6 +21,7 @@ SAMPLE_HYBRID_ENTRY = 'hybrid'
 SAMPLE_HYBRID_SEQUENCE = 'sequence'
 SAMPLE_HYBRID_PARENT = 'full_parent'
 SAMPLE_HYBRID_INDICES = 'parent_indices'
+SAMPLE_PROTEIN_ANALYSIS = 'analysis'
 #####################################################
 #               END CONSTANTS
 #####################################################
@@ -46,6 +47,14 @@ digests = None
 #####################################################
 #                "PRIVATE" FUNCTIONS
 #####################################################
+
+'''
+'''
+def __get_k_number(file_name):
+    left_side = str(file_name).split('vs')[0]
+    no_u = left_side.split('_')
+    k = int(no_u[-1]) if no_u[-1] is not '' else int(no_u[-2])
+    return k
 
 '''__add_header_info
 DESC:
@@ -92,15 +101,16 @@ def __save_subsequence_info(subsequence_files, subsequence_name, protein_names, 
         this_prot_kmers = []
         for f in prot_with_subseq:
             scores, _, _ = score_utils.__get_scores_scan_pos_label(f)
-            mer = str([int(j) for j in str(f).split('_') if j.isdigit()][0])
-            k = 'k=' + mer
+            k = 'k=' + str(__get_k_number(f))
             subsequence_dict[prot_name][k] = scores
             this_prot_kmers.append(scores)
         agged = agg_func(this_prot_kmers)
         subsequence_aggs[prot_name] = deepcopy(agged)
-        subsequence_dict[predicting_agg_func] = deepcopy(agged)
+        subsequence_dict[prot_name][predicting_agg_func] = deepcopy(agged)
     
-    subsequence_dict[EXPERIMENT_PARENT_PREDICTION] = get_top_n_prots(subsequence_aggs)
+    if SAMPLE_PROTEIN_ANALYSIS not in subsequence_dict: 
+        subsequence_dict[SAMPLE_PROTEIN_ANALYSIS] = {}
+    subsequence_dict[SAMPLE_PROTEIN_ANALYSIS][EXPERIMENT_PARENT_PREDICTION] = get_top_n_prots(subsequence_aggs)
     json[EXPERIMENT_ENTRY][subsequence_name] = subsequence_dict
 
 #####################################################

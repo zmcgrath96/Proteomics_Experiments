@@ -9,7 +9,6 @@ from utils import __get_related_files, __make_dir, __make_valid_dir_string
 from analysis.analysis_utils import get_top_n, __get_argmax_max
 from analysis.write_output import write_raw_json, write_summary
 from analysis.score_utils import __align_scan_pos, __get_scores_scan_pos_label, __pad_scores
-from analysis.aggregations import __sum, __product, __z_score_sum
 
 ####################################################
 #               CONSTANTS
@@ -101,6 +100,7 @@ def __plot_subsequence(aggs, title='', save_dir='./', show_graph=False, agg_func
     show_graph and plt.show()
     write_raw_json(save_dir + title, aggs)
     plt.close()
+
 '''plot_subsequence_vs_protein
 
 DESC:
@@ -110,24 +110,19 @@ PARAMS:
 OPTIONAL:
     title: string to label this plot. Also saving name for the plot. Default=''
     save_dir: string name of directory to save all output under. Default=./
-    aggregate: string which type of aggregation of scores to perfrom. Default=sum
     show_graph: bool whether or not to show the graph. Default=False
 '''
-def __plot_subsequence_vs_protein(k_mers, title='', save_dir='./', aggregate='sum', show_graph=False):
-    agg = __z_score_sum if 'z_score_sum' in aggregate.lower() else (__product if 'product' in aggregate.lower() else __sum)
+def __plot_subsequence_vs_protein(k_mers, title='', save_dir='./', show_graph=False):
     save_dir = __make_valid_dir_string(save_dir) + title + '/'
     __make_dir(save_dir)
 
     plt.figure(figsize=(10, 7))
     i  = 0
-    all_scores = []
     for mer in k_mers:
         score = k_mers[mer]
         plt.plot([j for j in range(len(score))], score, all_line_types[i].strip(), label=str(mer))
         i += 1
-        all_scores.append(score)
-    agg_scores = agg(all_scores)
-    plt.plot([j for j in range(len(agg_scores))], agg_scores, all_line_types[i], label='{} of scores'.format(aggregate))
+
     plt.xlabel('subsequence start position')
     plt.ylabel('k-mer scores')
     plt.title(title)
@@ -136,7 +131,21 @@ def __plot_subsequence_vs_protein(k_mers, title='', save_dir='./', aggregate='su
     show_graph and plt.show()
     write_raw_json(save_dir + title, k_mers)
     plt.close()
-    return agg_scores
+
+'''__find_agg_score
+
+DESC:
+    find the aggregation
+PARAMS:
+    scores: dict of list of floats from the analysis
+    agg_func: str name of the aggregation function
+RETURNS:
+    list of floats of the aggregation
+'''
+def __find_agg_score(scores, agg_func):
+    for key in scores:
+        if str(agg_func).lower() in str(key).lower():
+            return scores[key]
 
 #####################################################
 #           END "PRIVATE" FUNCTIONS
@@ -175,16 +184,17 @@ def plot_experiment(experiment_json_file, agg_func='sum', show_all=False, saving
         pep_saving_dir = __make_valid_dir_string(saving_dir + peptide)
         __make_dir(pep_saving_dir)
         for prot, k_mers in prots.items():
-            if prot == 'predicted_parents':
+            if prot == 'analysis':
                 continue
             plot_title = '{} vs {}'.format(peptide, prot)
             pep_prot_saving_dir = __make_valid_dir_string(pep_saving_dir + prot)
             __make_dir(pep_prot_saving_dir)
-            agg_scores[prot] = __plot_subsequence_vs_protein(k_mers, title=plot_title, save_dir=pep_prot_saving_dir, aggregate=agg_func, show_graph=show_all)
+            __plot_subsequence_vs_protein(k_mers, title=plot_title, save_dir=pep_prot_saving_dir, show_graph=show_all)
+            agg_scores[prot] = __find_agg_score(k_mers, agg_func)
         info = None
         for pep in header_peps:
             if pep['peptide_name'] == peptide:
                 info = pep 
                 break
-        __plot_subsequence(agg_scores, title=str(peptide), save_dir=pep_saving_dir, show_graph=show_all, agg_func=agg_func, peaks=prots['predicted_parents'], sequence_info=info)
+        __plot_subsequence(agg_scores, title=str(peptide), save_dir=pep_saving_dir, show_graph=show_all, agg_func=agg_func, peaks=prots['analysis']['predicted_parents'], sequence_info=info)
     print('Finished')

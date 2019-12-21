@@ -10,7 +10,7 @@ def __parse_db_name(db_name):
     return  str(db_name.split('/')[-1]).replace('.fasta', '')
 
 def score_peptides(spectra_files, database_files, path_to_crux_cmd, output_dir):
-    output_dir = __make_valid_dir_string(output_dir)
+    output_dir = __make_valid_dir_string(output_dir) + 'search_output/'
     __make_dir(output_dir)
 
     output_count = 0

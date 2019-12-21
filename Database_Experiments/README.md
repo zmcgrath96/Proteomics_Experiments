@@ -1,71 +1,116 @@
-# Database Experiments
-The experiments in this folder involve different ways of constructing databases and queries in order to identify hybrid peptides. The basic overview for these experiments:
-
-1. Create a known hybrid from known parents
-2. Break each parent into peptides of a varying length
-3. Track how each of these queries perform
-
-The idea is that there should be some sort of identifiable trend in score based on the peptide lengths
-
-The two default protiens used are:
-
-1. Human Insulin: https://www.uniprot.org/uniprot/P01308
-2. Human Brain-derived neurotrophic factor: https://www.uniprot.org/uniprot/P23560
-
-The default hybrid is:
-
-   ALYLVCGE-LYTSRV  
-   INS[37:44]-BDNF[88:93]
-
-The parents and hybrid can be changed in the sequences.json file
-
-## General Methods
-### Generating Spectra 
-### Scoring
-
 # Flipped Database Query
 
 ### Hypothesis
-Flipping the database and the query strings should allow us to see how well our Amino Acid (AA) chunks score against a hybrid peptide. We should be able to see any trends in scores for these chunks. These trends should be:
-1. For smaller cuts, we should score very high with lots of false positives 
-2. For cuts about the size of the contribution to the hybrid, we should see a rise in score above the noise level, peak, then taper back down
-3. For cuts larger than the contribution, we should see a rise as we overlap the hybrid, but not peak as well as number 2
+The "flipped" aspect to this experiment is only possible because this is all theoretical. We are essentially
+using scoring algorithms in a manner in the correct way because we 
 
-The chunk sizes used in the original runs were 3, 4, 6, 8, 10. 
+Using k-mers from protein sequences should allow us to do two things: 
+1. Accurately identify peptides from one parent protein
+2. Identify if a peptide could sourced from two parent protiens
+
+Ideally, as our k-mer lengths envelope our spectra from MS/MS, we should see the score of this comparison peak.
+Some aggregation function applied to all the k-mers at the same starting subsequence position should result
+in an even more identifiable peak, making it easier to identify parent proteins.
+
+For shorter peptides, we would expect their to be a lot of noise, from which more sophisticated searches should 
+spawn in order to accurately identify a parent protein. 
+
+This method should be effective for identifying potential hybrid peptides for the following reasons:
+* since we deal with k-mers, as k-mers overlap the spectra, we should get good peaks from 2 parents
+* knowing the k-mer size allows us to find the junction site as we have information from sets of k-mers
 
 ### Methods
-1. Create a hybrid sequence from two known parent proteins
-2. Put this sequence in FASTA format and load it as the database into a database scoring algorithm
-3. For both of the parent proteins do the following:
-   1. Use a sliding window to cut protein into smaller sequences
-   2. Use each of these sequences as the query against our database of 1
-   3. Record how well each of these sequences score against it
-   4. Repeat this for varying sizes of windows (¼, ½, 1, >1 size the contribution of each parent protein to the hybrid)
-
-### Results
-
-# Fractionated Database Query
-### Hypothesis
-Creating varying types of databases made from the parent proteins of the sequences, we should be able to see trends in the score of sequences in the database. These trends should be:
-1.  For sequences smaller than the contribution to the hybrid, there should be a lot of noise with no real contender for the source of the hybrid 
-2. For sequences about the length of the contribution from the parent protein, we should see a rise in score as we cover the full contribution, then a taper back down
-3. For sequences longer than the contribution from the parent, we should see the same as we saw for number 2
-
-The chunk sizes used in the original runs were 3, 4, 6, 8, 10. 
-### Methods
-1. Create a hybrid sequence from two known parent proteins
-2. Create a new database (from the list below)
-3. Query the hybrid against each of these databases 
-4. Track the scores the hybrid gets across all of the sequences in the database
-##### Database List
-- Small cuts (about a quarter of the size of the contribution to the hybrid) from sliding window of parent protein 1 mixed with small cuts (about a quarter of the size of the contribution to the hybrid) from sliding window of parent protein 2
-- Small cuts (about half of the size of the contribution to the hybrid) from sliding window of parent protein 1 mixed with small cuts (about half of the size of the contribution to the hybrid) from sliding window of parent protein 2
-- Medium cuts (about the size of the contribution to the hybrid) from sliding window of parent protein 1 mixed with medium cuts (about the size of the contribution to the hybrid) from sliding window of parent protein 2
-- Large cuts (larger than the size of the contribution to the hybrid) from sliding window of parent protein 1 mixed with large cuts (larger than the size of the contribution to the hybrid) from sliding window of parent protein 2
+1. Given a list of proteins, 
+   1. either randomly generate or load peptides from memory
+   2. generate hybrid proteins 
+   3. generate hybrid peptides from the hybrid proteins
+2. Save all peptides to .FASTA files as the future databases
+3. From the proteins, generate k-mers with +1 offset (move the window by 1 position)
+4. Calculate the theoretical masses of these k-mers from their residual amino acid masses
+4. Save these k-mer spectra to .mzML files
+5. Use a scoring algorithm<sup>1</sup> to compare these spectra to the peptides in the .FASTA files
+6. Load the scores into memory and format them in a human-readable json format
+7. Use this to run analyses on
+   1. Plot the scores of k-mers for each peptide and plot aggregate of protein k-mers for many proteins against each peptide
+   2. Rank how well the correct starting position for k-mers scores and run statistics on this
 
 
-### Results
+[1] crux search tool was used. it is an implementation of the SEQUEST scoring algorithm. Link to and citation in the top level README file
 
+
+### Download and Usage
+To download 
+```bash
+~>git clone https://github.com/zmcgrath96/Proteomics_Experiments.git
+```
+
+To run 
+```bash
+~>cd Proteomics_Experiments/Database_Experiments/src
+Proteomics_Experiments/Database_Experiments/src> main.py <options>
+```
+
+For help
+```bash
+~>cd Proteomics_Experiments/Database_Experiments/src
+Proteomics_Experiments/Database_Experiments/src> main.py --help
+```
+
+Usage
+```bash
+usage: main.py [-h] [--hybrid-peptide-file HYB_PEP]
+               [--hybrid-protein-file HYB_PROT] [--num-peptides NUM_PEPTIDES]
+               [--num-hybrids NUM_HYBRIDS] [--aggregate-function AGG_FUNC]
+               [--show-all-graphs SHOW_ALL] [--output-dir SAVE_DIR]
+               [--min-length MIN_LENGTH] [--max-length MAX_LENGTH]
+               [--top-n TOP_N] [--n N] [--measure-func M_FUNC]
+               [--peptide-file D_FILE] [--mix-prots MIX]
+               P
+
+Entry file for the database experiments
+
+positional arguments:
+  P                     Path to a file (csv or fasta) with protein name and
+                        sequences
+
+optional arguments:
+  -h, --help            show this help message and exit
+  --hybrid-peptide-file HYB_PEP
+                        Path to a hybrid peptide file. If none is given, new
+                        hybrid peptides generated. Default=
+  --hybrid-protein-file HYB_PROT
+                        Path to a hybrid protein file. If none is given, new
+                        hybrid proteins generated. Default=
+  --num-peptides NUM_PEPTIDES
+                        Number of peptides to generate as the fake sample.
+                        Default=50
+  --num-hybrids NUM_HYBRIDS
+                        Number of hybrid proteins and peptides to generate.
+                        Default=10
+  --aggregate-function AGG_FUNC
+                        Which aggregation function to use for combining k-mer
+                        scores. Pick either sum or product. Default=sum
+  --show-all-graphs SHOW_ALL
+                        Show all the graphs generated. Will save to directory
+                        either way. Default=False.
+  --output-dir SAVE_DIR
+                        Directory to save all figures. Default=./
+  --min-length MIN_LENGTH
+                        Minimum length peptide to create. Default=3
+  --max-length MAX_LENGTH
+                        Maximum length peptide to create. Cuts from N terminus
+                        (left) side. Default=20
+  --top-n TOP_N         When recording how well a peptide scores against a
+                        protein, only use the top n proteins. Default=False
+  --n N                 n to use if using --top-n. Default=5
+  --measure-func M_FUNC
+                        Measuring function for determining the top n proteins.
+                        Options are: sum, average, max. Default=average
+  --peptide-file D_FILE
+                        Peptides from a past experiment. Default=None
+  --mix-prots MIX       Whether or not to also use huybrid proteins when
+                        calculating scores. Default=False
+```
 
 
 Mass source: http://education.expasy.org/student_projects/isotopident/htdocs/aa-list.html

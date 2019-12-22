@@ -156,8 +156,7 @@ def __find_agg_score(scores, agg_func):
 DESC:
     Plot the score of sequences against the starting position for an experiment
 PARAMS:
-    experiment: string name of experiment to run
-    experiment_json_file: string path to the experiment json file saved to disk
+    exp: dict the json used to save all information
 OPTIONAL:
     agg_func: string aggregate function to use. Default=sum
     saving_dir: string path to directory to save figures under. Default=./
@@ -168,13 +167,10 @@ OPTIONAL:
 RETURNS: 
     None
 '''
-def plot_experiment(experiment_json_file, agg_func='sum', show_all=False, saving_dir='./', use_top_n=False, n=5, measure='average'):
+def plot_experiment(exp, agg_func='sum', show_all=False, saving_dir='./', use_top_n=False, n=5, measure='average'):
     #create the saving directory
     saving_dir = __make_valid_dir_string(saving_dir)
     __make_dir(saving_dir)
-    exp = {}
-    with open(experiment_json_file, 'r') as exp_file:
-        exp = json.load(exp_file)
 
     print('\nGenerating plots...')
     header_peps = exp[json_header][json_header_peps]
@@ -184,7 +180,7 @@ def plot_experiment(experiment_json_file, agg_func='sum', show_all=False, saving
         pep_saving_dir = __make_valid_dir_string(saving_dir + peptide)
         __make_dir(pep_saving_dir)
         for prot, k_mers in prots.items():
-            if prot == 'analysis':
+            if prot == 'analysis' or prot == 'ranks':
                 continue
             plot_title = '{} vs {}'.format(peptide, prot)
             pep_prot_saving_dir = __make_valid_dir_string(pep_saving_dir + prot)

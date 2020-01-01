@@ -41,6 +41,7 @@ def from_fasta(fasta_file):
     if not __file_exists(fasta_file):
         raise Exception('File {} does not exist'.format(fasta_file))
     prots = []
+    print('Loading proteins...')
     with open(fasta_file, 'r') as i:
         name = None 
         seq = '' 
@@ -59,4 +60,5 @@ def from_fasta(fasta_file):
             'name': name,
             'sequence': seq
         })
+    print('Done.')
     return prots

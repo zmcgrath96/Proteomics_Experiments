@@ -29,6 +29,10 @@ json_header = 'header'
 json_header_prots = 'proteins'
 json_header_peps = 'peptides'
 json_exp = 'experiment'
+json_analysis =  'analysis'
+json_rankings = 'ranks'
+json_rankings_rankings = 'ranks'
+json_seq_len = 'sequence_length'
 ####################################################
 #              END CONSTANTS
 ####################################################
@@ -147,6 +151,71 @@ def __find_agg_score(scores, agg_func):
         if str(agg_func).lower() in str(key).lower():
             return scores[key]
 
+'''__collect_k_rankings
+
+DESC:
+    Collect the score rankings for each peptide for each k
+PARAMS:
+    exp: dictionary experiment summary dictionary
+RETURNS:
+    dictionary of the form
+    {
+        k: {
+            l_0: [], 
+            l_1: [],
+            ...
+        }
+    }
+'''
+def __collect_k_rankings(exp):
+    rankings = {}
+    for _, pep in exp[json_exp].items():
+        l = pep[json_analysis][json_rankings][json_seq_len]
+        for k, rank in pep[json_analysis][json_rankings][json_rankings_rankings].items():
+            if not k in rankings:
+                rankings[k] = {}
+            if not l in rankings[k]:
+                rankings[k][l] = []
+            rankings[k][l] += [rank]
+
+    return rankings
+
+'''__plot_score_rankings
+
+DESC:
+    Generates violin plots of ranking history
+PARAMS:
+    exp: dictionary experiment summary dictionary
+OPTIONAL:
+    save_dir: str path to directory to save images too. Default=./
+    show_all: bool to show or not all plots. Default=False
+RETURNS:
+'''
+def __plot_score_rankings(exp, save_dir='./', show_all=False):
+    # go through each peptide and collect stats
+    # x axis: length of the sequnce
+    # y axis: violin plot of distribution
+    # do it for each k or aggregation
+    save_dir = __make_valid_dir_string(save_dir)
+    __make_dir(save_dir)
+
+    rs = __collect_k_rankings(exp)
+    for k in rs:
+        pos = []
+        data =[]
+        for t in rs[k]:
+            pos.append(int(t))
+            data.append(rs[k][t])
+        
+        # Create an axes instance
+        plt.violinplot(data, pos)
+        plt.title(k)
+        plt.xlabel('subsequence length')
+        plt.ylabel('score distribution')
+        show_all and plt.show()
+        plt.savefig(save_dir + str(k))
+        plt.close()
+
 #####################################################
 #           END "PRIVATE" FUNCTIONS
 #####################################################
@@ -168,11 +237,21 @@ RETURNS:
     None
 '''
 def plot_experiment(exp, agg_func='sum', show_all=False, saving_dir='./', use_top_n=False, n=5, measure='average'):
+    '''
+    1. plot the kmer scores
+    2. plot the aggregation
+    2. plot the ranking history
+    '''
+
     #create the saving directory
     saving_dir = __make_valid_dir_string(saving_dir)
     __make_dir(saving_dir)
 
     print('\nGenerating plots...')
+
+    # Plot the kmer scores and score aggregations
+    # TODO: make this into its own function for the sake of cleanliness
+    print('Generating peptide score plots...')
     header_peps = exp[json_header][json_header_peps]
     for peptide, prots in exp[json_exp].items():
         # generate plots for all the proteins against the peptide
@@ -193,4 +272,10 @@ def plot_experiment(exp, agg_func='sum', show_all=False, saving_dir='./', use_to
                 info = pep 
                 break
         __plot_subsequence(agg_scores, title=str(peptide), save_dir=pep_saving_dir, show_graph=show_all, agg_func=agg_func, peaks=prots['analysis']['predicted_parents'], sequence_info=info)
-    print('Finished')
+    print('Finished.')
+
+    # Plot the ranking of the corect 
+    print('Generating score ranking plots...')
+    __plot_score_rankings(exp, save_dir=saving_dir + 'ranking_plots/', show_all=show_all)
+
+    print('Finished.')

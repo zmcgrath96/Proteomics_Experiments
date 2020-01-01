@@ -125,6 +125,7 @@ def tryptic(sequences, number_digests, peptide_prefix='peptide_', miss_prob=0, s
 
     digest_count = 0
     for digest in to_digest:
+        print('Creating peptide from digest {}/{}[{}%]\r'.format(digest_count, number_digests, int(float(digest_count)/float(number_digests) * 100)), end="")
         seq = digest['sequence']
         name = digest['name']
         pep_name = peptide_prefix + str(digest_count).zfill(ceil(number_digests/10))
@@ -152,4 +153,5 @@ def tryptic(sequences, number_digests, peptide_prefix='peptide_', miss_prob=0, s
         o.write(form.format(pep_name, this_pep, name, seq, start, end))
         digest_count += 1
 
+    print('Finished digestion')
     return peptides

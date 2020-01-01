@@ -167,7 +167,7 @@ def __rank_pep(json, peptide):
     ranking_dict['ranks'] = __find_kmer_rank(peptide['parent_name'], peptide['start_index'], deepcopy(json[EXPERIMENT_ENTRY][peptide['peptide_name']]))
     ranking_dict['sequence'] = peptide['peptide_sequence']
     ranking_dict['sequence_length'] = len(peptide['peptide_sequence'])
-    json[EXPERIMENT_ENTRY][peptide['peptide_name']]['ranks'] = ranking_dict
+    json[EXPERIMENT_ENTRY][peptide['peptide_name']][SAMPLE_PROTEIN_ANALYSIS]['ranks'] = ranking_dict
 
 '''__analyze_subsequence
 

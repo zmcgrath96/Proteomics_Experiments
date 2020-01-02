@@ -1,9 +1,6 @@
 def k_mers(original_sequence, window_size):
-    seqs = []
     if window_size > len(original_sequence):
-        seqs = [original_sequence]
-        return seqs
-    for i in range(len(original_sequence) - window_size + 1):
-        seqs.append(original_sequence[i:i+window_size])
-
-    return seqs
+        return [original_sequence]
+        
+    w_1 = window_size-1
+    return [original_sequence[i:i+window_size] for i in range(len(original_sequence)-w_1)]

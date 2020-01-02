@@ -1,7 +1,6 @@
 import os
 import argparse 
 import json
-from sequence_generation.gen_k_mers import k_mers
 from utils import __make_valid_dir_string, __make_dir, __make_valid_fasta_file
 from math import ceil
 

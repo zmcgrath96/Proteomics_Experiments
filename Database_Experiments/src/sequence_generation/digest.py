@@ -83,12 +83,29 @@ def __tryptic_digest(sequence, miss_prob):
     
     return this_pep, sequence.index(this_pep)
 
+'''__verify_length
+
+DESC:
+    make sure proteins are long enough
+PARAMS: 
+    seqs: list of dictionaries {'name': str, 'sequence': str}
+    min_length: int 
+RETURNS:
+    list of dictionaries of the same form 
+'''
+def __verify_length(seqs, min_length):
+    verified = []
+    for seq in seqs:
+        if len(seq['sequence']) >= min_length:
+            verified.append(seq)
+    return verified
+
 '''tryptic
 
 DESC:
     Generate peptides with tryptic digest from sequences with missed cleavages at a probability
 PARAMS:
-    sequences: list of dictionary objects with entries {'sequences': string, 'name': string}
+    sequences: list of dictionary objects with entries {'sequence': string, 'name': string}
     number_digests: int number of peptides to generate
 OPTIONAL:
     miss_prob: float the probability of a missed cleavage. Should range [0, 1). Default=0
@@ -109,6 +126,8 @@ RETURNS:
 def tryptic(sequences, number_digests, peptide_prefix='peptide_', miss_prob=0, save_dir='./', save_name='peptides.tsv', min_length=3, max_length=20):
     save_dir = __make_valid_dir_string(save_dir)
     __make_dir(save_dir)
+
+    sequences = __verify_length(sequences, min_length)
 
     to_digest = []
     if number_digests <= len(sequences):

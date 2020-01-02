@@ -148,9 +148,9 @@ def generate_proteins(num_gen, prots, min_contribution=10, name_prefix='HYBRID_'
         left_parent = prots[randint(0, len(prots)-1)]
         right_parent = prots[randint(0, len(prots)-1)]
         # make sure both parents are long enough
-        while len(left_parent) < min_contribution:
+        while len(left_parent['sequence']) < min_contribution:
             left_parent = prots[randint(0, len(prots)-1)]
-        while len(right_parent) < min_contribution:
+        while len(right_parent['sequence']) < min_contribution:
             right_parent = prots[randint(0, len(prots)-1)]
 
         left_end = randint(0, len(left_parent['sequence'])-1)

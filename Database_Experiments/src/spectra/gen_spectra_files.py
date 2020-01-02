@@ -23,10 +23,14 @@ def generate(sequences, window_sizes, save_dir='./'):
     
     for window_size in window_sizes:
         print('Generating {}-mer spectra for all proteins...'.format(window_size))
+        seq_c = 0
+        n_s = len(sequences)
         for sequence in sequences:
+            print('generating spectra for sequence {}/{}[{}%]\r'.format(seq_c, n_s, int((float(seq_c)/(float(n_s))) * 100)), end="")
             name = '{}_{}'.format(sequence['name'], window_size)
             kmers = k_mers(sequence['sequence'], window_size)
             spectra = gen_spectra.gen_spectra(kmers)
             output_files.append(write_spectra.write_mzml(name, spectra, output_dir=save_dir))
+            seq_c += 1
 
     return output_files

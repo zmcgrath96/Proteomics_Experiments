@@ -79,8 +79,10 @@ def main(args):
     print('Done')
 
     # create spectrum files
+    print('Generating spectra files...')
     spectra_files = gen_spectra_files.generate(all_proteins_cleaned, defaults['window_sizes'], save_dir=save_dir)
-    
+    print('Done.')
+
     # run scoring algorithm on database and k-mers
     print('Scoring...')
     score_output_files = score_peptides.score_peptides(spectra_files, fasta_databases, defaults['crux_cmd'], save_dir)

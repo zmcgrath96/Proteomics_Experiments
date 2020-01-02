@@ -54,7 +54,8 @@ def main(args):
     # load in a list of proteins from a source file
     prots = None 
     if '.csv' in prot_file or '.fasta' in prot_file:
-        prots = read_proteins.from_csv(prot_file) if '.csv' in prot_file else read_proteins.from_fasta(prot_file) 
+        prots, dups = read_proteins.from_csv(prot_file) if '.csv' in prot_file else read_proteins.from_fasta(prot_file) 
+        print('Number of duplicates found: {}'.format(len(dups)))
     else:
         raise Exception('Protein file should be csv or fasta. File passed in: {}'.format(prot_file))
 
@@ -65,14 +66,18 @@ def main(args):
     hyb_peps, hyb_prots = generate_hybrids.generate_hybrids(hyb_pep_file=hyb_pep, hyb_prot_file=hyb_prot, prots=prots, num_gen=num_hybs, min_length=min_length, max_length=max_length, save_dir=save_dir)
 
     # combine them for later use
+    print('Combining hybrid and non hybrid lists...')
     all_proteins_raw = prots + hyb_prots
     all_proteins_cleaned = prots + [{'name': x['name'] , 'sequence': x['protein']} for x in hyb_prots]
     all_peptides_raw = non_hybrid_peps + hyb_peps
     all_peptides_cleaned = [{'name': x['peptide_name'], 'sequence': x['peptide_sequence']} for x in non_hybrid_peps] + [{'name': x['peptide_name'], 'sequence': x['peptide_sequence']} for x in hyb_peps]
+    print('Done')
 
     # create database files
+    print('Generating fasta databases...')
     fasta_databases = database.generate(all_peptides_cleaned, save_dir=save_dir)
-    
+    print('Done')
+
     # create spectrum files
     spectra_files = gen_spectra_files.generate(all_proteins_cleaned, defaults['window_sizes'], save_dir=save_dir)
     

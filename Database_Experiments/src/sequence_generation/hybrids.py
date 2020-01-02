@@ -86,25 +86,28 @@ def generate_peptides(hybrid_prots, num_gen=10, peptide_name_prefix='HYBRID_PEPT
     second_round = num_gen if num_gen > len(hybrid_prots) else 0
     hybrid_peps = []
     name_c = 0
+
+    fill_zeros = len(str(ceil(num_gen / 10)))
+
     for i in range(first_round):
         print('Generating hybrid protein {}/{}[{}%]\r'.format(name_c, num_gen, int(float(name_c)/float(num_gen) * 100)), end="")
         hyb_pep = __make_hybrid_pep(hybrid_prots[i], min_length=min_length, max_length=max_length)
-        hyb_pep['peptide_name'] = peptide_name_prefix + str(name_c).zfill(ceil(num_gen/10))
+        hyb_pep['peptide_name'] = peptide_name_prefix + str(name_c).zfill(fill_zeros)
         hybrid_peps.append(hyb_pep)
         name_c += 1
 
     if second_round == 0: 
-        print('Finshed generating hybrid peptides')
+        print('\nFinshed generating hybrid peptides')
         return hybrid_peps, hybrid_prots
 
     for _ in range(second_round):
         print('Generating hybrid protein {}/{}[{}%]\r'.format(name_c, num_gen, int(float(name_c)/float(num_gen) * 100)), end="")
         hyb_pep = __make_hybrid_pep(choice(hybrid_prots), min_length=min_length, max_length=max_length)
-        hyb_pep['peptide_name'] = peptide_name_prefix + str(name_c).zfill(ceil(num_gen/10))
+        hyb_pep['peptide_name'] = peptide_name_prefix + str(name_c).zfill(fill_zeros)
         hybrid_peps.append(hyb_pep)
         name_c += 1
 
-    print('Finished generating hybrid peptides')
+    print('\nFinished generating hybrid peptides')
     return hybrid_peps, hybrid_prots
 
 '''generate_proteins
@@ -138,10 +141,18 @@ RETURNS:
 '''
 def generate_proteins(num_gen, prots, min_contribution=10, name_prefix='HYBRID_'):
     hybrids = []
+    fill_zeros = len(str(ceil(num_gen / 10)))
+
     for i in range(num_gen):
         print('Generating hybrid protein {}/{}[{}%]\r'.format(i, num_gen, int(float(i)/float(num_gen) * 100)), end="")
         left_parent = prots[randint(0, len(prots)-1)]
         right_parent = prots[randint(0, len(prots)-1)]
+        # make sure both parents are long enough
+        while len(left_parent) < min_contribution:
+            left_parent = prots[randint(0, len(prots)-1)]
+        while len(right_parent) < min_contribution:
+            right_parent = prots[randint(0, len(prots)-1)]
+
         left_end = randint(0, len(left_parent['sequence'])-1)
         right_start = randint(0, len(right_parent['sequence'])-1)
         while left_end < min_contribution:
@@ -149,7 +160,7 @@ def generate_proteins(num_gen, prots, min_contribution=10, name_prefix='HYBRID_'
         while len(right_parent['sequence']) - right_start < min_contribution:
             right_start = randint(0, len(right_parent['sequence'])-1)
         hybrid = left_parent['sequence'][:left_end] + right_parent['sequence'][right_start:]
-        name = name_prefix + str(i).zfill(ceil(num_gen/10))
+        name = name_prefix + str(i).zfill(fill_zeros)
         hybrid_d = {
             'left_parent_name': left_parent['name'],
             'right_parent_name': right_parent['name'],
@@ -163,7 +174,7 @@ def generate_proteins(num_gen, prots, min_contribution=10, name_prefix='HYBRID_'
             'name': name
         }
         hybrids.append(hybrid_d)
-    print('Finished generating hybrid proteins')
+    print('\nFinished generating hybrid proteins')
     return hybrids
 
 '''save_peptides

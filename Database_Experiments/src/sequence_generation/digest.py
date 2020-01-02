@@ -35,6 +35,7 @@ DESC:
     Perfrom the actual digestion 
 PARAMS: 
     sequence: full length sequence to perform digestion on
+    miss_prob:
 '''
 def __tryptic_digest(sequence, miss_prob):
     # pick a start point thats not the start or the end
@@ -118,6 +119,8 @@ def tryptic(sequences, number_digests, peptide_prefix='peptide_', miss_prob=0, s
         for _ in range(number_digests - len(sequences)):
             to_digest.append(choice(sequences))
 
+    fill_zeros = len(str(ceil(number_digests / 10)))
+
     peptides = []
     o = open(save_dir + save_name, 'w')
     form = '{}\t{}\t{}\t{}\t{}\t{}\n'
@@ -128,13 +131,25 @@ def tryptic(sequences, number_digests, peptide_prefix='peptide_', miss_prob=0, s
         print('Creating peptide from digest {}/{}[{}%]\r'.format(digest_count, number_digests, int(float(digest_count)/float(number_digests) * 100)), end="")
         seq = digest['sequence']
         name = digest['name']
-        pep_name = peptide_prefix + str(digest_count).zfill(ceil(number_digests/10))
+
+        # make sure the protein is long enough to operate on
+        if len(seq) < min_length: 
+            print('\nProtein sequence too short. Name: {}\t sequence: {}'.format(name, seq))
+            continue
+
+        pep_name = peptide_prefix + str(digest_count).zfill(fill_zeros)
         this_pep, start = __tryptic_digest(seq, miss_prob)
-        end = start + len(this_pep)
         #ensure that no peptide is shorter than the minimum length
-        while len(this_pep) < min_length:
-            this_pep, start = __tryptic_digest(seq, miss_prob)
-        
+        if len(this_pep) < min_length:
+            idx = seq.index(this_pep)
+            if idx - (min_length - len(this_pep)) >= 0:
+                this_pep = seq[idx - (min_length - len(this_pep)): idx + min_length]
+                start = idx
+            else:
+                this_pep = seq[idx: idx + min_length]
+                start = idx
+
+        end = start + len(this_pep)
         # if the peptide is too long, cut from the left side
         if len(this_pep) > max_length:
             start_pep = len(this_pep) - max_length
@@ -153,5 +168,5 @@ def tryptic(sequences, number_digests, peptide_prefix='peptide_', miss_prob=0, s
         o.write(form.format(pep_name, this_pep, name, seq, start, end))
         digest_count += 1
 
-    print('Finished digestion')
+    print('\nFinished digestion')
     return peptides

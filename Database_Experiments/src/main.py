@@ -1,6 +1,7 @@
 import os
 import argparse
 import json
+from time import time
 import database
 from spectra import gen_spectra_files
 from scoring import score_peptides
@@ -51,6 +52,8 @@ def main(args):
     old_digest = args.d_file 
     mix = args.mix
 
+    start_time = time()
+
     # load in a list of proteins from a source file
     prots = None 
     if '.csv' in prot_file or '.fasta' in prot_file:
@@ -91,13 +94,12 @@ def main(args):
     # save scores to json
     protein_names = []
     print('Analyzing Experiment...')
-    exp_json_path = analyze(all_proteins_raw, all_peptides_raw, score_output_files, predicting_agg_func=agg_func, saving_dir=save_dir, mix_in_hybrids=mix, show_all=show_all)
+    exp_json_path = analyze(all_proteins_raw, all_peptides_raw, score_output_files, {**vars(args), **defaults}, predicting_agg_func=agg_func, saving_dir=save_dir, mix_in_hybrids=mix, show_all=show_all)
     print('Done.')
 
-    print('Finished.')
-    print('===================================')
-    print('SUMMARY\n\\nFASTA Databses:\n {}\n\nSpctra files: {}\n\nOutput files created: {}'.format( ', '.join(fasta_databases), ', '.join(spectra_files), ', '.join(score_output_files)))
+    print('Finished experiment. Time to complete: {} seconds'.format(time() - start_time))
 
+    
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Entry file for the database experiments')
     parser.add_argument('protein_sequences', type=str, metavar='P', help='Path to a file (csv or fasta) with protein name and sequences')

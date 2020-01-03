@@ -1,5 +1,3 @@
-from pyteomics import mass
-
 amino_acids={
     "A":71.037114,
     "R":156.101111,
@@ -73,25 +71,6 @@ def __calc_masses(sequence, charge):
         #The masses you get exactly match Spectrum Mill. To get this, I had to make sure to use the mass of H+ and the mass of H when appropriate.
 
     return masses, pre_mz
-
-
-# def __calc_masses_old(sequence):
-#     rev_sequence = sequence[::-1]
-#     this_spectra = []
-#     this_entry = {'sequence': sequence, 'spectrum': None, 'precursor_mass': None}
-#     for i in range(1, len(sequence) + 1):
-#         subsequence = sequence[0:i]
-#         rev_subsequence = rev_sequence[0:i]
-#         # charge 1 has an extra proton
-#         # without a charge and just leaving the ion for b gives us residues
-#         this_spectra.append(mass.calculate_mass(sequence=subsequence, ion_type='b', charge=1))
-#         this_spectra.append(mass.calculate_mass(sequence=rev_subsequence, ion_type='y', charge=1))
-#         this_spectra.append(mass.calculate_mass(sequence=subsequence, ion_type='b', charge=2))
-#         this_spectra.append(mass.calculate_mass(sequence=rev_subsequence, ion_type='y', charge=2))
-#     this_spectra.sort()
-#     this_entry['spectrum'] = this_spectra
-#     this_entry['precursor_mass'] = mass.calculate_mass(sequence=sequence, charge=2)
-#     return this_spectra
 
 '''gen_spectra
 

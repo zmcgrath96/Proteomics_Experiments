@@ -25,7 +25,7 @@ all_line_types.sort(key=lambda x: x[1])
 cwd = os.path.dirname(os.path.realpath(__file__))
 save_fig_prefix = 'figure_{}'
 
-json_header = 'header'
+json_header = 'experiment_info'
 json_header_prots = 'proteins'
 json_header_peps = 'peptides'
 json_exp = 'experiment'
@@ -207,7 +207,13 @@ def __plot_score_rankings(exp, save_dir='./', show_all=False):
             pos.append(int(t))
             data.append(rs[k][t])
         
-        # Create an axes instance
+        if not isinstance(data, list) or not all(isinstance(x, list) for x in data): 
+            print('ERROR: Data is not list. \nData: {}'.format(data))
+            continue
+        if not isinstance(pos, list): 
+            print('ERROR: Pos is not list. \nPos: {}'.format(pos))
+            continue
+   
         plt.violinplot(data, pos)
         plt.title(k)
         plt.xlabel('subsequence length')

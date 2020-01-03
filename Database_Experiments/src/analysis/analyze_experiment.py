@@ -13,9 +13,10 @@ from analysis.plotting import plot_experiment
 experiment_json_file_name = 'experiment_data.json'
 
 EXPERIMENT_ENTRY = 'experiment'
-EXPERIMENT_HEADER = 'header'
+EXPERIMENT_HEADER = 'experiment_info'
 EXPERIMENT_PROTEIN_HEADER = 'proteins'
 EXPERIMENT_PEPTIDE_HEADER = 'peptides'
+EXPERIMENT_ARGUMENT_HEADER = 'arguments'
 EXPERIMENT_PARENT_PREDICTION = 'predicted_parents'
 SAMPLE_ENTRY = 'sample'
 SAMPLE_PROTEINS = 'proteins'
@@ -32,7 +33,8 @@ HYBRID_SEACH_STRING = 'HYBRID'
 experiment_json = {
     EXPERIMENT_HEADER: {
         EXPERIMENT_PROTEIN_HEADER: None, 
-        EXPERIMENT_PEPTIDE_HEADER: []
+        EXPERIMENT_PEPTIDE_HEADER: None,
+        EXPERIMENT_ARGUMENT_HEADER: None
     }, 
     EXPERIMENT_ENTRY: {
 
@@ -70,11 +72,13 @@ PARAMS:
         'start_index': int, 
         'end_index': int
     }
+    args: dictionary parameters used when running the experiment
     json: dictionary object in which to save the header info
 '''
-def __add_header_info(proteins, peptides, json):
+def __add_header_info(proteins, peptides, args, json):
     json[EXPERIMENT_HEADER][EXPERIMENT_PROTEIN_HEADER] = deepcopy(proteins)
     json[EXPERIMENT_HEADER][EXPERIMENT_PEPTIDE_HEADER] = deepcopy(peptides)
+    json[EXPERIMENT_HEADER][EXPERIMENT_ARGUMENT_HEADER] = deepcopy(args)
 
 '''__add_subsequence_agg
 
@@ -213,6 +217,7 @@ PARAMS:
         'end_index': int
     }
     files: list of str output files from the scoring algorithm
+    args: dictionary parameters used when running the experiment
 OPTIONAL:
     predicting_agg_func: str name of the aggregation function to use. Default=sum
     saving_dir: str the name of the directory to save the experiment in. Default=./
@@ -222,7 +227,7 @@ OPTIONAL:
 RETURNS:
     str file path to the experiment json generated
 '''
-def analyze(proteins, peptides, files, predicting_agg_func='sum', saving_dir='./', mix_in_hybrids=False, show_all=False):
+def analyze(proteins, peptides, files, args, predicting_agg_func='sum', saving_dir='./', mix_in_hybrids=False, show_all=False):
     '''
     1. Perform any aggregations
     2. Rank peptides and do stats
@@ -233,7 +238,7 @@ def analyze(proteins, peptides, files, predicting_agg_func='sum', saving_dir='./
     utils.__make_dir(saving_dir)
 
     # add header information to the json
-    __add_header_info(proteins, peptides, experiment_json)
+    __add_header_info(proteins, peptides, args, experiment_json)
 
     # isolate the protein names
     protein_names = [x['name'] for x in proteins]

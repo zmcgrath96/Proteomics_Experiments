@@ -35,9 +35,11 @@ DESC:
     Perfrom the actual digestion 
 PARAMS: 
     sequence: full length sequence to perform digestion on
-    miss_prob:
+OPTIONAL:
+    miss_prob: 
+    rand_cut_prob: float value [0, 1] probability of cutting peptide short randomly. Default=.05
 '''
-def __tryptic_digest(sequence, miss_prob):
+def __tryptic_digest(sequence, miss_prob=0, rand_cut_prob=.05):
     # pick a start point thats not the start or the end
     start = randint(0, len(sequence)-1)
     while start == 0 or start == len(sequence) - 1:
@@ -81,6 +83,10 @@ def __tryptic_digest(sequence, miss_prob):
             end += 1
         this_pep = sequence[start+1:end+1]
     
+    for i in range(len(this_pep)-2, 0, -1):
+        if random() < rand_cut_prob:
+            this_pep = this_pep[i:]
+
     return this_pep, sequence.index(this_pep)
 
 '''__verify_length
@@ -112,6 +118,7 @@ OPTIONAL:
     save_dir: string the directory in which to save the digestion file. Default=./
     save_name: string the name to save the digestion information in. Default=peptides.tsv
     min_length: int minimum length peptide to generate. Default=3
+    rand_cut_prob: float value [0, 1] probability to randomly cut a peptide short. Default=.05
 RETURNS:
     list of dictionaries of form 
     {
@@ -123,7 +130,7 @@ RETURNS:
         'end_index': int
     }
 '''
-def tryptic(sequences, number_digests, peptide_prefix='peptide_', miss_prob=0, save_dir='./', save_name='peptides.tsv', min_length=3, max_length=20):
+def tryptic(sequences, number_digests, peptide_prefix='peptide_', miss_prob=0, save_dir='./', save_name='peptides.tsv', min_length=3, max_length=20, rand_cut_prob=.05):
     save_dir = __make_valid_dir_string(save_dir)
     __make_dir(save_dir)
 
@@ -157,7 +164,7 @@ def tryptic(sequences, number_digests, peptide_prefix='peptide_', miss_prob=0, s
             continue
 
         pep_name = peptide_prefix + str(digest_count).zfill(fill_zeros)
-        this_pep, start = __tryptic_digest(seq, miss_prob)
+        this_pep, start = __tryptic_digest(seq, miss_prob=miss_prob, rand_cut_prob=rand_cut_prob)
         #ensure that no peptide is shorter than the minimum length
         if len(this_pep) < min_length:
             idx = seq.index(this_pep)

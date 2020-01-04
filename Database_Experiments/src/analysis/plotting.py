@@ -207,19 +207,13 @@ def __plot_score_rankings(exp, save_dir='./', show_all=False):
             pos.append(int(t))
             data.append(rs[k][t])
         
-        if not isinstance(data, list) or not all(isinstance(x, list) for x in data): 
-            print('ERROR: Data is not list. \nData: {}'.format(data))
+        if not isinstance(data, list) or not all(isinstance(x, list) for x in data) or not all(isinstance(x, int) for y in data for x in y): 
+            print('ERROR: data is not in correct format ( [[int]] ). \ndata: {}'.format(data))
             continue
-        if not isinstance(pos, list): 
-            print('ERROR: Pos is not list. \nPos: {}'.format(pos))
+        if not isinstance(pos, list) or not all(isinstance(x, int) for x in pos): 
+            print('ERROR: pos is not in correnct format ( [int] ). \npos: {}'.format(pos))
             continue
    
-        # NOTE: this false and print seems to fix an issue with the violin plot...
-        #       this issue only pops up when running from the terminal, not in the debugger
-        # TODO: figure out why this fixes it
-
-        False and print('data: {}'.format(data))
-        False and print('pos: {}'.format(pos))
         plt.violinplot(data, pos)
         plt.title(k)
         plt.xlabel('subsequence length')

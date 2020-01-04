@@ -51,6 +51,7 @@ def main(args):
     m_func = args.m_func
     old_digest = args.d_file 
     mix = args.mix
+    compress = args.compress
 
     start_time = time()
 
@@ -83,7 +84,7 @@ def main(args):
 
     # create spectrum files
     print('Generating spectra files...')
-    spectra_files = gen_spectra_files.generate(all_proteins_cleaned, defaults['window_sizes'], save_dir=save_dir)
+    spectra_files = gen_spectra_files.generate(all_proteins_cleaned, defaults['window_sizes'], save_dir=save_dir, compress=compress)
     print('Done.')
 
     # run scoring algorithm on database and k-mers
@@ -117,6 +118,7 @@ if __name__ == '__main__':
     parser.add_argument('--measure-func', dest='m_func', type=str, default='average', help='Measuring function for determining the top n proteins. Options are: sum, average, max. Default=average')
     parser.add_argument('--peptide-file', dest='d_file', type=str, default='', help='Peptides from a past experiment. Default=None')
     parser.add_argument('--mix-prots', dest='mix', type=bool, default=False, help='Whether or not to also use huybrid proteins when calculating scores. Default=False')
+    parser.add_argument('--compress', dest='compress', type=bool, default=True, help='Compress spectra files while generating them. Default=True')
     args = parser.parse_args()
     main(args)
     

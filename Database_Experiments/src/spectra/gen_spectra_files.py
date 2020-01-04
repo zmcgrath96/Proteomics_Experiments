@@ -14,10 +14,11 @@ PARAMS:
     window_sizes: list of ints size of kmers to generate
 OPTIONAL:
     save_dir: str the directory in which to save all the spectra files. Default=./
+    compress: bool compress the spectra files. Default=True
 RETURNS:
     list of strs of the file names/paths generated
 '''
-def generate(sequences, window_sizes, save_dir='./'):
+def generate(sequences, window_sizes, save_dir='./', compress=True):
     output_files = []
     save_dir = __make_valid_dir_string(save_dir) + 'spectra/'
     
@@ -30,7 +31,7 @@ def generate(sequences, window_sizes, save_dir='./'):
             name = '{}_{}'.format(sequence['name'], window_size)
             kmers = k_mers(sequence['sequence'], window_size)
             spectra = gen_spectra.gen_spectra(kmers)
-            output_files.append(write_spectra.write_mzml(name, spectra, output_dir=save_dir))
+            output_files.append(write_spectra.write_mzml(name, spectra, output_dir=save_dir, compress=compress))
             seq_c += 1
 
     return output_files

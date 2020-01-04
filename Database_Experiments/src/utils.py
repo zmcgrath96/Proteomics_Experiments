@@ -1,4 +1,4 @@
-import os 
+import os, gzip, shutil
 
 '''__get_related_files
 
@@ -104,3 +104,53 @@ RETURNS:
 '''
 def __file_exists(file_name):
     return os.path.isfile(file_name)
+
+'''__gzip
+
+DESC:
+    zip up a file
+PARAMS: 
+    file_name: str path to the file name to compress
+OPTIONAL:
+    delete_old: bool delete the uncompressed file. Default=True
+RETURNS:
+    str name of the new compressed file
+'''
+def __gzip(file_name, delete_old=True):
+    compressed_file_name = file_name + '.gz'
+    with open(file_name, 'rb') as f_in:
+        with gzip.open(compressed_file_name, 'wb') as f_out:
+            shutil.copyfileobj(f_in, f_out)
+    delete_old and os.remove(file_name)
+    return compressed_file_name
+
+'''__gunzip
+
+DESC:   
+    unzip a file
+PARAMS:
+    compressed_file_name: str name of the compressed file to unzip
+OPTIONAL:
+    delete_old: bool delete the compressed file. Default=True
+RETURNS:
+    str name of the file unziped
+'''  
+def __gunzip(compressed_file_name, delete_old=True):
+    file_name = compressed_file_name if '.gz' not in compressed_file_name else compressed_file_name.replace('.gz', '')
+    with gzip.open(compressed_file_name, 'rb') as f_in:
+        with open(file_name, 'wb') as f_out:
+            shutil.copyfileobj(f_in, f_out)
+    delete_old and os.remove(compressed_file_name)
+    return file_name
+
+'''__is_gzipped
+
+DESC:
+    determines if a file has been gzipped
+PARAMS:
+    file_name: str path to file in question
+RETURNS:
+    bool True if file is compressed else False
+'''
+def __is_gzipped(file_name):
+    return '.gz' == file_name[-3:]

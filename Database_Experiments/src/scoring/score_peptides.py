@@ -1,7 +1,7 @@
 import pyopenms
 import os
 from subprocess import call
-from utils import __make_dir, __make_valid_dir_string
+from utils import __make_dir, __make_valid_dir_string, __is_gzipped, __gunzip
 
 def __parse_spectrum_name(spec_name):
     return str(spec_name.split('/')[-1]).lower().replace('.mzml', '')
@@ -22,6 +22,7 @@ def score_peptides(spectra_files, database_files, path_to_crux_cmd, output_dir):
         for j, spec_file in enumerate(spectra_files):
             print('On database file {}/{}[{}%]\tOn spectrum {}/{}[{}%]\r'.format(i+1, num_dbs, int(((i+1)/num_dbs) * 100), j+1, num_specs, int(((j+1)/num_specs)*100)), end="")
             this_output_dir = output_dir + '{}_vs_{}'.format(__parse_spectrum_name(spec_file), this_db_name)
+            spec_file = spec_file if not __is_gzipped(spec_file) else __gunzip(spec_file)
             search_cmd = [
                 path_to_crux_cmd, 
                 'tide-search', 

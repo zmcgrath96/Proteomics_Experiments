@@ -214,6 +214,12 @@ def __plot_score_rankings(exp, save_dir='./', show_all=False):
             print('ERROR: Pos is not list. \nPos: {}'.format(pos))
             continue
    
+        # NOTE: this false and print seems to fix an issue with the violin plot...
+        #       this issue only pops up when running from the terminal, not in the debugger
+        # TODO: figure out why this fixes it
+
+        False and print('data: {}'.format(data))
+        False and print('pos: {}'.format(pos))
         plt.violinplot(data, pos)
         plt.title(k)
         plt.xlabel('subsequence length')

@@ -9,6 +9,18 @@ def __parse_spectrum_name(spec_name):
 def __parse_db_name(db_name):
     return  str(db_name.split('/')[-1]).replace('.fasta', '')
 
+'''score_peptides
+
+DESC:
+    use the crux tool to score spectra against databases
+PARAMS:
+    spectra_files: list of str paths to all the spectra (.mzML) files
+    database_files: list of str paths to all the database (.fasta) files
+    path_to_crux_cmd: str path to the executable for crux
+    output_dir: str path to the directory to save files
+RETURNS:
+    list of str of output files
+'''
 def score_peptides(spectra_files, database_files, path_to_crux_cmd, output_dir):
     output_dir = __make_valid_dir_string(output_dir) + 'search_output/'
     __make_dir(output_dir)
@@ -19,12 +31,13 @@ def score_peptides(spectra_files, database_files, path_to_crux_cmd, output_dir):
     output_files = []
     num_dbs = len(database_files)
     num_specs = len(spectra_files)
-    for i, database_file in enumerate(database_files):
-        this_db_name = __parse_db_name(database_file)
-        for j, spec_file in enumerate(spectra_files):
-            print('On database file {}/{}[{}%]\tOn spectrum {}/{}[{}%]\r'.format(i+1, num_dbs, int(((i+1)/num_dbs) * 100), j+1, num_specs, int(((j+1)/num_specs)*100)), end="")
+
+    for i, spec_file in enumerate(spectra_files):
+        spec_file = spec_file if not is_compressed else __gunzip(spec_file)
+        for j, database_file in enumerate(database_files):
+            this_db_name = __parse_db_name(database_file)
+            print('On spectrum {}/{}[{}%]\tOn database file {}/{}[{}%]\r'.format(i+1, num_specs, int(((i+1)/num_specs) * 100), j+1, num_dbs, int(((j+1)/num_dbs)*100)), end="")
             this_output_dir = output_dir + '{}_vs_{}'.format(__parse_spectrum_name(spec_file), this_db_name)
-            spec_file = spec_file if not is_compressed else __gunzip(spec_file)
             search_cmd = [
                 path_to_crux_cmd, 
                 'tide-search', 
@@ -42,6 +55,8 @@ def score_peptides(spectra_files, database_files, path_to_crux_cmd, output_dir):
             call(search_cmd)
             output_count += 1
             output_files.append(this_output_dir + '/tide-search.target.txt')
-            is_compressed and __gzip(spec_file)
+
+        # if the files were compressed, we were trying to save disk space so just remove the mzml files
+        is_compressed and os.remove(spec_file)
 
     return output_files

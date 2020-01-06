@@ -89,7 +89,7 @@ def main(args):
 
     # run scoring algorithm on database and k-mers
     print('Scoring...')
-    score_output_files = score_peptides.score_peptides(spectra_files, fasta_databases, defaults['crux_cmd'], save_dir)
+    score_output_files = score_peptides.score_peptides(spectra_files, fasta_databases, defaults['crux_cmd'], save_dir, compress=compress)
     print('Done.')
 
     # save scores to json

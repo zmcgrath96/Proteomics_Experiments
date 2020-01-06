@@ -18,10 +18,12 @@ PARAMS:
     database_files: list of str paths to all the database (.fasta) files
     path_to_crux_cmd: str path to the executable for crux
     output_dir: str path to the directory to save files
+OPTIONAL:
+    compress: bool compress the output result. Default=True
 RETURNS:
     list of str of output files
 '''
-def score_peptides(spectra_files, database_files, path_to_crux_cmd, output_dir):
+def score_peptides(spectra_files, database_files, path_to_crux_cmd, output_dir, compress=True):
     output_dir = __make_valid_dir_string(output_dir) + 'search_output/'
     __make_dir(output_dir)
 
@@ -54,7 +56,8 @@ def score_peptides(spectra_files, database_files, path_to_crux_cmd, output_dir):
                 ] 
             call(search_cmd)
             output_count += 1
-            output_files.append(this_output_dir + '/tide-search.target.txt')
+            o = this_output_dir + '/tide-search.target.txt' if not compress else __gzip(this_output_dir + '/tide-search.target.txt')
+            output_files.append(o)
 
         # if the files were compressed, we were trying to save disk space so just remove the mzml files
         is_compressed and os.remove(spec_file)

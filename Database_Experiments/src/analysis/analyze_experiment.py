@@ -223,11 +223,11 @@ OPTIONAL:
     saving_dir: str the name of the directory to save the experiment in. Default=./
     mix_in_hybrids: bool whether or not to include using hybrid proteins in analysis. Default=False
     show_all: bool whether or not to show all generated plots. Default=False
-    
+    compress: bool to compress subsequence generated directories. Default=True
 RETURNS:
     str file path to the experiment json generated
 '''
-def analyze(proteins, peptides, files, args, predicting_agg_func='sum', saving_dir='./', mix_in_hybrids=False, show_all=False):
+def analyze(proteins, peptides, files, args, predicting_agg_func='sum', saving_dir='./', mix_in_hybrids=False, show_all=False, compress=True):
     '''
     1. Perform any aggregations
     2. Rank peptides and do stats
@@ -254,6 +254,6 @@ def analyze(proteins, peptides, files, args, predicting_agg_func='sum', saving_d
     write_raw_json(saving_dir + experiment_json_file_name, experiment_json)
 
     # load the experiment and plot it
-    plot_experiment(experiment_json, agg_func=predicting_agg_func, show_all=show_all, saving_dir=saving_dir)
+    plot_experiment(experiment_json, agg_func=predicting_agg_func, show_all=show_all, saving_dir=saving_dir, compress=compress)
 
     return(saving_dir + experiment_json_file_name)

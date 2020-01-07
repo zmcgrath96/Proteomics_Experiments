@@ -154,3 +154,20 @@ RETURNS:
 '''
 def __is_gzipped(file_name):
     return '.gz' == file_name[-3:]
+
+'''__gzip_dir
+
+DESC:
+    compress a directory with gzip
+PARAMS:
+    d: str path to directory
+OPTIONAL:
+    delete_old: bool delete the unziped directory. Default=True
+RETURNS:
+    path to the new zipped folder
+'''
+def __gzip_dir(d, delete_old=True):
+    root = '/'.join(d.split('/')[:-1])
+    shutil.make_archive(d, 'zip', root)
+    delete_old and shutil.rmtree(d)
+    return d + '.zip'

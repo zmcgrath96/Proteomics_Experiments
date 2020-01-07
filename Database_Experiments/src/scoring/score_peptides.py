@@ -3,6 +3,8 @@ import os
 from subprocess import call
 from utils import __make_dir, __make_valid_dir_string, __is_gzipped, __gunzip, __gzip
 
+crux_to_rm = ['tide-search.decoy.txt', 'tide-search.log.txt', 'tide-search.params.txt']
+
 def __parse_spectrum_name(spec_name):
     return str(spec_name.split('/')[-1]).lower().replace('.mzml', '')
 
@@ -58,6 +60,11 @@ def score_peptides(spectra_files, database_files, path_to_crux_cmd, output_dir, 
             output_count += 1
             o = this_output_dir + '/tide-search.target.txt' if not compress else __gzip(this_output_dir + '/tide-search.target.txt')
             output_files.append(o)
+
+            # saving space, so should remove the extra stuff
+            if is_compressed:
+                for rm in crux_to_rm:
+                    os.remove(this_output_dir + '/' + rm)
 
         # if the files were compressed, we were trying to save disk space so just remove the mzml files
         is_compressed and os.remove(spec_file)

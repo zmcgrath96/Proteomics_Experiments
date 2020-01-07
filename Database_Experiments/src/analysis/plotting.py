@@ -5,7 +5,7 @@ import os
 import numpy as np
 from copy import deepcopy
 from sequence_generation.digest import load_digest
-from utils import __get_related_files, __make_dir, __make_valid_dir_string
+from utils import __get_related_files, __make_dir, __make_valid_dir_string, __gzip_dir
 from analysis.analysis_utils import get_top_n, __get_argmax_max
 from analysis.write_output import write_raw_json, write_summary
 from analysis.score_utils import __align_scan_pos, __get_scores_scan_pos_label, __pad_scores
@@ -66,8 +66,10 @@ OPTIONAL:
                 'score': float
             }]
             these are the points of interest to mark
+    save_raw_json: bool save the raw json data for each graph. Default=False
+    compress: bool to compress the directory. Default=True
 '''
-def __plot_subsequence(aggs, title='', save_dir='./', show_graph=False, agg_func='sum', peaks=None, sequence_info=None):
+def __plot_subsequence(aggs, title='', save_dir='./', show_graph=False, agg_func='sum', peaks=None, sequence_info=None, save_raw_json=False, compress=True):
     save_dir = __make_valid_dir_string(save_dir)
     __make_dir(save_dir)
 
@@ -102,8 +104,9 @@ def __plot_subsequence(aggs, title='', save_dir='./', show_graph=False, agg_func
     plt.title(title)
     plt.savefig(save_dir + title)
     show_graph and plt.show()
-    write_raw_json(save_dir + title, aggs)
+    save_raw_json and write_raw_json(save_dir + title, aggs)
     plt.close()
+    compress and __gzip_dir(save_dir)
 
 '''plot_subsequence_vs_protein
 
@@ -115,8 +118,9 @@ OPTIONAL:
     title: string to label this plot. Also saving name for the plot. Default=''
     save_dir: string name of directory to save all output under. Default=./
     show_graph: bool whether or not to show the graph. Default=False
+    save_raw_json: bool wheter or not to save to raw json data. Default=False
 '''
-def __plot_subsequence_vs_protein(k_mers, title='', save_dir='./', show_graph=False):
+def __plot_subsequence_vs_protein(k_mers, title='', save_dir='./', show_graph=False, save_raw_json=False):
     save_dir = __make_valid_dir_string(save_dir) + title + '/'
     __make_dir(save_dir)
 
@@ -133,7 +137,7 @@ def __plot_subsequence_vs_protein(k_mers, title='', save_dir='./', show_graph=Fa
     plt.legend()
     plt.savefig(save_dir + title)
     show_graph and plt.show()
-    write_raw_json(save_dir + title, k_mers)
+    save_raw_json and write_raw_json(save_dir + title, k_mers)
     plt.close()
 
 '''__find_agg_score
@@ -204,8 +208,10 @@ def __plot_score_rankings(exp, save_dir='./', show_all=False):
         pos = []
         data =[]
         for t in rs[k]:
-            pos.append(int(t))
-            data.append(rs[k][t])
+            pos.append(int(t)) 
+            # clean up. Remove None values from lists
+            d = [x for x in rs[k][t] if x is not None]
+            data.append(d)
         
         if not isinstance(data, list) or not all(isinstance(x, list) for x in data) or not all(isinstance(x, int) for y in data for x in y): 
             print('ERROR: data is not in correct format ( [[int]] ). \ndata: {}'.format(data))
@@ -239,10 +245,11 @@ OPTIONAL:
     use_top_n: bool wether or not to report only the top n scores for a subsequence. Default=False
     n: int the top n scores to keep for a subsequence if use_top_n is True. Default=5
     measure: string the measuring function for determining the top n scores
+    compress: bool whether or not to compress output files. If True, all subsequnce plots are compressed. Default=True
 RETURNS: 
     None
 '''
-def plot_experiment(exp, agg_func='sum', show_all=False, saving_dir='./', use_top_n=False, n=5, measure='average'):
+def plot_experiment(exp, agg_func='sum', show_all=False, saving_dir='./', use_top_n=False, n=5, measure='average', compress=True):
     '''
     1. plot the kmer scores
     2. plot the aggregation
@@ -262,7 +269,7 @@ def plot_experiment(exp, agg_func='sum', show_all=False, saving_dir='./', use_to
     for peptide, prots in exp[json_exp].items():
         # generate plots for all the proteins against the peptide
         agg_scores = {}
-        pep_saving_dir = __make_valid_dir_string(saving_dir + peptide)
+        pep_saving_dir = __make_valid_dir_string(saving_dir + 'subsequence_plots/' + peptide)
         __make_dir(pep_saving_dir)
         for prot, k_mers in prots.items():
             if prot == 'analysis' or prot == 'ranks':
@@ -277,7 +284,7 @@ def plot_experiment(exp, agg_func='sum', show_all=False, saving_dir='./', use_to
             if pep['peptide_name'] == peptide:
                 info = pep 
                 break
-        __plot_subsequence(agg_scores, title=str(peptide), save_dir=pep_saving_dir, show_graph=show_all, agg_func=agg_func, peaks=prots['analysis']['predicted_parents'], sequence_info=info)
+        __plot_subsequence(agg_scores, title=str(peptide), save_dir=pep_saving_dir, show_graph=show_all, agg_func=agg_func, peaks=prots['analysis']['predicted_parents'], sequence_info=info, compress=compress)
     print('Finished.')
 
     # Plot the ranking of the corect 

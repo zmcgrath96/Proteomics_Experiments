@@ -95,7 +95,7 @@ def main(args):
     # save scores to json
     protein_names = []
     print('Analyzing Experiment...')
-    exp_json_path = analyze(all_proteins_raw, all_peptides_raw, score_output_files, {**vars(args), **defaults}, predicting_agg_func=agg_func, saving_dir=save_dir, mix_in_hybrids=mix, show_all=show_all)
+    exp_json_path = analyze(all_proteins_raw, all_peptides_raw, score_output_files, {**vars(args), **defaults}, predicting_agg_func=agg_func, saving_dir=save_dir, mix_in_hybrids=mix, show_all=show_all, compress=compress)
     print('Done.')
 
     print('Finished experiment. Time to complete: {} seconds'.format(time() - start_time))

@@ -18,8 +18,11 @@ def __parse_db_name(db_name):
 
 def __index_db_files(path_to_crux_cmd, db_files):
     idx_names = []
+    num_dbs = len(db_files)
 
-    for db_file in db_files:
+    for i, db_file in enumerate(db_files):
+        print('On database {}/{}[{}%]\r'.format(i+1, num_dbs, int(((i+1)/num_dbs) * 100)), end="")
+        
         this_output_dir = '/'.join(str(db_file).split('/')[:-1])
         this_output_dir = __make_valid_dir_string(this_output_dir) + 'indexed/'
         __make_dir(this_output_dir)
@@ -77,7 +80,9 @@ def score_peptides(spectra_files, database_files, path_to_crux_cmd, output_dir, 
     spec_dir = '/'.join(spectra_files[0].split('/')[:-1])
 
     is_compressed = __is_gzipped(spectra_files[0])
+    print('Pre-indexing database files...')
     indexed_db_files = __index_db_files(path_to_crux_cmd, database_files)
+    print('\nDone.')
 
     output_count = 0
     output_files = []

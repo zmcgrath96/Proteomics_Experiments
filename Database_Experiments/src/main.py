@@ -11,6 +11,7 @@ from analysis.analyze_experiment import analyze
 from utils import __file_exists, __make_valid_dir_string, __make_dir
 from protein_utils import read_proteins
 from sequence_generation import generate_hybrids
+from file_io import fasta
 
 ''' old hybrid "sequence": "ALYLVCGELYTSRV", 
     second hybid: GFFYTPKEANIR
@@ -58,8 +59,7 @@ def main(args):
     # load in a list of proteins from a source file
     prots = None 
     if '.csv' in prot_file or '.fasta' in prot_file:
-        prots, dups = read_proteins.from_csv(prot_file) if '.csv' in prot_file else read_proteins.from_fasta(prot_file) 
-        print('Number of duplicates found: {}'.format(len(dups)))
+        prots = read_proteins.from_csv(prot_file) if '.csv' in prot_file else fasta.read(prot_file) 
     else:
         raise Exception('Protein file should be csv or fasta. File passed in: {}'.format(prot_file))
 
@@ -89,7 +89,7 @@ def main(args):
 
     # run scoring algorithm on database and k-mers
     print('Scoring...')
-    score_output_files = score_peptides.score_peptides(spectra_files, fasta_databases, defaults['crux_cmd'], save_dir, compress=compress)
+    score_output_files = score_peptides.score_peptides(spectra_files, fasta_databases, save_dir, compress=compress, crux_search=False, path_to_crux_cmd=defaults['crux_cmd'])
     print('Done.')
 
     # save scores to json

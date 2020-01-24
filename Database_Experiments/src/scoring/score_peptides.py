@@ -3,6 +3,7 @@ import os
 import shutil
 from subprocess import call
 from utils import __make_dir, __make_valid_dir_string, __is_gzipped, __gunzip, __gzip
+from scoring import search
 
 crux_to_rm = ['tide-search.decoy.txt', 'tide-search.log.txt', 'tide-search.params.txt']
 
@@ -56,25 +57,21 @@ def __remove_indices(index_file):
     rm_dir = '/'.join(index_file.split('/')[:-1])
     shutil.rmtree(rm_dir)
 
-#######################################################################################
-#                        END "PRIVATE" FUNCTIONS
-#######################################################################################
-
-'''score_peptides
+'''crux_search
 
 DESC:
     use the crux tool to score spectra against databases
 PARAMS:
     spectra_files: list of str paths to all the spectra (.mzML) files
     database_files: list of str paths to all the database (.fasta) files
-    path_to_crux_cmd: str path to the executable for crux
+    path_to_crux_cmd: str path to the executable for crux.
     output_dir: str path to the directory to save files
 OPTIONAL:
     compress: bool compress the output result. Default=True
 RETURNS:
     list of str of output files
 '''
-def score_peptides(spectra_files, database_files, path_to_crux_cmd, output_dir, compress=True):
+def __crux_search(spectra_files, database_files, path_to_crux_cmd, output_dir, compress=True):
     output_dir = __make_valid_dir_string(output_dir) + 'search_output/'
     __make_dir(output_dir)
     spec_dir = '/'.join(spectra_files[0].split('/')[:-1])
@@ -125,3 +122,58 @@ def score_peptides(spectra_files, database_files, path_to_crux_cmd, output_dir, 
     is_compressed and os.rmdir(spec_dir)
     __remove_indices(indexed_db_files)
     return output_files
+
+'''__custom_search
+
+DESC:
+    custom search on peptides
+PARAMS:
+    spectra_files: list of strings paths to all .mzML files
+    database_files: list of strings paths to all .fasta files
+    output_dir: str path to directory to save results under
+OPTONAL:
+    compress: bool whether or not to compress results. Default=True
+RETURNS:
+    list of str of output files
+'''
+def __custom_search(spectra_files, database_files, output_dir, compress=True):
+    output_dir = __make_valid_dir_string(output_dir)
+    output_files = []
+
+    no_spec = len(spectra_files)
+    no_db = len(database_files)
+
+    for spec_no, spectra_file in enumerate(spectra_files):
+        spectra_file = spectra_file if not __is_gzipped(spectra_file) else __gunzip(spectra_file)
+
+        for db_no, database_file in enumerate(database_files):
+            print('On spectrum: {}/{} [{}%]   On database: {}/{} [{}%]\r'.format(spec_no, no_spec, int(float(spec_no) / float(no_spec) * 100), db_no, no_db, int(float(db_no) / float(no_db) * 100)), end='')
+
+            output_name = output_dir + 'search_output/' + '{}_vs_{}'.format(__parse_spectrum_name(spectra_file), __parse_db_name(database_file))
+            database_file = database_file if not __is_gzipped(database_file) else __gunzip(database_file)
+            output_files.append(search.search_files(spectra_file, database_file, output_name))
+    return output_files
+#######################################################################################
+#                        END "PRIVATE" FUNCTIONS
+#######################################################################################
+
+'''score_peptides
+
+DESC:
+    use the crux tool to score spectra against databases
+PARAMS:
+    spectra_files: list of str paths to all the spectra (.mzML) files
+    database_files: list of str paths to all the database (.fasta) files
+    output_dir: str path to the directory to save files
+OPTIONAL:
+    compress: bool compress the output result. Default=True
+    crux_search: bool use crux search vs custom search. Default=False
+    path_to_crux_cmd: str path to the executable for crux. Default=''
+RETURNS:
+    list of str of output files
+'''
+def score_peptides(spectra_files, database_files, output_dir, compress=True, crux_search=False, path_to_crux_cmd=''):
+    if crux_search:
+        return __crux_search(spectra_files, database_files, path_to_crux_cmd, output_dir, compress=compress)
+    else:
+        return __custom_search(spectra_files, database_files, output_dir, compress=compress)

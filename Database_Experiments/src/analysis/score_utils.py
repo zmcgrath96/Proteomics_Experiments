@@ -4,8 +4,8 @@ import pandas as pd
 #               CONSTANTS 
 ###############################################
 FILE_NAME_COL = 'file'
-SCORE_COL = 'xcorr score'
-SCAN_NO_COL = 'scan'
+SCORE_COL = 'score'
+SCAN_NO_COL = 'scan_no'
 ###############################################
 #             END CONSTANTS
 ###############################################
@@ -42,14 +42,15 @@ RETUNS:
 '''
 def __get_scores_scan_pos_label(file, search_substring=''):
     try:
-        df = pd.read_csv(file, '\t', header=0)
+        sep = '\t' if '.tsv' in file else ','
+        df = pd.read_csv(file, sep, header=0)
         df = df.sort_values(SCORE_COL, ascending=False)
         df = df.drop_duplicates(subset=SCAN_NO_COL)
         df = df.sort_values(SCAN_NO_COL)
-        df = df[df[FILE_NAME_COL].str.contains(search_substring)] if search_substring is not None and search_substring != '' else df
+        #df = df[df[FILE_NAME_COL].str.contains(search_substring)] if search_substring is not None and search_substring != '' else df
 
-        if not len(df[FILE_NAME_COL]) > 0:
-            return [], [], ''
+        # if not len(df[FILE_NAME_COL]) > 0:
+        #     return [], [], ''
         aligned_scores, _ = __align_scan_pos(list(df[SCORE_COL]), list(df[SCAN_NO_COL]))
         return aligned_scores, [], ''
     except Exception:
@@ -69,6 +70,8 @@ RETURNS:
     list, list of modified score_l1, modified score_l2
 '''
 def __pad_scores(score_l1, score_l2, padding=0):
+    score_l1 = list(score_l1)
+    score_l2 = list(score_l2)
     diff = len(score_l1) - len(score_l2)
     if diff == 0:
         return score_l1, score_l2

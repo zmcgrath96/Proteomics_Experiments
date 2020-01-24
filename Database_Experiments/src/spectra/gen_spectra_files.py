@@ -34,4 +34,4 @@ def generate(sequences, window_sizes, save_dir='./', compress=True):
             output_files.append(write_spectra.write_mzml(name, spectra, output_dir=save_dir, compress=compress))
             seq_c += 1
 
-    return output_files
+    return list(set(output_files))

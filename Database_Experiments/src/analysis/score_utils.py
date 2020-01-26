@@ -25,7 +25,8 @@ def __align_scan_pos(scores, scan_nos):
     aligned_scan_nos = [i for i in range(max(scan_nos) + 1)]
     for i, insert_index in enumerate(scan_nos):
         # NOTE: for the mzML files, the first scan starts at 1, not at 0 so minus 1
-        aligned_scores[insert_index-1] = scores[i]
+        # NOTE 2: when i updated to write own scoring the number was off again so removing th e-1
+        aligned_scores[insert_index] = scores[i]
 
     return aligned_scores, aligned_scan_nos
 

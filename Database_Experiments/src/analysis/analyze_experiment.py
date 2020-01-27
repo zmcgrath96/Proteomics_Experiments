@@ -224,10 +224,11 @@ OPTIONAL:
     mix_in_hybrids: bool whether or not to include using hybrid proteins in analysis. Default=False
     show_all: bool whether or not to show all generated plots. Default=False
     compress: bool to compress subsequence generated directories. Default=True
+    hide_hybrids: bool to hide hybrid proteins when plotting. Default=True
 RETURNS:
     str file path to the experiment json generated
 '''
-def analyze(proteins, peptides, files, args, predicting_agg_func='sum', saving_dir='./', mix_in_hybrids=False, show_all=False, compress=True):
+def analyze(proteins, peptides, files, args, predicting_agg_func='sum', saving_dir='./', mix_in_hybrids=False, show_all=False, compress=True, hide_hybrids=True):
     '''
     1. Perform any aggregations
     2. Rank peptides and do stats
@@ -248,12 +249,12 @@ def analyze(proteins, peptides, files, args, predicting_agg_func='sum', saving_d
     for pep in peptides:
         p_counter += 1
         print('Analyzing peptide {}/{}[{}%]\r'.format(p_counter, len(peptides), int( (float(p_counter)/float(len(peptides))) *100 )), end='')
-        __analyze_subsequence(pep, files, protein_names, experiment_json, predicting_agg_func=predicting_agg_func)
+        __analyze_subsequence(pep, files, protein_names, experiment_json, predicting_agg_func=predicting_agg_func, mix_in_hybrids=mix_in_hybrids)
     
     # save to file
     write_raw_json(saving_dir + experiment_json_file_name, experiment_json)
 
     # load the experiment and plot it
-    plot_experiment(experiment_json, agg_func=predicting_agg_func, show_all=show_all, saving_dir=saving_dir, compress=compress)
+    plot_experiment(experiment_json, agg_func=predicting_agg_func, show_all=show_all, saving_dir=saving_dir, compress=compress, hide_hybrids=hide_hybrids)
 
     return(saving_dir + experiment_json_file_name)

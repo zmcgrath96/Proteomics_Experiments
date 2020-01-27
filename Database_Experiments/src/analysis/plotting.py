@@ -33,6 +33,8 @@ json_analysis =  'analysis'
 json_rankings = 'ranks'
 json_rankings_rankings = 'ranks'
 json_seq_len = 'sequence_length'
+
+hybrid_prefix = 'HYBRID'
 ####################################################
 #              END CONSTANTS
 ####################################################
@@ -68,8 +70,9 @@ OPTIONAL:
             these are the points of interest to mark
     save_raw_json: bool save the raw json data for each graph. Default=False
     compress: bool to compress the directory. Default=True
+    hide_hybrids: bool whether or not to hide hybrid proteins when plotting. Default=True
 '''
-def __plot_subsequence(aggs, title='', save_dir='./', show_graph=False, agg_func='sum', peaks=None, sequence_info=None, save_raw_json=False, compress=True):
+def __plot_subsequence(aggs, title='', save_dir='./', show_graph=False, agg_func='sum', peaks=None, sequence_info=None, save_raw_json=False, compress=True, hide_hybrids=True):
     save_dir = __make_valid_dir_string(save_dir)
     __make_dir(save_dir)
 
@@ -79,20 +82,25 @@ def __plot_subsequence(aggs, title='', save_dir='./', show_graph=False, agg_func
         score = aggs[agg]
         if len(score) == 0:
             continue
+        if hide_hybrids and hybrid_prefix in agg:
+            continue
         plt.plot([j for j in range(len(score))], score, all_line_types[i].strip(), label=str(agg))
         i += 1
     
     if peaks is not None and type(peaks[0]) is dict:
-        label_peaks_pos = [x['position'] for x in peaks]
-        label_peaks_h = [x['score'] for x in peaks]
-        max_peak_value = max([x['score'] for x in peaks])
-        max_peak_pos = None
-        for x in peaks:
-            if x['score'] == max_peak_value:
-                max_peak_pos = x['position']
-        plt.plot(label_peaks_pos, label_peaks_h, 'x')
-        plt.text(.1, .975, 'max peak position: {}'.format(max_peak_pos), transform=plt.gcf().transFigure)
-        plt.text(.1, .96, 'max peak value: {}'.format(max_peak_value),transform=plt.gcf().transFigure)
+        if hide_hybrids:
+            peaks = [p for p in peaks if not hybrid_prefix in p['protein_name']]
+        if len(peaks) > 0:
+            label_peaks_pos = [x['position'] for x in peaks]
+            label_peaks_h = [x['score'] for x in peaks]
+            max_peak_value = max([x['score'] for x in peaks])
+            max_peak_pos = None
+            for x in peaks:
+                if x['score'] == max_peak_value:
+                    max_peak_pos = x['position']
+            plt.plot(label_peaks_pos, label_peaks_h, 'x')
+            plt.text(.1, .975, 'max peak position: {}'.format(max_peak_pos), transform=plt.gcf().transFigure)
+            plt.text(.1, .96, 'max peak value: {}'.format(max_peak_value),transform=plt.gcf().transFigure)
     if type(sequence_info) is dict:
         plt.text(.5, .975, 'sequence: {}'.format(sequence_info['peptide_sequence']), transform=plt.gcf().transFigure)
         plt.text(.5, .95, 'actual starting position: {}'.format(sequence_info['start_index']), transform=plt.gcf().transFigure)
@@ -118,7 +126,7 @@ OPTIONAL:
     title: string to label this plot. Also saving name for the plot. Default=''
     save_dir: string name of directory to save all output under. Default=./
     show_graph: bool whether or not to show the graph. Default=False
-    save_raw_json: bool wheter or not to save to raw json data. Default=False
+    save_raw_json: bool whether or not to save to raw json data. Default=False
 '''
 def __plot_subsequence_vs_protein(k_mers, title='', save_dir='./', show_graph=False, save_raw_json=False):
     save_dir = __make_valid_dir_string(save_dir) + title + '/'
@@ -246,10 +254,11 @@ OPTIONAL:
     n: int the top n scores to keep for a subsequence if use_top_n is True. Default=5
     measure: string the measuring function for determining the top n scores
     compress: bool whether or not to compress output files. If True, all subsequnce plots are compressed. Default=True
+    hide_hybrids: bool whether or not to hide hybrid proteins in plots. Default=True
 RETURNS: 
     None
 '''
-def plot_experiment(exp, agg_func='sum', show_all=False, saving_dir='./', use_top_n=False, n=5, measure='average', compress=True):
+def plot_experiment(exp, agg_func='sum', show_all=False, saving_dir='./', use_top_n=False, n=5, measure='average', compress=True, hide_hybrids=True):
     '''
     1. plot the kmer scores
     2. plot the aggregation

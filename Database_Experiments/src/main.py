@@ -53,6 +53,7 @@ def main(args):
     old_digest = args.d_file 
     mix = args.mix
     compress = args.compress
+    hide_hybs = args.hide_hybs
 
     start_time = time()
 
@@ -95,7 +96,7 @@ def main(args):
     # save scores to json
     protein_names = []
     print('Analyzing Experiment...')
-    exp_json_path = analyze(all_proteins_raw, all_peptides_raw, score_output_files, {**vars(args), **defaults}, predicting_agg_func=agg_func, saving_dir=save_dir, mix_in_hybrids=mix, show_all=show_all, compress=compress)
+    exp_json_path = analyze(all_proteins_raw, all_peptides_raw, score_output_files, {**vars(args), **defaults}, predicting_agg_func=agg_func, saving_dir=save_dir, mix_in_hybrids=mix, show_all=show_all, compress=compress, hide_hybrids=hide_hybs)
     print('Done.')
 
     print('Finished experiment. Time to complete: {} seconds'.format(time() - start_time))
@@ -119,6 +120,7 @@ if __name__ == '__main__':
     parser.add_argument('--peptide-file', dest='d_file', type=str, default='', help='Peptides from a past experiment. Default=None')
     parser.add_argument('--mix-prots', dest='mix', type=bool, default=False, help='Whether or not to also use huybrid proteins when calculating scores. Default=False')
     parser.add_argument('--compress', dest='compress', type=bool, default=True, help='Compress spectra files while generating them. Default=True')
+    parser.add_argument('--hide-hybrid-prots', dest='hide_hybs', type=bool, default=True, help='When plotting hybrid peptides, hide the hybrid protein and only show results from normal proteins. Default=True')
     args = parser.parse_args()
     main(args)
     

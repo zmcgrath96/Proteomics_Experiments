@@ -171,3 +171,15 @@ def __gzip_dir(d, delete_old=True):
     shutil.make_archive(d, 'zip', root)
     delete_old and shutil.rmtree(d)
     return d + '.zip'
+
+'''__is_json
+
+DESC:
+    determine if a file is a json file based purely on name
+PARAMS:
+    file: file to determine if its a json file
+RETURNS:
+    bool True if it is a json file False otherwise
+'''
+def __is_json(file):
+    return True if '.json' in file else False

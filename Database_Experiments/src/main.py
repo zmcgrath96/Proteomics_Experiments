@@ -8,10 +8,11 @@ from scoring import score_peptides
 from sequence_generation import peptides
 from analysis.plotting import plot_experiment
 from analysis.analyze_experiment import analyze
-from utils import __file_exists, __make_valid_dir_string, __make_dir
+from utils import __file_exists, __make_valid_dir_string, __make_dir, __is_json
 from protein_utils import read_proteins
 from sequence_generation import generate_hybrids
 from file_io import fasta
+from analysis.plotting import plot_experiment
 
 ''' old hybrid "sequence": "ALYLVCGELYTSRV", 
     second hybid: GFFYTPKEANIR
@@ -36,7 +37,7 @@ def main(args):
     5. Score all the k-mers against all the peptides
     6. Perform analysis on these scores
     '''
-    prot_file = args.protein_sequences
+    input_file = args.input_file
     hyb_pep = args.hyb_pep
     hyb_prot = args.hyb_prot
     num_peptides = args.num_peptides
@@ -56,55 +57,63 @@ def main(args):
     hide_hybs = args.hide_hybs
 
     start_time = time()
+    
+    if not __is_json(input_file):
+        # load in a list of proteins from a source file
+        prots = None 
+        if '.csv' in input_file or '.fasta' in input_file:
+            prots = read_proteins.from_csv(input_file) if '.csv' in input_file else fasta.read(input_file) 
+        else:
+            raise Exception('Protein file should be csv or fasta. File passed in: {}'.format(input_file))
 
-    # load in a list of proteins from a source file
-    prots = None 
-    if '.csv' in prot_file or '.fasta' in prot_file:
-        prots = read_proteins.from_csv(prot_file) if '.csv' in prot_file else fasta.read(prot_file) 
+        # create peptides
+        non_hybrid_peps = peptides.get_peptides(prots=prots, number_peptides=num_peptides, min_length=min_length, max_length=max_length, save_dir=save_dir, peptide_file=old_digest)
+
+        # create hybrids
+        hyb_peps, hyb_prots = generate_hybrids.generate_hybrids(hyb_pep_file=hyb_pep, hyb_input_file=hyb_prot, prots=prots, num_gen=num_hybs, min_length=min_length, max_length=max_length, save_dir=save_dir)
+
+        # combine them for later use
+        print('Combining hybrid and non hybrid lists...')
+        all_proteins_raw = prots + hyb_prots
+        all_proteins_cleaned = prots + [{'name': x['name'] , 'sequence': x['protein']} for x in hyb_prots]
+        all_peptides_raw = non_hybrid_peps + hyb_peps
+        all_peptides_cleaned = [{'name': x['peptide_name'], 'sequence': x['peptide_sequence']} for x in non_hybrid_peps] + [{'name': x['peptide_name'], 'sequence': x['peptide_sequence']} for x in hyb_peps]
+        print('Done')
+
+        # create database files
+        print('Generating fasta databases...')
+        fasta_databases = database.generate(all_peptides_cleaned, save_dir=save_dir)
+        print('Done')
+
+        # create spectrum files
+        print('Generating spectra files...')
+        spectra_files = gen_spectra_files.generate(all_proteins_cleaned, defaults['window_sizes'], save_dir=save_dir, compress=compress)
+        print('Done.')
+
+        # run scoring algorithm on database and k-mers
+        print('Scoring...')
+        score_output_files = score_peptides.score_peptides(spectra_files, fasta_databases, save_dir, compress=compress, crux_search=False, path_to_crux_cmd=defaults['crux_cmd'])
+        print('Done.')
+
+        # save scores to json
+        protein_names = []
+        print('Analyzing Experiment...')
+        exp_json_path = analyze(all_proteins_raw, all_peptides_raw, score_output_files, {**vars(args), **defaults}, predicting_agg_func=agg_func, saving_dir=save_dir, mix_in_hybrids=mix, show_all=show_all, compress=compress, hide_hybrids=hide_hybs)
+        print('Done.')
+
     else:
-        raise Exception('Protein file should be csv or fasta. File passed in: {}'.format(prot_file))
+        print('Loading experiment file...')
+        experiment_json = json.load(open(input_file, 'r'))
+        print('Finished loading experiment')
+        plot_experiment(experiment_json, agg_func=agg_func, show_all=show_all, saving_dir=save_dir, compress=compress, hide_hybrids=hide_hybs)
 
-    # create peptides
-    non_hybrid_peps = peptides.get_peptides(prots=prots, number_peptides=num_peptides, min_length=min_length, max_length=max_length, save_dir=save_dir, peptide_file=old_digest)
-
-    # create hybrids
-    hyb_peps, hyb_prots = generate_hybrids.generate_hybrids(hyb_pep_file=hyb_pep, hyb_prot_file=hyb_prot, prots=prots, num_gen=num_hybs, min_length=min_length, max_length=max_length, save_dir=save_dir)
-
-    # combine them for later use
-    print('Combining hybrid and non hybrid lists...')
-    all_proteins_raw = prots + hyb_prots
-    all_proteins_cleaned = prots + [{'name': x['name'] , 'sequence': x['protein']} for x in hyb_prots]
-    all_peptides_raw = non_hybrid_peps + hyb_peps
-    all_peptides_cleaned = [{'name': x['peptide_name'], 'sequence': x['peptide_sequence']} for x in non_hybrid_peps] + [{'name': x['peptide_name'], 'sequence': x['peptide_sequence']} for x in hyb_peps]
-    print('Done')
-
-    # create database files
-    print('Generating fasta databases...')
-    fasta_databases = database.generate(all_peptides_cleaned, save_dir=save_dir)
-    print('Done')
-
-    # create spectrum files
-    print('Generating spectra files...')
-    spectra_files = gen_spectra_files.generate(all_proteins_cleaned, defaults['window_sizes'], save_dir=save_dir, compress=compress)
-    print('Done.')
-
-    # run scoring algorithm on database and k-mers
-    print('Scoring...')
-    score_output_files = score_peptides.score_peptides(spectra_files, fasta_databases, save_dir, compress=compress, crux_search=False, path_to_crux_cmd=defaults['crux_cmd'])
-    print('Done.')
-
-    # save scores to json
-    protein_names = []
-    print('Analyzing Experiment...')
-    exp_json_path = analyze(all_proteins_raw, all_peptides_raw, score_output_files, {**vars(args), **defaults}, predicting_agg_func=agg_func, saving_dir=save_dir, mix_in_hybrids=mix, show_all=show_all, compress=compress, hide_hybrids=hide_hybs)
-    print('Done.')
 
     print('Finished experiment. Time to complete: {} seconds'.format(time() - start_time))
 
     
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Entry file for the database experiments')
-    parser.add_argument('protein_sequences', type=str, metavar='P', help='Path to a file (csv or fasta) with protein name and sequences')
+    parser.add_argument('input_file', type=str, metavar='F', help='Path to a file (csv or fasta) with protein name and sequences OR path to an experiment json file (with .json extension) to load and generate plots')
     parser.add_argument('--hybrid-peptide-file', dest='hyb_pep', type=str, default='', help='Path to a hybrid peptide file. If none is given, new hybrid peptides generated. Default=')
     parser.add_argument('--hybrid-protein-file', dest='hyb_prot', type=str, default='', help='Path to a hybrid protein file. If none is given, new hybrid proteins generated. Default=')
     parser.add_argument('--num-peptides', dest='num_peptides', type=int, default=50, help='Number of peptides to generate as the fake sample. Default=50')
@@ -120,7 +129,7 @@ if __name__ == '__main__':
     parser.add_argument('--peptide-file', dest='d_file', type=str, default='', help='Peptides from a past experiment. Default=None')
     parser.add_argument('--mix-prots', dest='mix', type=bool, default=False, help='Whether or not to also use huybrid proteins when calculating scores. Default=False')
     parser.add_argument('--compress', dest='compress', type=bool, default=True, help='Compress spectra files while generating them. Default=True')
-    parser.add_argument('--hide-hybrid-prots', dest='hide_hybs', type=bool, default=True, help='When plotting hybrid peptides, hide the hybrid protein and only show results from normal proteins. Default=True')
+    parser.add_argument('--hide-hybrid-prots', dest='hide_hybs', type=bool, default=False, help='When plotting hybrid peptides, hide the hybrid protein and only show results from normal proteins. Default=True')
     args = parser.parse_args()
     main(args)
     

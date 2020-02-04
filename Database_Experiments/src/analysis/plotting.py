@@ -19,6 +19,7 @@ plot_colors = [
 plot_markers = [
     ' ', '--', '-.', ':'
 ]
+agg_funcs = ['product', 'sum', 'z_score_sum']
 all_line_types = [''.join(x) for x in list(itertools.product(plot_colors, plot_markers))]
 all_line_types.sort(key=lambda x: x[1])
 
@@ -154,14 +155,21 @@ DESC:
     find the aggregation
 PARAMS:
     scores: dict of list of floats from the analysis
-    agg_func: str name of the aggregation function
+OPTIONAL:
+    agg_func: str name of the aggregation function. If none is given, looks for known aggregation functions. Default=''
 RETURNS:
     list of floats of the aggregation
 '''
-def __find_agg_score(scores, agg_func):
+def __find_agg_score(scores, agg_func=''):
+    known_agg_funcs = [str(x).lower() for x in agg_funcs]
+
     for key in scores:
-        if str(agg_func).lower() in str(key).lower():
-            return scores[key]
+        if agg_func == '' or agg_func is None:
+            if str(key).lower() in known_agg_funcs:
+                return scores[key]
+        else:
+            if str(agg_func).lower() in str(key).lower():
+                return scores[key]
 
 '''__collect_k_rankings
 
@@ -275,7 +283,12 @@ def plot_experiment(exp, agg_func='sum', show_all=False, saving_dir='./', use_to
     # TODO: make this into its own function for the sake of cleanliness
     print('Generating peptide score plots...')
     header_peps = exp[json_header][json_header_peps]
+
+    num_subsequences = len(exp[json_exp])
+    subsequence_counter = 0
     for peptide, prots in exp[json_exp].items():
+        print('Plotting subsequence {}/{} [{}%]\r'.format(subsequence_counter, num_subsequences, int( (float (subsequence_counter) / float (num_subsequences) ) * 100 )), end="")
+        subsequence_counter += 1
         # generate plots for all the proteins against the peptide
         agg_scores = {}
         pep_saving_dir = __make_valid_dir_string(saving_dir + 'subsequence_plots/' + peptide)
@@ -293,7 +306,7 @@ def plot_experiment(exp, agg_func='sum', show_all=False, saving_dir='./', use_to
             if pep['peptide_name'] == peptide:
                 info = pep 
                 break
-        __plot_subsequence(agg_scores, title=str(peptide), save_dir=pep_saving_dir, show_graph=show_all, agg_func=agg_func, peaks=prots['analysis']['predicted_parents'], sequence_info=info, compress=compress)
+        __plot_subsequence(agg_scores, title=str(peptide), save_dir=pep_saving_dir, show_graph=show_all, agg_func=agg_func, peaks=prots['analysis']['predicted_parents'], sequence_info=info, compress=compress, hide_hybrids=hide_hybrids)
     print('Finished.')
 
     # Plot the ranking of the corect 

@@ -128,7 +128,8 @@ def __add_subsequnce_agg(subsequence_files, subsequence_name, protein_names, jso
 '''__find_kmer_rank
 
 DESC:
-    find how well the correct k-mer scores against all other k-mers
+    find how well the correct k-mer scores against all other k-mers of the same k
+    1 based scores
 PARAMS:
     correct_prot: str name of the correct protein
     peptide_analysis: dictionary containg all the peptide stuff from analysis
@@ -136,7 +137,7 @@ RETURNS:
     dictionary of ranks. entry is name of kmer or aggregate and rank is its inner kmer rank
 '''
 def __find_kmer_rank(correct_prot, correct_position, peptide_analysis):
-    tagged_scores = []
+    tagged_scores = {}
     ranking = {}
     for prot, kmers in peptide_analysis.items():
         if prot == SAMPLE_PROTEIN_ANALYSIS:
@@ -144,14 +145,18 @@ def __find_kmer_rank(correct_prot, correct_position, peptide_analysis):
 
         ranking[prot] = {}
         for k, scores in kmers.items():
+            if k not in tagged_scores:
+                tagged_scores[k] = []
             ranking[prot][k] = None
-            tagged = [(prot, k, score, i) for i, score in enumerate(scores)]
-            tagged_scores += tagged
+            tagged = [(prot, score, i) for i, score in enumerate(scores)]
+            tagged_scores[k] += tagged
 
-    tagged_scores.sort(reverse=True, key=lambda x: x[2])
-    for r, score in enumerate(tagged_scores):
-        if int(score[3]) == correct_position:
-            ranking[score[0]][score[1]] = r 
+    for k, tg in tagged_scores.items():
+        tg.sort(reverse=True, key=lambda x: x[1])
+        for r, score in enumerate(tg):
+            # TODO: make all k-mers with the same score the same rank
+            if int(score[2]) == correct_position:
+                ranking[score[0]][k] = r + 1 # 1 based score instead of 0
     
     return ranking[correct_prot]
 

@@ -184,7 +184,7 @@ def plot_experiment(exp, agg_func='sum', show_all=False, saving_dir='./', use_to
     print('Finished.')
 
     # Plot score distributions vs protein sequence
-    print('Generating score distributins vs protein sequences...')
+    print('Generating score distributions vs protein sequences...')
     # clean up proteins (normalize because of the hybrids)
     dirty_prots = exp[json_header][json_header_prots]
     clean_prots = []
@@ -197,5 +197,5 @@ def plot_experiment(exp, agg_func='sum', show_all=False, saving_dir='./', use_to
             clean_prots.append(tp)
         else:
             clean_prots.append(prot)
-    protein_plotting.prots_pep_pos_rankings(clean_prots, __aggregate_ranks(exp), save_dir=saving_dir, show_all=show_all)
+    protein_plotting.prots_pep_pos_rankings(clean_prots, __aggregate_ranks(exp), save_dir=saving_dir, show_all=show_all, compress=compress)
     print('Finished.')

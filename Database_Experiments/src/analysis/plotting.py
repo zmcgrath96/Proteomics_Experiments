@@ -14,19 +14,7 @@ from analysis import peptide_plotting, protein_plotting
 ####################################################
 #               CONSTANTS
 ####################################################
-plot_colors = [
-    'r', 'b', 'g', 'y', 'k', 'c', 'm'
-]
-plot_markers = [
-    ' ', '--', '-.', ':'
-]
-all_line_types = [''.join(x) for x in list(itertools.product(plot_colors, plot_markers))]
-all_line_types.sort(key=lambda x: x[1])
-
 agg_funcs = ['product', 'sum', 'z_score_sum']
-
-cwd = os.path.dirname(os.path.realpath(__file__))
-save_fig_prefix = 'figure_{}'
 
 json_header = 'experiment_info'
 json_header_prots = 'proteins'
@@ -233,3 +221,5 @@ def plot_experiment(exp, agg_func='sum', show_all=False, saving_dir='./', compre
     print('Generating score distributions vs protein sequences...')
     plot_protein_summary(exp, saving_dir=saving_dir, show_all=show_all, compress=compress)
     print('Finished.')
+
+    print('Finished generating all plots.')

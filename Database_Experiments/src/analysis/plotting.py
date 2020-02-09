@@ -4,7 +4,6 @@ import itertools
 import os
 import numpy as np
 from copy import deepcopy
-from sequence_generation.digest import load_digest
 from utils import __get_related_files, __make_dir, __make_valid_dir_string, __gzip_dir
 from analysis.analysis_utils import get_top_n, __get_argmax_max
 from analysis.write_output import write_raw_json, write_summary

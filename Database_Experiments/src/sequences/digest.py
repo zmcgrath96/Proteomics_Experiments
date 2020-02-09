@@ -1,34 +1,32 @@
-from random import randint, choice, random
+from random import randint, choice, random, shuffle
 from utils import __make_dir, __make_valid_dir_string
 from math import ceil
-
-'''load_digest
+####################################################################
+#                   PRIVATE FUNCTIONS
+####################################################################
+'''__verify_length
 
 DESC:
-    load the digests from the digestion tsv
-PARAMS:
-    digest_file: string file path for the digestion tsv
+    make sure proteins are long enough
+PARAMS: 
+    seqs: list of dictionaries {'name': str, 'sequence': str}
+    min_length: int 
 RETURNS:
-    dictionary: keys are peptide names and entries have 
-    {
-        'peptide_sequence': string,
-        'parent_name': string,
-        'parent_sequence': string,
-        'start_index': int, 
-        'end_index': int
-    }
+    list of dictionaries of the same form 
 '''
-def load_digest(digest_file):
-    digests = []
-    with open(digest_file, 'r') as o:
-        for i, line in enumerate(o):
-            if i == 0: # skip the header line
-                continue
-            l = line.split('\t')
-            entry = {'peptide_name': l[0], 'peptide_sequence': l[1], 'parent_name': l[2], 'parent_sequence': l[3], 'start_index': int(l[4]), 'end_index': int(l[5])}
-            digests.append(entry)
-    return digests
+def __verify_length(seqs, min_length):
+    verified = []
+    for seq in seqs:
+        if len(seq['sequence']) >= min_length:
+            verified.append(seq)
+    return verified
+####################################################################
+#                  END PRIVATE FUNCTIONS
+####################################################################
 
+####################################################################
+#                   TRYPTIC DIGEST FUNCTIONS
+####################################################################
 '''__tryptic_digest
 
 DESC:
@@ -88,23 +86,6 @@ def __tryptic_digest(sequence, miss_prob=0, rand_cut_prob=.05):
             this_pep = this_pep[i:]
 
     return this_pep, sequence.index(this_pep)
-
-'''__verify_length
-
-DESC:
-    make sure proteins are long enough
-PARAMS: 
-    seqs: list of dictionaries {'name': str, 'sequence': str}
-    min_length: int 
-RETURNS:
-    list of dictionaries of the same form 
-'''
-def __verify_length(seqs, min_length):
-    verified = []
-    for seq in seqs:
-        if len(seq['sequence']) >= min_length:
-            verified.append(seq)
-    return verified
 
 '''tryptic
 
@@ -196,3 +177,64 @@ def tryptic(sequences, number_digests, peptide_prefix='peptide_', miss_prob=0, s
 
     print('\nFinished digestion')
     return peptides
+
+####################################################################
+#               END TRYPTIC DIGEST FUNCTIONS
+####################################################################
+
+####################################################################
+#                     RANDOM DIGEST FUNCTIONS
+####################################################################
+
+'''random_digest
+
+DESC:
+PARAMS:
+    proteins: list of dictionaries of the form {'sequence': string, 'name': string}
+    n: number of peptides to create
+OPTIONAL:
+    peptide_prefix: str prefix to give all peptide names. Default='peptide_'
+    min_length: int minimum length peptide to create. Default=3
+    max_length: int maximum length peptide to create. Default=20
+RETURNS:
+    list of dictionaries of form 
+    {
+        'peptide_name': str,
+        'peptide_sequence': str,
+        'parent_name': str,
+        'parent_sequence': str,
+        'start_index': int, 
+        'end_index': int
+    }
+'''
+def random_digest(proteins, n, peptide_prefix='peptide_', min_length=3, max_length=20):
+    digested = []
+    fill_zeros = len(str(ceil(n / 10)))
+
+    to_digest = proteins
+    if n > len(proteins):
+        for _ in range(len(proteins), n):
+            to_digest.append(proteins[randint(0, len(proteins) - 1)])
+
+    for i in range(min(n, len(to_digest))):
+        seq = proteins[i]['sequence']
+        r = randint(min_length, max_length + 1)
+        start = randint(0, len(seq) - max_length)
+        pep = seq[start : start + r]
+        pep_name = peptide_prefix + str(i).zfill(fill_zeros)
+
+        d = {
+            'peptide_name': pep_name,
+            'peptide_sequence': pep,
+            'parent_name': proteins[i]['name'],
+            'parent_sequence': seq,
+            'start_index': start,
+            'end_index': start + r
+        }
+        digested.append(d)
+
+    return digested
+
+####################################################################
+#                   END RANDOM DIGEST FUNCTIONS
+####################################################################

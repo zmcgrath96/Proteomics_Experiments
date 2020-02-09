@@ -1,7 +1,7 @@
 import argparse 
 import json
 from spectra import gen_spectra, write_spectra
-from sequence_generation.gen_k_mers import k_mers
+from sequences.gen_k_mers import k_mers
 from utils import __make_valid_dir_string, __make_dir
 
 '''generate 

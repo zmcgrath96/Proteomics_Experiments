@@ -5,14 +5,9 @@ from time import time
 import database
 from spectra import gen_spectra_files
 from scoring import score_peptides
-from sequence_generation import peptides
-from analysis.plotting import plot_experiment
-from analysis.analyze_experiment import analyze
+from sequences import peptides, proteins
+from analysis import plotting, analyze_experiment
 from utils import __file_exists, __make_valid_dir_string, __make_dir, __is_json
-from protein_utils import read_proteins
-from sequence_generation import generate_hybrids
-from file_io import fasta
-from analysis.plotting import plot_experiment
 
 ''' old hybrid "sequence": "ALYLVCGELYTSRV", 
     second hybid: GFFYTPKEANIR
@@ -38,8 +33,6 @@ def main(args):
     6. Perform analysis on these scores
     '''
     input_file = args.input_file
-    hyb_pep = args.hyb_pep
-    hyb_prot = args.hyb_prot
     num_peptides = args.num_peptides
     num_hybs = args.num_hybrids
     agg_func = args.agg_func
@@ -48,29 +41,25 @@ def main(args):
     __make_dir(save_dir)
     min_length = args.min_length
     max_length = args.max_length
-    top_n = args.top_n
-    n = args.n
-    m_func = args.m_func
-    old_digest = args.d_file 
     mix = args.mix
     compress = args.compress
     hide_hybs = args.hide_hybs
+    digest = args.digest
 
     start_time = time()
     
     if not __is_json(input_file):
         # load in a list of proteins from a source file
-        prots = None 
-        if '.csv' in input_file or '.fasta' in input_file:
-            prots = read_proteins.from_csv(input_file) if '.csv' in input_file else fasta.read(input_file) 
-        else:
-            raise Exception('Protein file should be csv or fasta. File passed in: {}'.format(input_file))
+        prots = proteins.load_proteins(input_file) 
 
+        # make hybrid proteins
+        hyb_prots = proteins.generate_hybrids(prots, num_hybs, min_contribution=max_length)
+    
         # create peptides
-        non_hybrid_peps = peptides.get_peptides(prots=prots, number_peptides=num_peptides, min_length=min_length, max_length=max_length, save_dir=save_dir, peptide_file=old_digest)
+        non_hybrid_peps = peptides.gen_peptides(prots, num_peptides, min_length=min_length, max_length=max_length, digest=digest)
 
-        # create hybrids
-        hyb_peps, hyb_prots = generate_hybrids.generate_hybrids(hyb_pep_file=hyb_pep, hyb_prot_file=hyb_prot, prots=prots, num_gen=num_hybs, min_length=min_length, max_length=max_length, save_dir=save_dir)
+        # create hybrid peptides
+        hyb_peps = peptides.gen_peptides(hyb_prots, num_hybs, min_length=min_length, max_length=max_length, digest=digest, hybrid_list=True)
 
         # combine them for later use
         print('Combining hybrid and non hybrid lists...')
@@ -96,16 +85,15 @@ def main(args):
         print('Done.')
 
         # save scores to json
-        protein_names = []
         print('Analyzing Experiment...')
-        exp_json_path = analyze(all_proteins_raw, all_peptides_raw, score_output_files, {**vars(args), **defaults}, predicting_agg_func=agg_func, saving_dir=save_dir, mix_in_hybrids=mix, show_all=show_all, compress=compress, hide_hybrids=hide_hybs)
+        analyze_experiment.analyze(all_proteins_raw, all_peptides_raw, score_output_files, {**vars(args), **defaults}, predicting_agg_func=agg_func, saving_dir=save_dir, mix_in_hybrids=mix, show_all=show_all, compress=compress, hide_hybrids=hide_hybs)
         print('Done.')
 
     else:
         print('Loading experiment file...')
         experiment_json = json.load(open(input_file, 'r'))
         print('Finished loading experiment')
-        plot_experiment(experiment_json, agg_func='', show_all=show_all, saving_dir=save_dir, compress=compress, hide_hybrids=hide_hybs)
+        plotting.plot_experiment(experiment_json, agg_func='', show_all=show_all, saving_dir=save_dir, compress=compress, hide_hybrids=hide_hybs)
 
 
     print('Finished experiment. Time to complete: {} seconds'.format(time() - start_time))
@@ -114,8 +102,6 @@ def main(args):
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Entry file for the database experiments')
     parser.add_argument('input_file', type=str, metavar='F', help='Path to a file (csv or fasta) with protein name and sequences OR path to an experiment json file (with .json extension) to load and generate plots')
-    parser.add_argument('--hybrid-peptide-file', dest='hyb_pep', type=str, default='', help='Path to a hybrid peptide file. If none is given, new hybrid peptides generated. Default=')
-    parser.add_argument('--hybrid-protein-file', dest='hyb_prot', type=str, default='', help='Path to a hybrid protein file. If none is given, new hybrid proteins generated. Default=')
     parser.add_argument('--num-peptides', dest='num_peptides', type=int, default=50, help='Number of peptides to generate as the fake sample. Default=50')
     parser.add_argument('--num-hybrids', dest='num_hybrids', type=int, default=10, help='Number of hybrid proteins and peptides to generate. Default=10')
     parser.add_argument('--aggregate-function', dest='agg_func', type=str, default='sum', help='Which aggregation function to use for combining k-mer scores. Pick either sum or product. Default=sum')
@@ -123,13 +109,12 @@ if __name__ == '__main__':
     parser.add_argument('--output-dir', dest='save_dir', type=str, default='./', help='Directory to save all figures. Default=./')
     parser.add_argument('--min-length', dest='min_length', type=int, default=3, help='Minimum length peptide to create. Default=3')
     parser.add_argument('--max-length', dest='max_length', type=int, default=20, help='Maximum length peptide to create. Cuts from N terminus (left) side. Default=20')
-    parser.add_argument('--top-n', dest='top_n', type=bool, default=False, help='When recording how well a peptide scores against a protein, only use the top n proteins. Default=False')
-    parser.add_argument('--n', dest='n', type=int, default=5, help='n to use if using --top-n. Default=5')
     parser.add_argument('--measure-func', dest='m_func', type=str, default='average', help='Measuring function for determining the top n proteins. Options are: sum, average, max. Default=average')
     parser.add_argument('--peptide-file', dest='d_file', type=str, default='', help='Peptides from a past experiment. Default=None')
     parser.add_argument('--mix-prots', dest='mix', type=bool, default=True, help='Whether or not to also use hybrid proteins when calculating scores. Default=True')
     parser.add_argument('--compress', dest='compress', type=bool, default=True, help='Compress spectra files while generating them. Default=True')
     parser.add_argument('--hide-hybrid-prots', dest='hide_hybs', type=bool, default=False, help='When plotting hybrid peptides, hide the hybrid protein and only show results from normal proteins. Default=True')
+    parser.add_argument('--digest', dest='digest', type=str, default='random', help='Type of digest to perform. Options are <random, trypsin>. Default=random')
     args = parser.parse_args()
     main(args)
     

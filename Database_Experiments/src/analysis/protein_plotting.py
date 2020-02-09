@@ -179,7 +179,7 @@ def protein_pos_ranks(prot, ranks, save_dir='./', show=False, compress=True):
     fig.text(0.06, 0.5, prot[prot_name], ha='center', va='center', rotation='vertical')
     fig.suptitle('peptide rank distributions vs protein position')
     fig.text(.25, 0.005, __protein_summary(ranks))
-    True and plt.show()
+    show and plt.show()
     file_name = save_dir + prot[prot_name] + '.png'
     plt.savefig(file_name)
     plt.close()

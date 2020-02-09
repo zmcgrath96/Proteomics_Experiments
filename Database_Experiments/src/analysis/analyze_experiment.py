@@ -1,6 +1,5 @@
 from copy import deepcopy
 import utils
-from sequence_generation.digest import load_digest
 from analysis.write_output import write_raw_json
 from analysis import score_utils
 from analysis.aggregations import __z_score_sum, __sum, __product

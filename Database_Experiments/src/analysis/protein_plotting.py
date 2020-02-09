@@ -166,14 +166,13 @@ def protein_pos_ranks(prot, ranks, save_dir='./', show=False, compress=True):
         y_label = 'sequence:  {} - {}'.format(i * max_x_len, end - 1)
         this_axis.set_ylabel(y_label, fontsize=8)
         
-    # fix the color issue
+    # add color bar
     cmap = mpl.colors.ListedColormap(colors)
     bounds = [i for i in range(21)]
     norm = mpl.colors.BoundaryNorm(bounds, cmap.N)
-    for i in range(num_subplots):
-        this_axis = plt.subplot(gs[i, 1])
-        cb = mpl.colorbar.ColorbarBase(this_axis, cmap=cmap, norm=norm)
-        cb.set_label('mean peptide length', fontsize=8)
+    color_axis = plt.subplot(gs[:, 1])
+    cb = mpl.colorbar.ColorbarBase(color_axis, cmap=cmap, norm=norm)
+    cb.set_label('mean peptide length')
 
     # give a common label for the y axis as the protein name
     fig.text(0.06, 0.5, prot[prot_name], ha='center', va='center', rotation='vertical')

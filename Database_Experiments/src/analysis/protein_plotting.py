@@ -92,12 +92,16 @@ RETURNS:
     string of brief summary
 '''
 def __protein_summary(ranks):
-    summary = 'average peptide length: {}    average rank: {}    median rank: {}'
+    summary = 'average peptide length: {}    average rank: {}    median rank: {}    number scores > 5: {}'
     filtered_ranks = [r for r in ranks if r[rank] is not None]
     avg_len = mean([r[seq_len] for r in filtered_ranks])
     avg_rank = mean([r[rank] for r in filtered_ranks])
     med_rank = median(r[rank] for r in filtered_ranks)
-    return summary.format(avg_len, avg_rank, med_rank)
+    num_bad = 0
+    for r in ranks:
+        if r[rank] > 5:
+            num_bad += 1
+    return summary.format(avg_len, avg_rank, med_rank, num_bad)
 
 
 ###############################################
@@ -177,7 +181,7 @@ def protein_pos_ranks(prot, ranks, save_dir='./', show=False, compress=True):
     # give a common label for the y axis as the protein name
     fig.text(0.06, 0.5, prot[prot_name], ha='center', va='center', rotation='vertical')
     fig.suptitle('peptide rank distributions vs protein position')
-    fig.text(.25, 0.005, __protein_summary(ranks))
+    fig.text(.2, 0.005, __protein_summary(ranks))
     show and plt.show()
     file_name = save_dir + prot[prot_name] + '.png'
     plt.savefig(file_name)

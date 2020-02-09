@@ -144,46 +144,46 @@ def plot_experiment(exp, agg_func='sum', show_all=False, saving_dir='./', use_to
     2. plot the ranking history
     '''
 
-    # #create the saving directory
-    # saving_dir = __make_valid_dir_string(saving_dir)
-    # __make_dir(saving_dir)
+    #create the saving directory
+    saving_dir = __make_valid_dir_string(saving_dir)
+    __make_dir(saving_dir)
 
-    # print('\nGenerating plots...')
+    print('\nGenerating plots...')
 
-    # # Plot the kmer scores and score aggregations
-    # # TODO: make this into its own function for the sake of cleanliness
-    # print('Generating peptide score plots...')
-    # header_peps = exp[json_header][json_header_peps]
+    # Plot the kmer scores and score aggregations
+    # TODO: make this into its own function for the sake of cleanliness
+    print('Generating peptide score plots...')
+    header_peps = exp[json_header][json_header_peps]
 
-    # num_subsequences = len(exp[json_exp])
-    # subsequence_counter = 0
-    # for peptide, prots in exp[json_exp].items():
-    #     print('Plotting subsequence {}/{} [{}%]\r'.format(subsequence_counter, num_subsequences, int( (float (subsequence_counter) / float (num_subsequences) ) * 100 )), end="")
-    #     subsequence_counter += 1
-    #     # generate plots for all the proteins against the peptide
-    #     agg_scores = {}
-    #     pep_saving_dir = __make_valid_dir_string(saving_dir + 'subsequence_plots/' + peptide)
-    #     __make_dir(pep_saving_dir)
-    #     for prot, k_mers in prots.items():
-    #         if prot == 'analysis' or prot == 'ranks':
-    #             continue
-    #         plot_title = '{} vs {}'.format(peptide, prot)
-    #         pep_prot_saving_dir = __make_valid_dir_string(pep_saving_dir + prot)
-    #         __make_dir(pep_prot_saving_dir)
-    #         peptide_plotting.plot_subsequence_vs_protein(k_mers, title=plot_title, save_dir=pep_prot_saving_dir, show_graph=show_all)
-    #         agg_scores[prot] = __find_agg_score(k_mers, agg_func)
-    #     info = None
-    #     for pep in header_peps:
-    #         if pep['peptide_name'] == peptide:
-    #             info = pep 
-    #             break
-    #     peptide_plotting.plot_subsequence(agg_scores, title=str(peptide), save_dir=pep_saving_dir, show_graph=show_all, agg_func=agg_func, peaks=prots['analysis']['predicted_parents'], sequence_info=info, compress=compress, hide_hybrids=hide_hybrids)
-    # print('Finished.')
+    num_subsequences = len(exp[json_exp])
+    subsequence_counter = 0
+    for peptide, prots in exp[json_exp].items():
+        print('Plotting subsequence {}/{} [{}%]\r'.format(subsequence_counter, num_subsequences, int( (float (subsequence_counter) / float (num_subsequences) ) * 100 )), end="")
+        subsequence_counter += 1
+        # generate plots for all the proteins against the peptide
+        agg_scores = {}
+        pep_saving_dir = __make_valid_dir_string(saving_dir + 'subsequence_plots/' + peptide)
+        __make_dir(pep_saving_dir)
+        for prot, k_mers in prots.items():
+            if prot == 'analysis' or prot == 'ranks':
+                continue
+            plot_title = '{} vs {}'.format(peptide, prot)
+            pep_prot_saving_dir = __make_valid_dir_string(pep_saving_dir + prot)
+            __make_dir(pep_prot_saving_dir)
+            peptide_plotting.plot_subsequence_vs_protein(k_mers, title=plot_title, save_dir=pep_prot_saving_dir, show_graph=show_all)
+            agg_scores[prot] = __find_agg_score(k_mers, agg_func)
+        info = None
+        for pep in header_peps:
+            if pep['peptide_name'] == peptide:
+                info = pep 
+                break
+        peptide_plotting.plot_subsequence(agg_scores, title=str(peptide), save_dir=pep_saving_dir, show_graph=show_all, agg_func=agg_func, peaks=prots['analysis']['predicted_parents'], sequence_info=info, compress=compress, hide_hybrids=hide_hybrids)
+    print('Finished.')
 
-    # # Plot the ranking of the corect 
-    # print('Generating score ranking plots...')
-    # peptide_plotting.plot_score_rankings(exp, save_dir=saving_dir + 'ranking_plots/', show_all=show_all)
-    # print('Finished.')
+    # Plot the ranking of the corect 
+    print('Generating score ranking plots...')
+    peptide_plotting.plot_score_rankings(exp, save_dir=saving_dir + 'ranking_plots/', show_all=show_all)
+    print('Finished.')
 
     # Plot score distributions vs protein sequence
     print('Generating score distributions vs protein sequences...')

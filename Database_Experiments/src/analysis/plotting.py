@@ -119,7 +119,36 @@ def __aggregate_ranks(exp):
 #           END "PRIVATE" FUNCTIONS
 #####################################################
 
-'''plot_experiment
+'''plot_protein_summary
+
+DESC:
+    call the protein plotting functions 
+PARAMS:
+    exp: dict the json used to save all information 
+OPTIONAL:
+    saving_dir: string path to directory to save figures under. Default=./
+    show_all: bool whether or not to show all graphs. Default=False
+    compress: bool whether or not to compress output files. If True, all subsequnce plots are compressed. Default=True
+RETURNS:
+    None
+'''
+def plot_protein_summary(exp, saving_dir='./', show_all=False, compress=True):
+    # clean up proteins (normalize because of the hybrids)
+    dirty_prots = exp[json_header][json_header_prots]
+    clean_prots = []
+    for prot in dirty_prots:
+        if 'protein' in prot:
+            tp = {
+                'name': prot['name'],
+                'sequence': prot['protein']
+            }
+            clean_prots.append(tp)
+        else:
+            clean_prots.append(prot)
+    protein_plotting.prots_pep_pos_rankings(clean_prots, __aggregate_ranks(exp), save_dir=saving_dir, show_all=show_all, compress=compress)
+    
+
+'''plot_peptide_scores
 
 DESC:
     Plot the score of sequences against the starting position for an experiment
@@ -129,30 +158,12 @@ OPTIONAL:
     agg_func: string aggregate function to use. Default=sum
     saving_dir: string path to directory to save figures under. Default=./
     show_all: bool whether or not to show all graphs. Default=False
-    use_top_n: bool wether or not to report only the top n scores for a subsequence. Default=False
-    n: int the top n scores to keep for a subsequence if use_top_n is True. Default=5
-    measure: string the measuring function for determining the top n scores
     compress: bool whether or not to compress output files. If True, all subsequnce plots are compressed. Default=True
     hide_hybrids: bool whether or not to hide hybrid proteins in plots. Default=True
 RETURNS: 
     None
 '''
-def plot_experiment(exp, agg_func='sum', show_all=False, saving_dir='./', use_top_n=False, n=5, measure='average', compress=True, hide_hybrids=True):
-    '''
-    1. plot the kmer scores
-    2. plot the aggregation
-    2. plot the ranking history
-    '''
-
-    #create the saving directory
-    saving_dir = __make_valid_dir_string(saving_dir)
-    __make_dir(saving_dir)
-
-    print('\nGenerating plots...')
-
-    # Plot the kmer scores and score aggregations
-    # TODO: make this into its own function for the sake of cleanliness
-    print('Generating peptide score plots...')
+def plot_peptide_scores(exp, agg_func='sum', saving_dir='./', show_all=False, compress=True, hide_hybrids=True):
     header_peps = exp[json_header][json_header_peps]
 
     num_subsequences = len(exp[json_exp])
@@ -178,6 +189,39 @@ def plot_experiment(exp, agg_func='sum', show_all=False, saving_dir='./', use_to
                 info = pep 
                 break
         peptide_plotting.plot_subsequence(agg_scores, title=str(peptide), save_dir=pep_saving_dir, show_graph=show_all, agg_func=agg_func, peaks=prots['analysis']['predicted_parents'], sequence_info=info, compress=compress, hide_hybrids=hide_hybrids)
+    
+
+'''plot_experiment
+
+DESC:
+    Generate various plots for the experiment
+PARAMS:
+    exp: dict the json used to save all information
+OPTIONAL:
+    agg_func: string aggregate function to use. Default=sum
+    saving_dir: string path to directory to save figures under. Default=./
+    show_all: bool whether or not to show all graphs. Default=False
+    compress: bool whether or not to compress output files. If True, all subsequnce plots are compressed. Default=True
+    hide_hybrids: bool whether or not to hide hybrid proteins in plots. Default=True
+RETURNS: 
+    None
+'''
+def plot_experiment(exp, agg_func='sum', show_all=False, saving_dir='./', compress=True, hide_hybrids=True):
+    '''
+    1. plot the kmer scores
+    2. plot the aggregation
+    2. plot the ranking history
+    '''
+
+    #create the saving directory
+    saving_dir = __make_valid_dir_string(saving_dir)
+    __make_dir(saving_dir)
+
+    print('\nGenerating plots...')
+
+    # Plot the kmer scores and score aggregations
+    print('Generating peptide score plots...')
+    plot_peptide_scores(exp, agg_func=agg_func, saving_dir=saving_dir, show_all=show_all, compress=compress, hide_hybrids=hide_hybrids)
     print('Finished.')
 
     # Plot the ranking of the corect 
@@ -187,17 +231,5 @@ def plot_experiment(exp, agg_func='sum', show_all=False, saving_dir='./', use_to
 
     # Plot score distributions vs protein sequence
     print('Generating score distributions vs protein sequences...')
-    # clean up proteins (normalize because of the hybrids)
-    dirty_prots = exp[json_header][json_header_prots]
-    clean_prots = []
-    for prot in dirty_prots:
-        if 'protein' in prot:
-            tp = {
-                'name': prot['name'],
-                'sequence': prot['protein']
-            }
-            clean_prots.append(tp)
-        else:
-            clean_prots.append(prot)
-    protein_plotting.prots_pep_pos_rankings(clean_prots, __aggregate_ranks(exp), save_dir=saving_dir, show_all=show_all, compress=compress)
+    plot_protein_summary(exp, saving_dir=saving_dir, show_all=show_all, compress=compress)
     print('Finished.')

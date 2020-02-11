@@ -132,8 +132,6 @@ def plot_protein_summary(exp, saving_dir='./', show_all=False, compress=True):
             clean_prots.append(tp)
         else:
             clean_prots.append(prot)
-    # TODO: figure out why the exp json has these repeated a lot
-    clean_prots = list({v['name']:v for v in clean_prots}.values())
     protein_plotting.prots_pep_pos_rankings(clean_prots, __aggregate_ranks(exp), save_dir=saving_dir, show_all=show_all, compress=compress)
     
 

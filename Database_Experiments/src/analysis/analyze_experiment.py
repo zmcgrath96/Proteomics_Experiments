@@ -142,6 +142,7 @@ def __find_kmer_rank(correct_prot, correct_position, peptide_analysis):
         if prot == SAMPLE_PROTEIN_ANALYSIS:
             continue
 
+        # create tuples of the form (parent protein name, score, order number)
         ranking[prot] = {}
         for k, scores in kmers.items():
             if k not in tagged_scores:
@@ -152,10 +153,15 @@ def __find_kmer_rank(correct_prot, correct_position, peptide_analysis):
 
     for k, tg in tagged_scores.items():
         tg.sort(reverse=True, key=lambda x: x[1])
-        for r, score in enumerate(tg):
-            # TODO: make all k-mers with the same score the same rank
+        # if scores are all the same, don't increment the rank
+        rank = 0
+        last_score = None
+        for score in tg:
+            if int(score[1]) != last_score:
+                rank += 1
+                last_score = int(score[1])
             if int(score[2]) == correct_position:
-                ranking[score[0]][k] = r + 1 # 1 based score instead of 0
+                ranking[score[0]][k] = rank
     
     return ranking[correct_prot]
 

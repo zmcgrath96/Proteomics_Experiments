@@ -162,7 +162,9 @@ def protein_pos_ranks(prot, ranks, save_dir='./', show=False, compress=True):
         for attr in ['boxes', 'whiskers', 'caps', 'fliers', 'medians']:
             for n, item in enumerate(bplot[attr]):
                 t = n if attr != 'whiskers' and attr != 'caps' else math.floor(n/2)
-                color_to_use = colors[divided_avg_len[t]]
+                c = int(divided_avg_len[t])
+                c = c if c < 21 else 20
+                color_to_use = colors[c]
                 item.set(color=color_to_use)
 
         this_axis.set_xticks([j for j in range(len(divided_rank_dist))])

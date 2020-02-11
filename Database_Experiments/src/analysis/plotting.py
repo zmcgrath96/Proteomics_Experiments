@@ -132,6 +132,8 @@ def plot_protein_summary(exp, saving_dir='./', show_all=False, compress=True):
             clean_prots.append(tp)
         else:
             clean_prots.append(prot)
+    # TODO: figure out why the exp json has these repeated a lot
+    clean_prots = list({v['name']:v for v in clean_prots}.values())
     protein_plotting.prots_pep_pos_rankings(clean_prots, __aggregate_ranks(exp), save_dir=saving_dir, show_all=show_all, compress=compress)
     
 
@@ -193,7 +195,7 @@ OPTIONAL:
 RETURNS: 
     None
 '''
-def plot_experiment(exp, agg_func='sum', show_all=False, saving_dir='./', compress=True, hide_hybrids=True):
+def plot_experiment(exp, agg_func='sum', show_all=False, saving_dir='./', compress=True, hide_hybrids=True, plot_pep_scores=True, plot_pep_ranks_len=True, plot_pep_ranks_prot=True):
     '''
     1. plot the kmer scores
     2. plot the aggregation
@@ -207,18 +209,21 @@ def plot_experiment(exp, agg_func='sum', show_all=False, saving_dir='./', compre
     print('\nGenerating plots...')
 
     # Plot the kmer scores and score aggregations
-    print('Generating peptide score plots...')
-    plot_peptide_scores(exp, agg_func=agg_func, saving_dir=saving_dir, show_all=show_all, compress=compress, hide_hybrids=hide_hybrids)
-    print('Finished.')
+    if plot_pep_scores:
+        print('Generating peptide score plots...')
+        plot_peptide_scores(exp, agg_func=agg_func, saving_dir=saving_dir, show_all=show_all, compress=compress, hide_hybrids=hide_hybrids)
+        print('Finished.')
 
     # Plot the ranking of the corect 
-    print('Generating score ranking plots...')
-    peptide_plotting.plot_score_rankings(exp, save_dir=saving_dir + 'ranking_plots/', show_all=show_all)
-    print('Finished.')
+    if plot_pep_ranks_len:
+        print('Generating score ranking plots...')
+        peptide_plotting.plot_score_rankings(exp, save_dir=saving_dir + 'ranking_plots/', show_all=show_all)
+        print('Finished.')
 
     # Plot score distributions vs protein sequence
-    print('Generating score distributions vs protein sequences...')
-    plot_protein_summary(exp, saving_dir=saving_dir, show_all=show_all, compress=compress)
-    print('Finished.')
+    if plot_pep_ranks_prot:
+        print('Generating score distributions vs protein sequences...')
+        plot_protein_summary(exp, saving_dir=saving_dir, show_all=show_all, compress=compress)
+        print('Finished.')
 
     print('Finished generating all plots.')

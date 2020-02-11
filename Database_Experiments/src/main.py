@@ -22,6 +22,16 @@ with open(default_json_file, 'r') as o:
     END IMPORT DEFAULTS
 '''
 
+def str2bool(v):
+    if isinstance(v, bool):
+       return v
+    if v.lower() in ('yes', 'true', 't', 'y', '1'):
+        return True
+    elif v.lower() in ('no', 'false', 'f', 'n', '0'):
+        return False
+    else:
+        raise argparse.ArgumentTypeError('Boolean value expected.')
+
 def main(args):
     '''
     STEPS
@@ -32,21 +42,30 @@ def main(args):
     5. Score all the k-mers against all the peptides
     6. Perform analysis on these scores
     '''
+    # input files
     input_file = args.input_file
-    num_peptides = args.num_peptides
-    num_hybs = args.num_hybrids
-    agg_func = args.agg_func
-    show_all = args.show_all
+    # output parameters
     save_dir = __make_valid_dir_string(args.save_dir)
     __make_dir(save_dir)
+    # peptide/protein parameters
+    num_peptides = args.num_peptides
+    num_hybs = args.num_hybrids
     min_length = args.min_length
     max_length = args.max_length
-    mix = args.mix
-    compress = args.compress
-    hide_hybs = args.hide_hybs
     digest = args.digest
+    # analysis/plotting parameters
+    agg_func = args.agg_func
+    show_all = args.show_all
+    mix = args.mix
+    hide_hybs = args.hide_hybs
+    plot_pep_scores = args.plot_pep_scores
+    plot_pep_ranks_length = args.plot_pep_ranks_length
+    plot_pep_ranks_prot = args.plot_pep_ranks_prot
+    # performance parameters
+    compress = args.compress
 
     start_time = time()
+    experiment_json_file = None
     
     if not __is_json(input_file):
         # load in a list of proteins from a source file
@@ -86,14 +105,15 @@ def main(args):
 
         # save scores to json
         print('Analyzing Experiment...')
-        analyze_experiment.analyze(all_proteins_raw, all_peptides_raw, score_output_files, {**vars(args), **defaults}, predicting_agg_func=agg_func, saving_dir=save_dir, mix_in_hybrids=mix, show_all=show_all, compress=compress, hide_hybrids=hide_hybs)
+        experiment_json_file = analyze_experiment.analyze(all_proteins_raw, all_peptides_raw, score_output_files, {**vars(args), **defaults}, predicting_agg_func=agg_func, saving_dir=save_dir, mix_in_hybrids=mix)
         print('Done.')
 
-    else:
-        print('Loading experiment file...')
-        experiment_json = json.load(open(input_file, 'r'))
-        print('Finished loading experiment')
-        plotting.plot_experiment(experiment_json, agg_func='', show_all=show_all, saving_dir=save_dir, compress=compress, hide_hybrids=hide_hybs)
+    # plot experiment
+    experiment_json_file = input_file if experiment_json_file is None else experiment_json_file
+    print('Loading experiment file...')
+    experiment_json = json.load(open(experiment_json_file, 'r'))
+    print('Finished loading experiment')
+    plotting.plot_experiment(experiment_json, agg_func='', show_all=show_all, saving_dir=save_dir, compress=compress, hide_hybrids=hide_hybs, plot_pep_scores=plot_pep_scores, plot_pep_ranks_len=plot_pep_ranks_length, plot_pep_ranks_prot=plot_pep_ranks_prot)
 
 
     print('Finished experiment. Time to complete: {} seconds'.format(time() - start_time))
@@ -105,16 +125,19 @@ if __name__ == '__main__':
     parser.add_argument('--num-peptides', dest='num_peptides', type=int, default=50, help='Number of peptides to generate as the fake sample. Default=50')
     parser.add_argument('--num-hybrids', dest='num_hybrids', type=int, default=10, help='Number of hybrid proteins and peptides to generate. Default=10')
     parser.add_argument('--aggregate-function', dest='agg_func', type=str, default='sum', help='Which aggregation function to use for combining k-mer scores. Pick either sum or product. Default=sum')
-    parser.add_argument('--show-all-graphs', dest='show_all', type=bool, default=False, help='Show all the graphs generated. Will save to directory either way. Default=False.')
+    parser.add_argument('--show-all-graphs', dest='show_all', type=str2bool, default=False, help='Show all the graphs generated. Will save to directory either way. Default=False.')
     parser.add_argument('--output-dir', dest='save_dir', type=str, default='./', help='Directory to save all figures. Default=./')
     parser.add_argument('--min-length', dest='min_length', type=int, default=3, help='Minimum length peptide to create. Default=3')
     parser.add_argument('--max-length', dest='max_length', type=int, default=20, help='Maximum length peptide to create. Cuts from N terminus (left) side. Default=20')
     parser.add_argument('--measure-func', dest='m_func', type=str, default='average', help='Measuring function for determining the top n proteins. Options are: sum, average, max. Default=average')
     parser.add_argument('--peptide-file', dest='d_file', type=str, default='', help='Peptides from a past experiment. Default=None')
-    parser.add_argument('--mix-prots', dest='mix', type=bool, default=True, help='Whether or not to also use hybrid proteins when calculating scores. Default=True')
-    parser.add_argument('--compress', dest='compress', type=bool, default=True, help='Compress spectra files while generating them. Default=True')
-    parser.add_argument('--hide-hybrid-prots', dest='hide_hybs', type=bool, default=False, help='When plotting hybrid peptides, hide the hybrid protein and only show results from normal proteins. Default=True')
+    parser.add_argument('--mix-prots', dest='mix', type=str2bool, default=True, help='Whether or not to also use hybrid proteins when calculating scores. Default=True')
+    parser.add_argument('--compress', dest='compress', type=str2bool, default=True, help='Compress spectra files while generating them. Default=True')
+    parser.add_argument('--hide-hybrid-prots', dest='hide_hybs', type=str2bool, default=False, help='When plotting hybrid peptides, hide the hybrid protein and only show results from normal proteins. Default=True')
     parser.add_argument('--digest', dest='digest', type=str, default='random', help='Type of digest to perform. Options are <random, trypsin>. Default=random')
+    parser.add_argument('--plot-peptide-scores', dest='plot_pep_scores', type=str2bool, default=True, help='Determines whether to generate plots for every peptide score. Default=True')
+    parser.add_argument('--plot-peptide-rankings-length', dest='plot_pep_ranks_length', type=str2bool, default=True, help='Determines whether to generate plots for peptide rankings distributions by length. Default=True')
+    parser.add_argument('--plot-peptide-rankings-protein', dest='plot_pep_ranks_prot', type=str2bool, default=True, help='Determines whether to generate plots for peptide scoring ranks agaisnt proteins. Default=True')
     args = parser.parse_args()
     main(args)
     

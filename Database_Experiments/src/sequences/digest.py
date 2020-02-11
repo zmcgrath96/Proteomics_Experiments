@@ -1,6 +1,7 @@
 from random import randint, choice, random, shuffle
 from utils import __make_dir, __make_valid_dir_string
 from math import ceil
+from copy import deepcopy
 ####################################################################
 #                   PRIVATE FUNCTIONS
 ####################################################################
@@ -211,13 +212,13 @@ def random_digest(proteins, n, peptide_prefix='peptide_', min_length=3, max_leng
     digested = []
     fill_zeros = len(str(ceil(n / 10)))
 
-    to_digest = proteins
+    to_digest = deepcopy(proteins)
     if n > len(proteins):
         for _ in range(len(proteins), n):
             to_digest.append(proteins[randint(0, len(proteins) - 1)])
 
     for i in range(min(n, len(to_digest))):
-        seq = proteins[i]['sequence']
+        seq = to_digest[i]['sequence']
         r = randint(min_length, max_length + 1)
         start = randint(0, len(seq) - max_length)
         pep = seq[start : start + r]
@@ -226,7 +227,7 @@ def random_digest(proteins, n, peptide_prefix='peptide_', min_length=3, max_leng
         d = {
             'peptide_name': pep_name,
             'peptide_sequence': pep,
-            'parent_name': proteins[i]['name'],
+            'parent_name': to_digest[i]['name'],
             'parent_sequence': seq,
             'start_index': start,
             'end_index': start + r

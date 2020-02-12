@@ -1,4 +1,4 @@
-from analysis.score_utils import __pad_scores
+from analysis.score_utils import pad_scores
 import numpy as np
 
 '''__sum
@@ -14,11 +14,11 @@ def __sum(all_scores):
     score_sum = []
     if type(all_scores) is dict:
         for _, score in all_scores.items():
-            score_sum, score = __pad_scores(score_sum, score)
+            score_sum, score = pad_scores(score_sum, score)
             score_sum = np.add(score_sum, score)
     else:
         for score in all_scores:
-            score_sum, score = __pad_scores(score_sum, score)
+            score_sum, score = pad_scores(score_sum, score)
             score_sum = np.add(score_sum, score)
 
     return list(score_sum)
@@ -36,13 +36,13 @@ def __product(all_scores):
     score_prod = []
     if type(all_scores) is dict:
         for _, score in all_scores.items():
-            score_prod, score = __pad_scores(score_prod, score, padding=1)
+            score_prod, score = pad_scores(score_prod, score, padding=1)
             for i in range(len(score_prod)):
                 if score[i] > 0:
                     score_prod[i] *= score[i]
     else:
         for score in all_scores:
-            score_prod, score = __pad_scores(score_prod, score, padding=1)
+            score_prod, score = pad_scores(score_prod, score, padding=1)
             for i in range(len(score_prod)):
                 if score[i] > 0:
                     score_prod[i] *= score[i]
@@ -64,7 +64,7 @@ def __z_score_sum(all_scores):
     s = np.std([item for sublist in scores for item in sublist])
     u = np.mean([item for sublist in scores for item in sublist])
     for scr in scores:
-        score_z_sum, scr = __pad_scores(score_z_sum, scr)
+        score_z_sum, scr = pad_scores(score_z_sum, scr)
         t = [(x-u)/s for x in scr]
         score_z_sum = np.add(score_z_sum, t)
     

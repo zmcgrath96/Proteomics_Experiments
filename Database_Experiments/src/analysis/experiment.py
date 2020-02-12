@@ -190,14 +190,14 @@ PARAMS:
         'start_index': int, 
         'end_index': int
     }
-    files: list of str output files from the scoring algorithm
     args: dictionary parameters used when running the experiment
 OPTIONAL:
+    files: list of str output files from the scoring algorithm
     saving_dir: str path to where the experiment file should be saved. Default=./
 RETURNS:
     str path to experiment json file
 '''
-def save_experiment(proteins, peptides, files, args, saving_dir='./'):
+def save_experiment(proteins, peptides, args, files=None, saving_dir='./'):
     global experiment_json_file_name, experiment_json
     saving_dir = utils.__make_valid_dir_string(saving_dir)
     utils.__make_dir(saving_dir)
@@ -205,6 +205,11 @@ def save_experiment(proteins, peptides, files, args, saving_dir='./'):
     # add header information to the json
     __add_header_info(proteins, peptides, args, experiment_json)
     protein_names = [x['name'] for x in proteins]
+
+    # if no scoring files exist, just save the proteins and peptides
+    if files is None or (isinstance(files, list) and len(files) == 0):
+        write_raw_json(saving_dir + experiment_json_file_name, experiment_json)
+        return(saving_dir + experiment_json_file_name)
 
     # go through each peptide
     for pep in peptides:
@@ -220,7 +225,7 @@ def save_experiment(proteins, peptides, files, args, saving_dir='./'):
 
             this_prot_kmers = []
             for f in prot_with_subseq:
-                scores, _, _ = score_utils.__get_scores_scan_pos_label(f)
+                scores, _, _ = score_utils.get_scores_scan_pos_label(f)
                 k = 'k=' + str(__get_k_number(f))
                 subsequence_dict[prot_name][k] = scores
                 this_prot_kmers.append(scores)
@@ -242,7 +247,7 @@ OPTIONAL:
     saving_dir: str the name of the directory to save the experiment in. Default=./
     mix_in_hybrids: bool whether or not to include using hybrid proteins in analysis. Default=False
 RETURNS:
-    str file path to the experiment json generated
+    str file path to the experiment json generated, dictionary of all experiment information
 '''
 def analyze(exp, predicting_agg_func='sum', saving_dir='./', mix_in_hybrids=False):
     global experiment_json, experiment_json_file_name
@@ -277,4 +282,4 @@ def analyze(exp, predicting_agg_func='sum', saving_dir='./', mix_in_hybrids=Fals
     # save to file
     write_raw_json(saving_dir + experiment_json_file_name, experiment_json)
 
-    return(saving_dir + experiment_json_file_name)
+    return(saving_dir + experiment_json_file_name), experiment_json

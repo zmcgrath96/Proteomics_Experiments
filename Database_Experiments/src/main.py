@@ -24,7 +24,7 @@ with open(default_json_file, 'r') as o:
 '''
     CONSTANTS
 '''
-starting_positions = ['b', 'p', 'a']
+starting_positions = ['b', 'p', 'a', 's']
 '''
     END CONSTANTS
 '''
@@ -47,6 +47,22 @@ def is_correct_file(pos, file):
         return __is_fasta(file), '.fasta'
     else: 
         return __is_json(file), '.json'
+
+def clean_prots(prots):
+    cleaned = []
+    for p in prots:
+        if 'protein' in p:
+            cleaned.append({
+                'name': p['name'],
+                'sequence': p['protein']
+            })
+        else:
+            cleaned.append(p)
+    return cleaned
+
+def clean_peps(peps):
+    return [{'name': p['peptide_name'], 'sequence': p['peptide_sequence']} for p in peps]
+
 #########################################################
 #           END MAIN HELPER FUNCTIONS
 #########################################################
@@ -74,6 +90,7 @@ def main(args):
     digest = args.digest
     # analysis/plotting parameters
     agg_func = args.agg_func
+    score_func = args.score_func
     show_all = args.show_all
     mix = args.mix
     hide_hybs = args.hide_hybs
@@ -109,12 +126,26 @@ def main(args):
         # create hybrid peptides
         hyb_peps = peptides.gen_peptides(hyb_prots, num_hybs, min_length=min_length, max_length=max_length, digest=digest, hybrid_list=True)
 
+        all_proteins_raw = prots + hyb_prots
+        all_peptides_raw = non_hybrid_peps + hyb_peps
+
+        print('Saving experiment...')
+        experiment_json_file = experiment.save_experiment(all_proteins_raw, all_peptides_raw, {**vars(args), **defaults}, saving_dir=save_dir)
+        print('Done.')
+
+    if start_pos == 's' or start_pos == 'b':
+
+        experiment_json_file = experiment_json_file if experiment_json_file is not None else input_file
+        start_pos == 's' and print('Loading experiment file...')
+        exp_json = json.load(open(experiment_json_file, 'r'))
+        start_pos == 's' and print('Finished loading experiment')
+
         # combine them for later use
         print('Combining hybrid and non hybrid lists...')
-        all_proteins_raw = prots + hyb_prots
-        all_proteins_cleaned = prots + [{'name': x['name'] , 'sequence': x['protein']} for x in hyb_prots]
-        all_peptides_raw = non_hybrid_peps + hyb_peps
-        all_peptides_cleaned = [{'name': x['peptide_name'], 'sequence': x['peptide_sequence']} for x in non_hybrid_peps] + [{'name': x['peptide_name'], 'sequence': x['peptide_sequence']} for x in hyb_peps]
+        all_proteins_raw = exp_json['experiment_info']['proteins']
+        all_proteins_cleaned = clean_prots(all_proteins_raw)
+        all_peptides_raw = exp_json['experiment_info']['peptides']
+        all_peptides_cleaned = clean_peps(all_peptides_raw)
         print('Done')
 
         # create database files
@@ -129,15 +160,15 @@ def main(args):
 
         # run scoring algorithm on database and k-mers
         print('Scoring...')
-        score_output_files = score_peptides.score_peptides(spectra_files, fasta_databases, save_dir, compress=compress, crux_search=False, path_to_crux_cmd=defaults['crux_cmd'])
+        score_output_files = score_peptides.score_peptides(spectra_files, fasta_databases, save_dir, compress=compress, score_func=score_func, path_to_crux_cmd=defaults['crux_cmd'])
         print('Done.')
 
         # save the experiment in a json file
         print('Formatting scores...')
-        experiment_json_file = experiment.save_experiment(all_proteins_raw, all_peptides_raw, score_output_files, {**vars(args), **defaults}, saving_dir=save_dir)
+        experiment_json_file = experiment.save_experiment(all_proteins_raw, all_peptides_raw, {**vars(args), **defaults}, files=score_output_files, saving_dir=save_dir)
         print('Done.')
 
-    if start_pos == 'a' or start_pos == 'b':
+    if start_pos == 'a' or start_pos == 'b' or start_pos == 's':
         # load experiment file
         print('Loading experiment...')
         experiment_json_file = experiment_json_file if experiment_json_file is not None else input_file
@@ -146,7 +177,7 @@ def main(args):
 
         # Perform aggregations and k-mer ranksings
         print('Analyzing Experiment...')
-        exp_json = experiment.analyze(exp_json, predicting_agg_func=agg_func, saving_dir=save_dir, mix_in_hybrids=mix)
+        experiment_json_file, exp_json = experiment.analyze(exp_json, predicting_agg_func=agg_func, saving_dir=save_dir, mix_in_hybrids=mix)
         print('Done.')
 
     # check to see if exp has been loaded
@@ -165,7 +196,7 @@ def main(args):
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Entry file for the database experiments')
     parser.add_argument('input_file', type=str, metavar='F', help='Path to a fasta with protein name and sequences OR path to an experiment json file (with .json extension) to load')
-    parser.add_argument('--start', type=str, dest='start_pos', default='b', help='Program position to start at. Three options: \nb --- beggining. Start from beginning with a .fasta file with proteins.\na --- analysis. Start at the analysis step with an old experiment json file.\np --- plotting. Use an old analysis from an experiment json and generate new plots. Default=b')
+    parser.add_argument('--start', type=str, dest='start_pos', default='b', help='Program position to start at. Three options: \nb --- beggining. Start from beginning with a .fasta file with proteins.\ns --- scoring. Use proteins from an older generation and score them.\na --- analysis. Start at the analysis step with an old experiment json file.\np --- plotting. Use an old analysis from an experiment json and generate new plots. Default=b')
     parser.add_argument('--num-peptides', dest='num_peptides', type=int, default=50, help='Number of peptides to generate as the fake sample. Default=50')
     parser.add_argument('--num-hybrids', dest='num_hybrids', type=int, default=10, help='Number of hybrid proteins and peptides to generate. Default=10')
     parser.add_argument('--aggregate-function', dest='agg_func', type=str, default='sum', help='Which aggregation function to use for combining k-mer scores. Pick either sum or product. Default=sum')
@@ -179,6 +210,7 @@ if __name__ == '__main__':
     parser.add_argument('--compress', dest='compress', type=str2bool, default=True, help='Compress spectra files while generating them. Default=True')
     parser.add_argument('--hide-hybrid-prots', dest='hide_hybs', type=str2bool, default=False, help='When plotting hybrid peptides, hide the hybrid protein and only show results from normal proteins. Default=True')
     parser.add_argument('--digest', dest='digest', type=str, default='random', help='Type of digest to perform. Options are <random, trypsin>. Default=random')
+    parser.add_argument('--score_function', dest='score_func', type=str, default='custom', help='Type of scoring function to use. Options are "custom" or "crux". Default=custom')
     parser.add_argument('--plot-peptide-scores', dest='plot_pep_scores', type=str2bool, default=True, help='Determines whether to generate plots for every peptide score. Default=True')
     parser.add_argument('--plot-peptide-rankings-length', dest='plot_pep_ranks_length', type=str2bool, default=True, help='Determines whether to generate plots for peptide rankings distributions by length. Default=True')
     parser.add_argument('--plot-peptide-rankings-protein', dest='plot_pep_ranks_prot', type=str2bool, default=True, help='Determines whether to generate plots for peptide scoring ranks agaisnt proteins. Default=True')

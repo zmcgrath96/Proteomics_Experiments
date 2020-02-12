@@ -6,6 +6,7 @@ from utils import __make_dir, __make_valid_dir_string, __is_gzipped, __gunzip, _
 from scoring import search
 
 crux_to_rm = ['tide-search.decoy.txt', 'tide-search.log.txt', 'tide-search.params.txt']
+scoring_functions = ['crux', 'custom']
 
 #######################################################################################
 #                       BEGIN "PRIVATE" FUNCTIONS
@@ -79,7 +80,7 @@ def __crux_search(spectra_files, database_files, path_to_crux_cmd, output_dir, c
     is_compressed = __is_gzipped(spectra_files[0])
     print('Pre-indexing database files...')
     indexed_db_files = __index_db_files(path_to_crux_cmd, database_files)
-    print('\nDone.')
+    print('\nDone. Scoring..')
 
     output_count = 0
     output_files = []
@@ -109,7 +110,9 @@ def __crux_search(spectra_files, database_files, path_to_crux_cmd, output_dir, c
             call(search_cmd)
             output_count += 1
             o = this_output_dir + '/tide-search.target.txt' if not compress else __gzip(this_output_dir + '/tide-search.target.txt')
-            output_files.append(o)
+            o_tsv = o.replace('.txt', '.tsv')
+            os.rename(o, o_tsv)
+            output_files.append(o_tsv)
 
             # saving space, so should remove the extra stuff
             if is_compressed:
@@ -167,13 +170,14 @@ PARAMS:
     output_dir: str path to the directory to save files
 OPTIONAL:
     compress: bool compress the output result. Default=True
-    crux_search: bool use crux search vs custom search. Default=False
+    score_func: str determine which scoring function to use. Default='custom'
     path_to_crux_cmd: str path to the executable for crux. Default=''
 RETURNS:
     list of str of output files
 '''
-def score_peptides(spectra_files, database_files, output_dir, compress=True, crux_search=False, path_to_crux_cmd=''):
-    if crux_search:
+def score_peptides(spectra_files, database_files, output_dir, compress=True, score_func='custom', path_to_crux_cmd=''):
+    score_func = 'custom' if score_func.lower() not in scoring_functions else score_func.lower()
+    if score_func == 'crux':
         return __crux_search(spectra_files, database_files, path_to_crux_cmd, output_dir, compress=compress)
     else:
         return __custom_search(spectra_files, database_files, output_dir, compress=compress)

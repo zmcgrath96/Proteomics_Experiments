@@ -183,3 +183,15 @@ RETURNS:
 '''
 def __is_json(file):
     return True if '.json' in file else False
+
+'''__is_fasta
+
+DESC:
+    determine if a file is a fasta file based purely on name
+PARAMS:
+    file: file to determine if its a fasta file
+RETURNS:
+    bool True if it is a fasta file False otherwise
+'''
+def __is_fasta(file):
+    return True if '.fasta' in file else False

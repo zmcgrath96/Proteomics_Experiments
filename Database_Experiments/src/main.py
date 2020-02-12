@@ -1,4 +1,5 @@
 import os
+import sys
 import argparse
 import json
 from time import time
@@ -6,11 +7,10 @@ import database
 from spectra import gen_spectra_files
 from scoring import score_peptides
 from sequences import peptides, proteins
-from analysis import plotting, analyze_experiment
-from utils import __file_exists, __make_valid_dir_string, __make_dir, __is_json
+from analysis import plotting, experiment
+from utils import __file_exists, __make_valid_dir_string, __make_dir, __is_json, __is_fasta
 
-''' old hybrid "sequence": "ALYLVCGELYTSRV", 
-    second hybid: GFFYTPKEANIR
+''' 
     IMPORT DEFAULTS
 '''
 cwd = '/'.join(str(os.path.dirname(os.path.realpath(__file__))).split('/')[:-1])
@@ -21,7 +21,17 @@ with open(default_json_file, 'r') as o:
 '''
     END IMPORT DEFAULTS
 '''
+'''
+    CONSTANTS
+'''
+starting_positions = ['b', 'p', 'a']
+'''
+    END CONSTANTS
+'''
 
+#########################################################
+#               MAIN HELPER FUNCTIONS
+#########################################################
 def str2bool(v):
     if isinstance(v, bool):
        return v
@@ -31,6 +41,15 @@ def str2bool(v):
         return False
     else:
         raise argparse.ArgumentTypeError('Boolean value expected.')
+
+def is_correct_file(pos, file):
+    if pos == 'b':
+        return __is_fasta(file), '.fasta'
+    else: 
+        return __is_json(file), '.json'
+#########################################################
+#           END MAIN HELPER FUNCTIONS
+#########################################################
 
 def main(args):
     '''
@@ -63,11 +82,21 @@ def main(args):
     plot_pep_ranks_prot = args.plot_pep_ranks_prot
     # performance parameters
     compress = args.compress
+    # flow control parameters
+    start_pos = args.start_pos.lower() 
+    start_pos = start_pos if start_pos in starting_positions else 'b'
+
+    # check to see if the correct file was given
+    c, ftype = is_correct_file(start_pos, input_file)
+    if not c:
+        print('Wrong input file. For starting position "{}" a "{}" is needed'.format(start_pos, ftype))
+        sys.exit()
 
     start_time = time()
     experiment_json_file = None
+    exp_json = None
     
-    if not __is_json(input_file):
+    if start_pos == 'b':
         # load in a list of proteins from a source file
         prots = proteins.load_proteins(input_file) 
 
@@ -103,17 +132,31 @@ def main(args):
         score_output_files = score_peptides.score_peptides(spectra_files, fasta_databases, save_dir, compress=compress, crux_search=False, path_to_crux_cmd=defaults['crux_cmd'])
         print('Done.')
 
-        # save scores to json
-        print('Analyzing Experiment...')
-        experiment_json_file = analyze_experiment.analyze(all_proteins_raw, all_peptides_raw, score_output_files, {**vars(args), **defaults}, predicting_agg_func=agg_func, saving_dir=save_dir, mix_in_hybrids=mix)
+        # save the experiment in a json file
+        print('Formatting scores...')
+        experiment_json_file = experiment.save_experiment(all_proteins_raw, all_peptides_raw, score_output_files, {**vars(args), **defaults}, saving_dir=save_dir)
         print('Done.')
 
-    # plot experiment
+    if start_pos == 'a' or start_pos == 'b':
+        # load experiment file
+        print('Loading experiment...')
+        experiment_json_file = experiment_json_file if experiment_json_file is not None else input_file
+        exp_json = json.load(open(experiment_json_file, 'r'))
+        print('Finished loading experiment file.')
+
+        # Perform aggregations and k-mer ranksings
+        print('Analyzing Experiment...')
+        exp_json = experiment.analyze(exp_json, predicting_agg_func=agg_func, saving_dir=save_dir, mix_in_hybrids=mix)
+        print('Done.')
+
+    # check to see if exp has been loaded
     experiment_json_file = input_file if experiment_json_file is None else experiment_json_file
-    print('Loading experiment file...')
-    experiment_json = json.load(open(experiment_json_file, 'r'))
-    print('Finished loading experiment')
-    plotting.plot_experiment(experiment_json, agg_func='', show_all=show_all, saving_dir=save_dir, compress=compress, hide_hybrids=hide_hybs, plot_pep_scores=plot_pep_scores, plot_pep_ranks_len=plot_pep_ranks_length, plot_pep_ranks_prot=plot_pep_ranks_prot)
+    if exp_json is None:
+        print('Loading experiment file...')
+        exp_json = json.load(open(experiment_json_file, 'r'))
+        print('Finished loading experiment')
+    # plot experiment
+    plotting.plot_experiment(exp_json, agg_func='', show_all=show_all, saving_dir=save_dir, compress=compress, hide_hybrids=hide_hybs, plot_pep_scores=plot_pep_scores, plot_pep_ranks_len=plot_pep_ranks_length, plot_pep_ranks_prot=plot_pep_ranks_prot)
 
 
     print('Finished experiment. Time to complete: {} seconds'.format(time() - start_time))
@@ -121,7 +164,8 @@ def main(args):
     
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Entry file for the database experiments')
-    parser.add_argument('input_file', type=str, metavar='F', help='Path to a file (csv or fasta) with protein name and sequences OR path to an experiment json file (with .json extension) to load and generate plots')
+    parser.add_argument('input_file', type=str, metavar='F', help='Path to a fasta with protein name and sequences OR path to an experiment json file (with .json extension) to load')
+    parser.add_argument('--start', type=str, dest='start_pos', default='b', help='Program position to start at. Three options: \nb --- beggining. Start from beginning with a .fasta file with proteins.\na --- analysis. Start at the analysis step with an old experiment json file.\np --- plotting. Use an old analysis from an experiment json and generate new plots. Default=b')
     parser.add_argument('--num-peptides', dest='num_peptides', type=int, default=50, help='Number of peptides to generate as the fake sample. Default=50')
     parser.add_argument('--num-hybrids', dest='num_hybrids', type=int, default=10, help='Number of hybrid proteins and peptides to generate. Default=10')
     parser.add_argument('--aggregate-function', dest='agg_func', type=str, default='sum', help='Which aggregation function to use for combining k-mer scores. Pick either sum or product. Default=sum')

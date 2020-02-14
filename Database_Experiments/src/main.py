@@ -3,7 +3,6 @@ import sys
 import argparse
 import json
 from time import time
-import database
 from spectra import gen_spectra_files
 from scoring import score_peptides
 from sequences import peptides, proteins
@@ -150,7 +149,7 @@ def main(args):
 
         # create database files
         print('Generating fasta databases...')
-        fasta_databases = database.generate(all_peptides_cleaned, save_dir=save_dir)
+        fasta_databases = proteins.generate_databases(all_peptides_cleaned, save_dir=save_dir)
         print('Done')
 
         # create spectrum files

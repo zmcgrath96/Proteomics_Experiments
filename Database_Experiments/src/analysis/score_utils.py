@@ -34,6 +34,7 @@ def __get_correct_col_names(col_names):
         ks = d_to_l(d)
         if set.issubset(set(ks), set(col_names)):
             return s_func
+    return 'custom'
 
 ###############################################
 #           END PRIVATE FUNCTIONS

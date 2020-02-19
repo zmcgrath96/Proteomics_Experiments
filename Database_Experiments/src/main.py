@@ -87,6 +87,7 @@ def main(args):
     min_length = args.min_length
     max_length = args.max_length
     digest = args.digest
+    len_dist = args.len_dist
     # analysis/plotting parameters
     agg_func = args.agg_func
     score_func = args.score_func
@@ -120,7 +121,7 @@ def main(args):
         hyb_prots = proteins.generate_hybrids(prots, num_hybs, min_contribution=max_length)
     
         # create peptides
-        non_hybrid_peps = peptides.gen_peptides(prots, num_peptides, min_length=min_length, max_length=max_length, digest=digest)
+        non_hybrid_peps = peptides.gen_peptides(prots, num_peptides, min_length=min_length, max_length=max_length, digest=digest, dist=len_dist)
 
         # create hybrid peptides
         hyb_peps = peptides.gen_peptides(hyb_prots, num_hybs, min_length=min_length, max_length=max_length, digest=digest, hybrid_list=True)
@@ -201,8 +202,9 @@ if __name__ == '__main__':
     parser.add_argument('--aggregate-function', dest='agg_func', type=str, default='sum', help='Which aggregation function to use for combining k-mer scores. Pick either sum or product. Default=sum')
     parser.add_argument('--show-all-graphs', dest='show_all', type=str2bool, default=False, help='Show all the graphs generated. Will save to directory either way. Default=False.')
     parser.add_argument('--output-dir', dest='save_dir', type=str, default='~/', help='Directory to save all figures. Default=~/')
-    parser.add_argument('--min-length', dest='min_length', type=int, default=3, help='Minimum length peptide to create. Default=3')
-    parser.add_argument('--max-length', dest='max_length', type=int, default=20, help='Maximum length peptide to create. Cuts from N terminus (left) side. Default=20')
+    parser.add_argument('--min-length', dest='min_length', type=int, default=4, help='Minimum length peptide to create. Default=4')
+    parser.add_argument('--max-length', dest='max_length', type=int, default=35, help='Maximum length peptide to create. Cuts from N terminus (left) side. Default=35')
+    parser.add_argument('--length-dist', dest='len_dist', type=str, default='beta', help='Peptide length distribution to create. Options are: beta, random. Defualt=beta (based on expeimental).')
     parser.add_argument('--measure-func', dest='m_func', type=str, default='average', help='Measuring function for determining the top n proteins. Options are: sum, average, max. Default=average')
     parser.add_argument('--peptide-file', dest='d_file', type=str, default='', help='Peptides from a past experiment. Default=None')
     parser.add_argument('--mix-prots', dest='mix', type=str2bool, default=True, help='Whether or not to also use hybrid proteins when calculating scores. Default=True')

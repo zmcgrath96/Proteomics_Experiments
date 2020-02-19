@@ -2,6 +2,7 @@ from random import randint, choice, random, shuffle
 from utils import __make_dir, __make_valid_dir_string
 from math import ceil
 from copy import deepcopy
+from sequences import sequence_utils as seq_utils
 ####################################################################
 #                   PRIVATE FUNCTIONS
 ####################################################################
@@ -112,7 +113,7 @@ RETURNS:
         'end_index': int
     }
 '''
-def tryptic(sequences, number_digests, peptide_prefix='peptide_', miss_prob=0, save_dir='./', save_name='peptides.tsv', min_length=3, max_length=20, rand_cut_prob=.05):
+def tryptic(sequences, number_digests, peptide_prefix='peptide_', miss_prob=0, save_dir='./', save_name='peptides.tsv', min_length=3, max_length=20, rand_cut_prob=.05, dist='beta'):
     save_dir = __make_valid_dir_string(save_dir)
     __make_dir(save_dir)
 
@@ -208,9 +209,10 @@ RETURNS:
         'end_index': int
     }
 '''
-def random_digest(proteins, n, peptide_prefix='peptide_', min_length=3, max_length=20):
+def random_digest(proteins, n, peptide_prefix='peptide_', min_length=3, max_length=20, dist='beta'):
     digested = []
     fill_zeros = len(str(ceil(n / 10)))
+    lengths = seq_utils.length_dist(n, dist=dist, min_length=min_length, max_length=max_length)
 
     to_digest = deepcopy(proteins)
     if n > len(proteins):
@@ -219,8 +221,8 @@ def random_digest(proteins, n, peptide_prefix='peptide_', min_length=3, max_leng
 
     for i in range(min(n, len(to_digest))):
         seq = to_digest[i]['sequence']
-        r = randint(min_length, max_length)
         start = randint(0, len(seq) - max_length)
+        r = int(min(lengths[i], (len(seq) - start)))
         pep = seq[start : start + r]
         pep_name = peptide_prefix + str(i).zfill(fill_zeros)
 

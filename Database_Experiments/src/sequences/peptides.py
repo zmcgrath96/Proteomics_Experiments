@@ -1,6 +1,7 @@
 from sequences.digest import tryptic, random_digest
 from math import ceil
 from random import choice, randint
+from sequences import sequence_utils as seq_utils
 
 digest_functions = {
     'random': random_digest,
@@ -24,6 +25,7 @@ PARMS:
 OPTIONAL:
     min_length: int minimum length peptide to generate. Default=4
     max_length: int maximum length peptide to generate. Default=20
+    dist: str name of distribution to pull from. Default='beta'
 RETURNS:
     dictionary of form
     {
@@ -34,8 +36,8 @@ RETURNS:
         end_index: int
     }
 '''
-def __make_hybrid_pep(hybrid_prot, min_length=4, max_length=20):
-    l = randint(min_length, max_length)
+def __make_hybrid_pep(hybrid_prot, min_length=4, max_length=20, dist='beta'):
+    l = seq_utils.length_dist(1, dist=dist, min_length=min_length, max_length=max_length)
     left_contr = randint(1, l-1)
     right_contr = l - left_contr
     j_site = hybrid_prot['left_parent_end']
@@ -229,6 +231,7 @@ OPTIONAL:
     max_length: int maximum length peptide to generate. Default=20
     digest: str type of digest to perform. Default=random
     hybrid_list: bool if the proteins passed in are hybrids and you wish to capture a junction point, set to True. Default=False
+    dist: str name of distribution to use for peptide length. Default=beta (based on experimental data)
 RETURNS:
     list of dictionaries of form 
     {
@@ -240,11 +243,11 @@ RETURNS:
         'end_index': int
     }
 '''
-def gen_peptides(proteins, n, min_length=3, max_length=20, digest='random', hybrid_list=False):
+def gen_peptides(proteins, n, min_length=3, max_length=20, digest='random', hybrid_list=False, dist='beta'):
     digest = 'random' if digest.lower() not in digest_functions.keys() else digest.lower()
     
     if not hybrid_list:
-        return digest_functions[digest](proteins, n, min_length=min_length, max_length=max_length)
+        return digest_functions[digest](proteins, n, min_length=min_length, max_length=max_length, dist=dist)
 
     else:
         # return __generate_hybrids(proteins, num_gen=n, min_length=min_length, max_length=max_length)

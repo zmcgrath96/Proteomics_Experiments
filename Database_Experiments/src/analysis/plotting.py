@@ -79,6 +79,8 @@ def __find_pep_starting_pos(peps, pep_name):
 
 DESC:
     sort out the ranks for each peptide from the experiment json
+    These ranks are the ranks of the aggregate function 
+    from the correct protein at the correct position
 PARAMS:
     exp: dictionary that holds the experiment information
 RETURNS:

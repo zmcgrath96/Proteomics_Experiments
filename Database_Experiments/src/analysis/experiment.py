@@ -212,7 +212,8 @@ def save_experiment(proteins, peptides, args, files=None, saving_dir='./'):
         return(saving_dir + experiment_json_file_name)
 
     # go through each peptide
-    for pep in peptides:
+    for pc, pep in enumerate(peptides):
+        print('Progress: {}%\r'.format(int((float(pc)/float(len(peptides))) * 100)), end='')
         # get the peptide related files
         pep_related = utils.__get_related_files(files, pep['peptide_name'])
         subsequence_dict = {}

@@ -154,7 +154,9 @@ def __custom_search(spectra_files, database_files, output_dir, compress=True):
 
             output_name = output_dir + 'search_output/' + '{}_vs_{}'.format(__parse_spectrum_name(spectra_file), __parse_db_name(database_file))
             database_file = database_file if not __is_gzipped(database_file) else __gunzip(database_file)
-            output_files.append(search.search_files(spectra_file, database_file, output_name))
+            output_file = search.search_files(spectra_file, database_file, output_name)
+            output_file = output_file if not compress else __gzip(output_file)
+            output_files.append(output_file)
     return output_files
 #######################################################################################
 #                        END "PRIVATE" FUNCTIONS

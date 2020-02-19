@@ -206,7 +206,7 @@ def plot_experiment(exp, agg_func='sum', show_all=False, saving_dir='./', compre
     saving_dir = __make_valid_dir_string(saving_dir)
     __make_dir(saving_dir)
 
-    print('\nGenerating plots...')
+    print('Generating plots...')
 
     # Plot the kmer scores and score aggregations
     if plot_pep_scores:

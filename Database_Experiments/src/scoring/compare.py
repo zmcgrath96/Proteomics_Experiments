@@ -1,4 +1,4 @@
-from spectra.gen_spectra import __calc_masses
+from spectra.gen_spectra import calc_masses
 
 '''cmp_spectra_spectra
 
@@ -49,8 +49,8 @@ RETURNS:
 '''
 def cmp_string_spectra(seq, ref_spec):
     spec1 = []
-    m1, _ = __calc_masses(seq, 1)
-    m2, _ = __calc_masses(seq, 2)
+    m1, _ = calc_masses(seq, 1)
+    m2, _ = calc_masses(seq, 2)
     spec1 = m1 + m2
     return cmp_spectra_spectra(spec1, ref_spec)
 
@@ -67,10 +67,10 @@ RETURNS:
 '''
 def cmp_string_string(seq, ref_seq):
     spec1, spec2 = [], []
-    m11, _ = __calc_masses(seq, 1)
-    m12, _ = __calc_masses(seq, 2)
-    m21, _ = __calc_masses(ref_seq, 1)
-    m22, _ = __calc_masses(ref_seq, 2)
+    m11, _ = calc_masses(seq, 1)
+    m12, _ = calc_masses(seq, 2)
+    m21, _ = calc_masses(ref_seq, 1)
+    m22, _ = calc_masses(ref_seq, 2)
     spec1 = m11 + m12 
     spec2 = m21 + m22 
     return cmp_spectra_spectra(spec1, spec2)

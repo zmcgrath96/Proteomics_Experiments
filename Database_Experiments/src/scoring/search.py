@@ -1,5 +1,5 @@
 from file_io import mzML, fasta, csv
-from scoring.score import cmp_string_spectra
+from scoring.compare import cmp_string_spectra
 
 '''search_proteins
 

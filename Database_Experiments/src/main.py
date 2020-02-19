@@ -4,7 +4,7 @@ import argparse
 import json
 from time import time
 from spectra import gen_spectra_files
-from scoring import score_peptides
+from scoring import run_scoring
 from sequences import peptides, proteins
 from analysis import plotting, experiment
 from utils import __file_exists, __make_valid_dir_string, __make_dir, __is_json, __is_fasta
@@ -156,15 +156,15 @@ def main(args):
         # create spectrum files
         print('Generating spectra files...')
         spectra_files = gen_spectra_files.generate(all_proteins_cleaned, defaults['window_sizes'], save_dir=save_dir, compress=compress)
-        print('Done.')
+        print('\nDone.')
 
         # run scoring algorithm on database and k-mers
         print('Scoring...')
-        score_output_files = score_peptides.score_peptides(spectra_files, fasta_databases, save_dir, compress=compress, score_func=score_func, path_to_crux_cmd=defaults['crux_cmd'])
-        print('Done.')
+        score_output_files = run_scoring.score_peptides(spectra_files, fasta_databases, save_dir, compress=compress, score_func=score_func, path_to_crux_cmd=defaults['crux_cmd'])
+        print('\nDone.')
 
         # save the experiment in a json file
-        print('Formatting scores...')
+        print('Saving scores...')
         experiment_json_file = experiment.save_experiment(all_proteins_raw, all_peptides_raw, {**vars(args), **defaults}, files=score_output_files, saving_dir=save_dir)
         print('Done.')
 
@@ -178,7 +178,7 @@ def main(args):
         # Perform aggregations and k-mer ranksings
         print('Analyzing Experiment...')
         experiment_json_file, exp_json = experiment.analyze(exp_json, predicting_agg_func=agg_func, saving_dir=save_dir, mix_in_hybrids=mix)
-        print('Done.')
+        print('\nDone.')
 
     # check to see if exp has been loaded
     experiment_json_file = input_file if experiment_json_file is None else experiment_json_file

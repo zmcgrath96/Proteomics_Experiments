@@ -22,7 +22,7 @@ amino_acids={
     "V":99.068414
 }
 
-'''__calc_masses
+'''calc_masses
 
 DESC:
     calculates the masses/spectrum for a sequence
@@ -32,7 +32,7 @@ PARAMS:
 RETURNS:
     list of floats, float       spectrum and the precursor mass 
 '''
-def __calc_masses(sequence, charge):
+def calc_masses(sequence, charge):
     masses = []
 
     length = len(sequence)
@@ -85,8 +85,8 @@ def gen_spectra(sequenences):
     spectra = []
     for sequence in sequenences:
         this_entry = {}
-        mass_1, _ = __calc_masses(sequence, 1)
-        mass_2, pre_mz = __calc_masses(sequence, 2)
+        mass_1, _ = calc_masses(sequence, 1)
+        mass_2, pre_mz = calc_masses(sequence, 2)
         this_spectra = mass_1 + mass_2
         this_spectra.sort()
         this_entry['spectrum'] = this_spectra

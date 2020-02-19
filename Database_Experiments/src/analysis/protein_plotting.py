@@ -16,16 +16,9 @@ parent_prot = 'parent_protein'
 prot_name = 'name'
 seq = 'sequence'
 seq_len = 'sequence_length'
-max_x_len = 75
 plot_width = 14
-subplot_height = 2
+plot_height = 4
 
-colors = [
-            '#FFFFFF', '#EF7F37', '#EFA737', '#EFD037', '#EFD937', '#E4EF37', 
-            '#BDEF37', '#88EF37', '#37EF58', '#37EFA1', '#37EFCE',
-            '#37D9EF', '#37B4EF', '#3769EF', '#4D37EF', '#7737EF',
-            '#A137EF', '#CE37EF', '#EF37E7', '#EF37B2', '#EF3772'
-        ]
 ###############################################
 #           END CONSTANTS
 ###############################################
@@ -55,27 +48,6 @@ def __sort_ranks(ranks):
             sorted_ranks[pp] = []
         sorted_ranks[pp].append(rank)
     return sorted_ranks
-
-'''__avg_len_by_pos
-
-DESC:
-    calculate the average length of peptides found at a position
-PARAMS:
-    ranks: list of dictionaries
-    prot_length: int length of the protein sequence
-RETURNS:
-    list of ints of average length of peptide by position
-'''
-def __avg_len_by_pos(ranks, prot_length):
-    list_lens = [[] for _ in range(prot_length)]
-    avg_lens = [0 for _ in range(prot_length)]
-    for r in ranks:
-        list_lens[r[start_pos]].append(r[seq_len])
-    for i in range(prot_length):
-        if list_lens[i] is None or list_lens[i] == []:
-            continue
-        avg_lens[i] = mean(list_lens[i])
-    return avg_lens
 
 '''__protein_summary
 
@@ -131,58 +103,34 @@ RETURNS:
 '''
 def protein_pos_ranks(prot, ranks, save_dir='./', show=False, compress=True):
     rank_dist = [[] for _ in range(len(prot[seq]))]
-    # NOTE: this function is a temporary fix to an issue where ranks are none
-    fun = lambda r: r if r is not None else 0
-    for i, r in enumerate(ranks):
-        rank_dist[r[start_pos]].append(fun(r[rank]))
+    # TODO: this function is a temporary fix to an issue where ranks are none
+    func = lambda r: r if r is not None else 0
+    for r in ranks:
+        rank_dist[r[start_pos]].append(func(r[rank]))
 
     for l in rank_dist:
         if len(l) == 0:
             l.append(0)
 
-    #calculate the averate subsequence length at each position
-    avg_lens = __avg_len_by_pos(ranks, len(prot[seq]))
+    # plot median rank as positions
+    plt.figure(figsize=(plot_width, plot_height))
+    median_ranks = zip([median(x) for x in rank_dist], [x for x in range(len(prot[seq]))])
+    to_scatter = [x for x in median_ranks if x[0] != 0]
+    x = [s[1] for s in to_scatter]
+    y = [s[0] for s in to_scatter]
 
-    # for longer proteins, the length is an issue. Split into subplots
-    num_subplots = math.ceil(len(prot[seq]) / max_x_len)
-    gs = gridspec.GridSpec(num_subplots, 2, width_ratios=[plot_width, .3]) 
-    fig = plt.figure(figsize=(plot_width, subplot_height*num_subplots))
+    plt.scatter(x, y)
+
+    plt.xlabel('protein sequence position')
+    plt.xlim(0, len(prot[seq]) + 1)
+    plt.xticks([i for i in range(0, len(prot[seq]), 50)], [i for i in range(0, len(prot[seq]), 50)])
+    plt.ylabel('median rank')
+    plt.ylim(0, max(y) + 1)
+
+    plt.annotate(__protein_summary(ranks), xy=(0.05, 0.95), xycoords='axes fraction')
+    plt.title(prot[prot_name])
     
-    # divide the figure into subplots where the width is limited to constant of max_x_len
-    for i in range(num_subplots):  
-        this_axis = plt.subplot(gs[i, 0])
-        # get the data needed for this row
-        end = min([((i+1) * max_x_len), len(prot[seq])])
-        divided_seq = prot[seq][i*max_x_len:end]
-        divided_rank_dist = rank_dist[i*max_x_len:end]
-        divided_avg_len = avg_lens[i*max_x_len:end]
-
-        # plot labeling, plotting, coloring
-        bplot = this_axis.boxplot(divided_rank_dist)
-        for attr in ['boxes', 'whiskers', 'caps', 'fliers', 'medians']:
-            for n, item in enumerate(bplot[attr]):
-                t = n if attr != 'whiskers' and attr != 'caps' else math.floor(n/2)
-                color_to_use = colors[int(divided_avg_len[t])]
-                item.set(color=color_to_use)
-
-        this_axis.set_xticks([j for j in range(len(divided_rank_dist))])
-        this_axis.set_xticklabels(divided_seq)
-        y_label = 'sequence:  {} - {}'.format(i * max_x_len, end - 1)
-        this_axis.set_ylabel(y_label, fontsize=8)
-        
-    # add color bar
-    cmap = mpl.colors.ListedColormap(colors)
-    bounds = [i for i in range(21)]
-    norm = mpl.colors.BoundaryNorm(bounds, cmap.N)
-    color_axis = plt.subplot(gs[:, 1])
-    cb = mpl.colorbar.ColorbarBase(color_axis, cmap=cmap, norm=norm)
-    cb.set_label('mean peptide length')
-
-    # give a common label for the y axis as the protein name
-    fig.text(0.06, 0.5, prot[prot_name], ha='center', va='center', rotation='vertical')
-    fig.suptitle('peptide rank distributions vs protein position')
-    fig.text(.2, 0.005, __protein_summary(ranks))
-    show and plt.show()
+    True and plt.show()
     file_name = save_dir + prot[prot_name] + '.png'
     plt.savefig(file_name)
     plt.close()

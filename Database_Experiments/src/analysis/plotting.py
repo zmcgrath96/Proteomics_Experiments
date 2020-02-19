@@ -148,11 +148,10 @@ OPTIONAL:
     saving_dir: string path to directory to save figures under. Default=./
     show_all: bool whether or not to show all graphs. Default=False
     compress: bool whether or not to compress output files. If True, all subsequnce plots are compressed. Default=True
-    hide_hybrids: bool whether or not to hide hybrid proteins in plots. Default=True
 RETURNS: 
     None
 '''
-def plot_peptide_scores(exp, agg_func='sum', saving_dir='./', show_all=False, compress=True, hide_hybrids=True):
+def plot_peptide_scores(exp, agg_func='sum', saving_dir='./', show_all=False, compress=True):
     header_peps = exp[json_header][json_header_peps]
 
     num_subsequences = len(exp[json_exp])
@@ -177,7 +176,7 @@ def plot_peptide_scores(exp, agg_func='sum', saving_dir='./', show_all=False, co
             if pep['peptide_name'] == peptide:
                 info = pep 
                 break
-        peptide_plotting.plot_subsequence(agg_scores, title=str(peptide), save_dir=pep_saving_dir, show_graph=show_all, agg_func=agg_func, peaks=prots['analysis']['predicted_parents'], sequence_info=info, compress=compress, hide_hybrids=hide_hybrids)
+        peptide_plotting.plot_subsequence(agg_scores, title=str(peptide), save_dir=pep_saving_dir, show_graph=show_all, agg_func=agg_func, peaks=prots['analysis']['predicted_parents'], sequence_info=info, compress=compress)
     
 
 '''plot_experiment
@@ -191,11 +190,10 @@ OPTIONAL:
     saving_dir: string path to directory to save figures under. Default=./
     show_all: bool whether or not to show all graphs. Default=False
     compress: bool whether or not to compress output files. If True, all subsequnce plots are compressed. Default=True
-    hide_hybrids: bool whether or not to hide hybrid proteins in plots. Default=True
 RETURNS: 
     None
 '''
-def plot_experiment(exp, agg_func='sum', show_all=False, saving_dir='./', compress=True, hide_hybrids=True, plot_pep_scores=True, plot_pep_ranks_len=True, plot_pep_ranks_prot=True):
+def plot_experiment(exp, agg_func='sum', show_all=False, saving_dir='./', compress=True, plot_pep_scores=True, plot_pep_ranks_len=True, plot_pep_ranks_prot=True):
     '''
     1. plot the kmer scores
     2. plot the aggregation
@@ -211,7 +209,7 @@ def plot_experiment(exp, agg_func='sum', show_all=False, saving_dir='./', compre
     # Plot the kmer scores and score aggregations
     if plot_pep_scores:
         print('Generating peptide score plots...')
-        plot_peptide_scores(exp, agg_func=agg_func, saving_dir=saving_dir, show_all=show_all, compress=compress, hide_hybrids=hide_hybrids)
+        plot_peptide_scores(exp, agg_func=agg_func, saving_dir=saving_dir, show_all=show_all, compress=compress)
         print('Finished.')
 
     # Plot the ranking of the corect 

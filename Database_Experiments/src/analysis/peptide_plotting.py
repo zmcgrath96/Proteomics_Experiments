@@ -117,9 +117,8 @@ OPTIONAL:
             these are the points of interest to mark
     save_raw_json: bool save the raw json data for each graph. Default=False
     compress: bool to compress the directory. Default=True
-    hide_hybrids: bool whether or not to hide hybrid proteins when plotting. Default=True
 '''
-def plot_subsequence(aggs, title='', save_dir='./', show_graph=False, agg_func='sum', peaks=None, sequence_info=None, save_raw_json=False, compress=True, hide_hybrids=True):
+def plot_subsequence(aggs, title='', save_dir='./', show_graph=False, agg_func='sum', peaks=None, sequence_info=None, save_raw_json=False, compress=True):
     save_dir = __make_valid_dir_string(save_dir)
     __make_dir(save_dir)
 
@@ -129,14 +128,10 @@ def plot_subsequence(aggs, title='', save_dir='./', show_graph=False, agg_func='
         score = aggs[agg]
         if len(score) == 0:
             continue
-        if hide_hybrids and hybrid_prefix in agg:
-            continue
         plt.plot([j for j in range(len(score))], score, all_line_types[i].strip(), label=str(agg))
         i += 1
     
     if peaks is not None and type(peaks[0]) is dict:
-        if hide_hybrids:
-            peaks = [p for p in peaks if not hybrid_prefix in p['protein_name']]
         if len(peaks) > 0:
             label_peaks_pos = [x['position'] for x in peaks]
             label_peaks_h = [x['score'] for x in peaks]

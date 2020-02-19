@@ -89,18 +89,15 @@ PARAMS:
     json: dictionary object where all items are save
 OPTIONAL:
     predicting_agg_func: str name of the function used for aggregation. Default=sum
-    mix_in_hybrids: bool whether or not include hybrid proteins in analysis. Default=False
 RETURNS: 
     None
 '''
-def __add_subsequnce_agg(peptide_dict, predicting_agg_func='sum', mix_in_hybrids=False):
+def __add_subsequnce_agg(peptide_dict, predicting_agg_func='sum'):
     agg_func = __z_score_sum if 'z_score_sum' in predicting_agg_func.lower() else ( __product if 'product' in predicting_agg_func.lower() else __sum)
 
     subsequence_aggs = {}
     for prot_name, prot_scores in peptide_dict.items():
-        if HYBRID_SEACH_STRING.lower() in str(prot_name).lower() and not mix_in_hybrids:
-            continue
-
+    
         if SAMPLE_PROTEIN_ANALYSIS == prot_name:
             continue
             
@@ -251,11 +248,10 @@ PARAMS:
 OPTIONAL:
     predicting_agg_func: str name of the aggregation function to use. Default=sum
     saving_dir: str the name of the directory to save the experiment in. Default=./
-    mix_in_hybrids: bool whether or not to include using hybrid proteins in analysis. Default=False
 RETURNS:
     str file path to the experiment json generated, dictionary of all experiment information
 '''
-def analyze(exp, predicting_agg_func='sum', saving_dir='./', mix_in_hybrids=False):
+def analyze(exp, predicting_agg_func='sum', saving_dir='./'):
     global experiment_json, experiment_json_file_name
     saving_dir = utils.__make_valid_dir_string(saving_dir)
     utils.__make_dir(saving_dir)
@@ -281,7 +277,7 @@ def analyze(exp, predicting_agg_func='sum', saving_dir='./', mix_in_hybrids=Fals
     for pep_name, peptide in peptides.items():
         p_counter += 1
         print('Analyzing peptide {}/{}[{}%]\r'.format(p_counter, len(peptides), int( (float(p_counter)/float(len(peptides))) *100 )), end='')
-        peptide = __add_subsequnce_agg(peptide, predicting_agg_func=predicting_agg_func, mix_in_hybrids=mix_in_hybrids)
+        peptide = __add_subsequnce_agg(peptide, predicting_agg_func=predicting_agg_func)
         peptide_info_dict = experiment_json[EXPERIMENT_HEADER][EXPERIMENT_PEPTIDE_HEADER][peptide_header_list_idx[pep_name]]
         __rank_pep(experiment_json, peptide_info_dict)
     

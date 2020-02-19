@@ -100,6 +100,9 @@ def __add_subsequnce_agg(peptide_dict, predicting_agg_func='sum', mix_in_hybrids
     for prot_name, prot_scores in peptide_dict.items():
         if HYBRID_SEACH_STRING.lower() in str(prot_name).lower() and not mix_in_hybrids:
             continue
+
+        if SAMPLE_PROTEIN_ANALYSIS == prot_name:
+            continue
             
         agged = agg_func(prot_scores)
         peptide_dict[prot_name][predicting_agg_func] = deepcopy(agged)
@@ -144,10 +147,12 @@ def __find_kmer_rank(correct_prot, correct_position, peptide_analysis):
         rank = 0
         last_score = None
         for score in tg:
-            if int(score[1]) != last_score:
+            fscore = float(score[1])
+            pos = int(score[2])
+            if fscore != last_score:
                 rank += 1
-                last_score = int(score[1])
-            if int(score[2]) == correct_position:
+                last_score = fscore
+            if pos == correct_position:
                 ranking[score[0]][k] = rank
     
     return ranking[correct_prot]

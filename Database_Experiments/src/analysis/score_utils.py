@@ -45,10 +45,10 @@ def __get_correct_col_names(col_names):
 
 DESC:
     Align scores list to the correspondeing position from the scan numbers
-PARAMS:
+Inputs:
     scores: list of floats of scores
     scan_nos: list of ints of positions where the scores should go
-RETURNS:
+Outputs:
     list, list: aligned scores, aligned scan positions
 '''
 def align_scan_pos(scores, scan_nos):
@@ -65,9 +65,9 @@ def align_scan_pos(scores, scan_nos):
 
 DESC:
     Extract the scores and the scan positions from the file
-PARAMS:
+Inputs:
     file: a string for the filepath to extract results from
-OPTIONAL:
+kwargs:
     search_substring: a string to search through filenames to limit the search. Defaults to empty
 RETUNS:
     list, list: lists of the scores, scan numbers
@@ -93,12 +93,12 @@ def get_scores_scan_pos_label(file, search_substring=''):
 
 DESC:
     Makes two lists the same length (filled with 0s)
-PARAMS:
+Inputs:
     score_l1: list of floats for the first set of scores
     score_l2: list of floats for the second set of scores
-OPTIONAL:    
+kwargs:    
     padding: float number to pad the list with. Default=0
-RETURNS:
+Outputs:
     list, list of modified score_l1, modified score_l2
 '''
 def pad_scores(score_l1, score_l2, padding=0):

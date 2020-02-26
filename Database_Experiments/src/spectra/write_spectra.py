@@ -5,15 +5,15 @@ from utils import __make_valid_dir_string, __make_dir, __gzip
 
 DESC:
     create a mass spectrum file in mzml of sequences
-PARAMS:
+Inputs:
     file_name: str name to save the file in
     spectra: list of dictionaries of the form [{spectrum: list[floats], precursor_mass: float, sequence: str}]
              This data is written to file (the spectrum and the precursor)
-OPTIONAL:
+kwargs:
     title_prefix: str name to give as prefix to the name of each spectrum. Default=Spectrum
     output_dir: str name of the directory to save files to. Default=./
     compress: bool whether or not to compress the file. Comrpesses with gzip. Default=True
-RETURNS:
+Outputs:
     list of strings of file paths
 '''
 def write_mzml(file_name, spectra, title_prefix='Spectrum ', output_dir='./', compress=True):

@@ -96,7 +96,7 @@ def __make_hybrid_peps_brute_force(hybrid_prot, max_contribution=10, min_length=
 
 DESC:
     generate hybrid peptides. Guaranteed to capture the junction
-PARAMS:
+Inputs:
     hybrid_prots: list of dictionaries. Should be of the form 
         [{
             left_parent_name: str,
@@ -160,7 +160,7 @@ def __generate_hybrids(hybrid_prots, num_gen=10, peptide_name_prefix='HYBRID_PEP
 
 DESC:
     Generate all possible hybrid peptides from a window of a hybrid 
-PARAMS:
+Inputs:
     hybrid_prots: list of dictionaries. Should be of the form 
         [{
             left_parent_name: str,
@@ -195,7 +195,7 @@ def __generate_hybrids_brute_force(hybrid_prots, peptide_name_prefix='HYBRID_PEP
 
     for prot in hybrid_prots:
         hybrid_peps += __make_hybrid_peps_brute_force(prot, max_contribution=max_contribution, min_length=min_length)
-    fill_zeros = len(str(ceil(len(hybrid_peps) / 10)))
+    fill_zeros = len(str(len(hybrid_peps)))
     for pep in hybrid_peps:
         pep['peptide_name'] = peptide_name_prefix + str(name_c).zfill(fill_zeros)
         name_c += 1
@@ -210,7 +210,7 @@ def __generate_hybrids_brute_force(hybrid_prots, peptide_name_prefix='HYBRID_PEP
 
 DESC:
     generates peptides from proteins given
-PARAMS:
+Inputs:
     proteins: list of dictionaries of the form {'name': str, 'sequence': str}
               NOTE: if hybrid_list set to true, form is 
               {

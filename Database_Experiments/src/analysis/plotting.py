@@ -42,6 +42,7 @@ save_fig_count = 0
 ####################################################
 '''__find_agg_func
 '''
+# TODO: Update for left and right functionality
 def __find_agg_func(scores): 
     known_agg_funcs = [str(x).lower() for x in agg_funcs]
     for key in scores:
@@ -52,11 +53,11 @@ def __find_agg_func(scores):
 
 DESC:
     find the aggregation
-PARAMS:
+Inputs:
     scores: dict of list of floats from the analysis
-OPTIONAL:
+kwargs:
     agg_func: str name of the aggregation function. If none is given, looks for known aggregation functions. Default=''
-RETURNS:
+Outputs:
     list of floats of the aggregation
 '''
 def __find_agg_score(scores, agg_func=''):
@@ -81,9 +82,9 @@ DESC:
     sort out the ranks for each peptide from the experiment json
     These ranks are the ranks of the aggregate function 
     from the correct protein at the correct position
-PARAMS:
+Inputs:
     exp: dictionary that holds the experiment information
-RETURNS:
+Outputs:
     list of dictionaries of peptides with their ranks
 '''
 def __aggregate_ranks(exp):
@@ -112,13 +113,13 @@ def __aggregate_ranks(exp):
 
 DESC:
     call the protein plotting functions 
-PARAMS:
+Inputs:
     exp: dict the json used to save all information 
-OPTIONAL:
+kwargs:
     saving_dir: string path to directory to save figures under. Default=./
     show_all: bool whether or not to show all graphs. Default=False
     compress: bool whether or not to compress output files. If True, all subsequnce plots are compressed. Default=True
-RETURNS:
+Outputs:
     None
 '''
 def plot_protein_summary(exp, saving_dir='./', show_all=False, compress=True):
@@ -141,14 +142,14 @@ def plot_protein_summary(exp, saving_dir='./', show_all=False, compress=True):
 
 DESC:
     Plot the score of sequences against the starting position for an experiment
-PARAMS:
+Inputs:
     exp: dict the json used to save all information
-OPTIONAL:
+kwargs:
     agg_func: string aggregate function to use. Default=sum
     saving_dir: string path to directory to save figures under. Default=./
     show_all: bool whether or not to show all graphs. Default=False
     compress: bool whether or not to compress output files. If True, all subsequnce plots are compressed. Default=True
-RETURNS: 
+Outputs: 
     None
 '''
 def plot_peptide_scores(exp, agg_func='sum', saving_dir='./', show_all=False, compress=True):
@@ -183,14 +184,14 @@ def plot_peptide_scores(exp, agg_func='sum', saving_dir='./', show_all=False, co
 
 DESC:
     Generate various plots for the experiment
-PARAMS:
+Inputs:
     exp: dict the json used to save all information
-OPTIONAL:
+kwargs:
     agg_func: string aggregate function to use. Default=sum
     saving_dir: string path to directory to save figures under. Default=./
     show_all: bool whether or not to show all graphs. Default=False
     compress: bool whether or not to compress output files. If True, all subsequnce plots are compressed. Default=True
-RETURNS: 
+Outputs: 
     None
 '''
 def plot_experiment(exp, agg_func='sum', show_all=False, saving_dir='./', compress=True, plot_pep_scores=True, plot_pep_ranks_len=True, plot_pep_ranks_prot=True):

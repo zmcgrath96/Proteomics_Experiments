@@ -7,10 +7,10 @@ from analysis import analysis_utils
 
 DESC:
     save the score data in a json file in dictionary or list form
-PARAMS:
+Inputs:
     scores: a dictionary of scores to save
     file: string a file path to save all the data in 
-RETURNS:
+Outputs:
     none
 '''
 def write_raw_json(file, scores):

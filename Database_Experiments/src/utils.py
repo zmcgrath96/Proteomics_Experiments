@@ -4,10 +4,10 @@ import os, gzip, shutil
 
 DESC:
     Given some substring, return all files with that substring
-PARAMS:
+Inputs:
     files: list of strings of file names
     sub: string substring to find in the files
-OPTIONAL: 
+kwargs: 
     not_sub: string a substring that if found in file name don't add
 '''
 def __get_related_files(files, sub, not_sub=None):
@@ -19,9 +19,9 @@ def __get_related_files(files, sub, not_sub=None):
 
 DESC:
     add / to end of director string if it doesn't have it alread
-PARAMS:
+Inputs:
     dir_path: string path to directory
-RETURNS:
+Outputs:
     dir path with / at end
 '''
 def __make_valid_dir_string(dir_path):
@@ -31,9 +31,9 @@ def __make_valid_dir_string(dir_path):
 
 DESC:
     Given a path to directory, check if it exists and if not create it
-PARAMS:
+Inputs:
     dir_path: string path to a directory to make or check
-RETURNS:
+Outputs:
     None
 '''
 def __make_dir(dir_path):
@@ -45,9 +45,9 @@ def __make_dir(dir_path):
 
 DESC:
     make a string into the name for a text file and make sure directory exists
-PARAMS:
+Inputs:
     file_name: string a name of the file to save
-RETURNS:
+Outputs:
     file name with .txt after
 '''
 def __make_valid_text_file(file_name):
@@ -58,9 +58,9 @@ def __make_valid_text_file(file_name):
 
 DESC:
     make a string into the name for a text file and make sure the directory exists
-PARAMS:
+Inputs:
     file_name: string of the file to save
-RETURNS:
+Outputs:
     file name with .json after it
 '''
 def __make_valid_json_file(file_name):
@@ -71,9 +71,9 @@ def __make_valid_json_file(file_name):
 
 DESC:
     make a string into the name for a text file 
-PARAMS:
+Inputs:
     file_name: string of the file to save
-RETURNS:
+Outputs:
     file name with .csv after it
 '''
 def __make_valid_csv_file(file_name):
@@ -84,9 +84,9 @@ def __make_valid_csv_file(file_name):
 
 DESC:
     make a string into the name for a text file 
-PARAMS:
+Inputs:
     file_name: string of the file to save
-RETURNS:
+Outputs:
     file name with .fasta after it
 '''
 def __make_valid_fasta_file(file_name):
@@ -97,9 +97,9 @@ def __make_valid_fasta_file(file_name):
 
 DESC:
     find out if a file exists
-PARAMS:
+Inputs:
     file_name: string name of the file to check for
-RETURNS:
+Outputs:
     bool true if file exists false otherwise
 '''
 def __file_exists(file_name):
@@ -109,11 +109,11 @@ def __file_exists(file_name):
 
 DESC:
     zip up a file
-PARAMS: 
+Inputs: 
     file_name: str path to the file name to compress
-OPTIONAL:
+kwargs:
     delete_old: bool delete the uncompressed file. Default=True
-RETURNS:
+Outputs:
     str name of the new compressed file
 '''
 def __gzip(file_name, delete_old=True):
@@ -128,15 +128,17 @@ def __gzip(file_name, delete_old=True):
 
 DESC:   
     unzip a file
-PARAMS:
+Inputs:
     compressed_file_name: str name of the compressed file to unzip
-OPTIONAL:
+kwargs:
     delete_old: bool delete the compressed file. Default=True
-RETURNS:
+Outputs:
     str name of the file unziped
 '''  
 def __gunzip(compressed_file_name, delete_old=True):
-    file_name = compressed_file_name if '.gz' not in compressed_file_name else compressed_file_name.replace('.gz', '')
+    if '.gz' not in compressed_file_name:
+        return 
+    file_name = compressed_file_name.replace('.gz', '')
     with gzip.open(compressed_file_name, 'rb') as f_in:
         with open(file_name, 'wb') as f_out:
             shutil.copyfileobj(f_in, f_out)
@@ -147,9 +149,9 @@ def __gunzip(compressed_file_name, delete_old=True):
 
 DESC:
     determines if a file has been gzipped
-PARAMS:
+Inputs:
     file_name: str path to file in question
-RETURNS:
+Outputs:
     bool True if file is compressed else False
 '''
 def __is_gzipped(file_name):
@@ -159,11 +161,11 @@ def __is_gzipped(file_name):
 
 DESC:
     compress a directory with gzip
-PARAMS:
+Inputs:
     d: str path to directory
-OPTIONAL:
+kwargs:
     delete_old: bool delete the unziped directory. Default=True
-RETURNS:
+Outputs:
     path to the new zipped folder
 '''
 def __gzip_dir(d, delete_old=True):
@@ -176,9 +178,9 @@ def __gzip_dir(d, delete_old=True):
 
 DESC:
     determine if a file is a json file based purely on name
-PARAMS:
+Inputs:
     file: file to determine if its a json file
-RETURNS:
+Outputs:
     bool True if it is a json file False otherwise
 '''
 def __is_json(file):
@@ -188,9 +190,9 @@ def __is_json(file):
 
 DESC:
     determine if a file is a fasta file based purely on name
-PARAMS:
+Inputs:
     file: file to determine if its a fasta file
-RETURNS:
+Outputs:
     bool True if it is a fasta file False otherwise
 '''
 def __is_fasta(file):

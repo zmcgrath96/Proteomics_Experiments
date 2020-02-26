@@ -5,9 +5,9 @@ from utils import __file_exists
 
 DESC:
     read an .mzML file into memory
-PARAMS:
+Inputs:
     file: str path to the file to import
-RETURNS:
+Outputs:
     NONE if file is not found
 
 '''

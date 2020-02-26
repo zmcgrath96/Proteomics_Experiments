@@ -4,10 +4,10 @@ from utils import __make_valid_fasta_file, __file_exists
 
 DESC:
     write a fasta file
-PARAMS:
+Inputs:
     output_name: str name of file to write to 
     sequences: list of dictionaries of form {'name': str, 'sequence': str}
-RETURNS:
+Outputs:
     name of the output file written to
 '''
 def write(output_name, sequences):
@@ -21,9 +21,9 @@ def write(output_name, sequences):
 
 DESC:
     read proteins into memory from fasta file
-PARAMS:
+Inputs:
     fasta_file: str path to fasta file
-RETURNS:
+Outputs:
     list of dictionaries of form {'name': str, 'sequence': str, 'identifier': str}
 '''
 def read(fasta_file):

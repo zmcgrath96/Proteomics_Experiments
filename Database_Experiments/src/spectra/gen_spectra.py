@@ -26,10 +26,10 @@ amino_acids={
 
 DESC:
     calculates the masses/spectrum for a sequence
-PARAMS:
+Inputs:
     sequence: str amino acid sequence to change to list of masses
     charge: int charge value to calculate masses for
-RETURNS:
+Outputs:
     list of floats, float       spectrum and the precursor mass 
 '''
 def calc_masses(sequence, charge):
@@ -76,9 +76,9 @@ def calc_masses(sequence, charge):
 
 DESC:
     generates mass spectra for sequences
-PARAMS:
+Inputs:
     sequences: list of strings sequences to generate spectra for
-RETURNS:
+Outputs:
     list of dictionaries of the form {'spectrum': list of floats, 'precursor_mass': float}
 '''
 def gen_spectra(sequenences):

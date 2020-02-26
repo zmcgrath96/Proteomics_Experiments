@@ -8,11 +8,11 @@ from random import randint
 
 DESC:
     read in proteins from csv into memory
-PARAMS:
+Inputs:
     csv_file: str path to csv file
-OPTIONAL:
+kwargs:
     has_header: bool if set to true, skip header. Assumed in order name, sequence. Default=False
-RETURNS:
+Outputs:
     list of dictionaries of form {name: str, sequence: str}
 '''
 def __from_csv(csv_file, has_header=False):
@@ -36,9 +36,9 @@ def __from_csv(csv_file, has_header=False):
 
 DESC:
     return a list of proteins from a source file
-PARAMS: 
+Inputs: 
     input_file: str path to a file with proteins. Either csv of form name,sequence or fasta file
-RETURNS:
+Outputs:
     list of dictionaries of the form {'name': str, 'sequence': str}
 '''
 def load_proteins(input_file):
@@ -59,10 +59,10 @@ PARMS:
             'name': str,
             'sequence': str
         }]
-OPTIONAL:
+kwargs:
     min_contribution: int minimum number of AAs to use from each parent. Default=10
     name_prefix: str prefix to add before every name of protein. Default=HYBRID_
-RETURNS:
+Outputs:
     list of dictionaries. From is
     [{
         left_parent_name: str,
@@ -119,11 +119,11 @@ def generate_hybrids(prots, num_gen, min_contribution=10, name_prefix='HYBRID_')
 
 DESC:
     generates fasta files for k-mers
-PARAMS:
+Inputs:
     peptides: list of dictionaries of form {'name': str, 'sequence': str}
-OPTIONAL:
+kwargs:
     save_dir: str file path to directory to save to. Default=./
-RETURNS:
+Outputs:
     list of strings of files created
 '''
 def generate_databases(peptides, save_dir='./'):

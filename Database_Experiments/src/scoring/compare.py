@@ -5,10 +5,10 @@ from spectra.gen_spectra import calc_masses
 DESC: 
     score two spectra against eachother
     simple additive scoring algorithm
-PARAMS:
+Inputs:
     spec: list of floats mass spectra of first sequence
     reference: list of floats mass spectra of second sequence
-RETURNS:
+Outputs:
     float score from comparison
 '''
 def cmp_spectra_spectra(spec, reference):
@@ -41,10 +41,10 @@ DESC:
     compare a string and a spectra together
     uses simple additive scoring
     uses both single and doubly charged ions for mass calculations
-PARAMS:
+Inputs:
     seq: string sequence of amino acids to convert to mass spectra
     ref_spec: list of floats mass spectra
-RETURNS:
+Outputs:
     float score from comparison
 '''
 def cmp_string_spectra(seq, ref_spec):
@@ -59,10 +59,10 @@ def cmp_string_spectra(seq, ref_spec):
 DESC:
     compare the two spectras from two strings
     uses simple additive scoring
-PARAMS:
+Inputs:
     seq: string sequence of amino acids
     ref_seq: string sequence of amino acids
-RETURNS:
+Outputs:
     float score from comparison
 '''
 def cmp_string_string(seq, ref_seq):

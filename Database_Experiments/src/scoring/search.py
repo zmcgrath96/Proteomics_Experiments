@@ -5,10 +5,10 @@ from scoring.compare import cmp_string_spectra
 
 DESC:
     find the highest scoring protein from a spectrum in a database
-PARAMS:
+Inputs:
     spectrum: dictionary of the form {'level': , 'scan_no': , 'spectrum': }
     database: .fasta file of proteins to search through
-RETURNS:
+Outputs:
 
 '''
 def search_proteins(spectrum, database):
@@ -33,13 +33,13 @@ def search_proteins(spectrum, database):
 
 DESC:
     find the hightest scoring subsequence for each spectra
-PARAMS:
+Inputs:
     spec_file: str path to .mzML file
     database_file: str path to .fasta file
 OPTONAL:
     output_dir: str path to directory to save output files to. Default='./'
     compress: bool to compress output file or not. Default=True
-RETURNS: 
+Outputs: 
     str path to output file
 '''
 def search_files(spec_file, database_file, output_name):

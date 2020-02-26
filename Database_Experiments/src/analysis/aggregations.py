@@ -5,9 +5,9 @@ import numpy as np
 
 DESC:
     aggregation function that take the sum of all scores
-PARAMS:
+Inputs:
     all_scores: iterable of lists of scores (floats)
-RETURNS:
+Outputs:
     list of floats
 '''
 def __sum(all_scores):
@@ -27,9 +27,9 @@ def __sum(all_scores):
 
 DESC:
     aggregation function that takes the product of all positive scores
-PARAMS:
+Inputs:
     all_scores: iterable of lists of scores (floats)
-RETURNS:
+Outputs:
     list of floats
 '''
 def __product(all_scores):
@@ -53,9 +53,9 @@ def __product(all_scores):
 
 DESC:
     aggregation function that takes the z-score-sum of all k-mers
-PARAMS:
+Inputs:
     all_scores: iterable of lists of scores (floats)
-RETURNS:
+Outputs:
     list of floats 
 '''
 def __z_score_sum(all_scores):

@@ -37,7 +37,7 @@ PRAMS:
                 'ranking': int,
                 'parent_protein': str
             }
-RETURNS:
+Outputs:
     ranks: dictionary with rank entries as lists as values of protein name
 '''
 def __sort_ranks(ranks):
@@ -53,14 +53,14 @@ def __sort_ranks(ranks):
 
 DESC:  
     give a breif summary of the protein
-PARAMS:
+Inputs:
     ranks: list of dictionaries of the form 
     {
                 'starting_position': int, 
                 'ranking': int,
                 'sequence_length': int
     }
-RETURNS:
+Outputs:
     string of brief summary
 '''
 def __protein_summary(ranks):
@@ -84,7 +84,7 @@ def __protein_summary(ranks):
 
 DESC:
     plot ranks of peptides against protein position
-PARAMS:
+Inputs:
     prot: dictionary of the form {'name': str, 'sequence': str}
     ranks: list of dictionaries of the form
             {
@@ -94,11 +94,11 @@ PARAMS:
             }
             NOTE: these should all be associated with the parent protein passed
                 in. No check is done for this
-OPTIONAL:
+kwargs:
     save_dir: str name of directory to save plot to. Default='./'
     show: bool whether or not to show the plot generated. Default=False
     compress: bool compress the plot after its generated. Default=True
-RETURNS:
+Outputs:
     None
 '''
 def protein_pos_ranks(prot, ranks, save_dir='./', show=False, compress=True):
@@ -141,7 +141,7 @@ def protein_pos_ranks(prot, ranks, save_dir='./', show=False, compress=True):
 
 DESC:
     Organize ranks and proteins to plot rank information against protein positin
-PARAMS:
+Inputs:
     prots: list of proteins of the form {'name': str, 'sequence': str}
     ranks: list of peptides with positional ranking information in the form of 
             {
@@ -149,11 +149,11 @@ PARAMS:
                 'ranking': int,
                 'parent_protein': str
             }
-OPTIONAL:
+kwargs:
     save_dir: str name of directory to save plots at. Default='./'
     show_all: bool show all the plots generated. Default=False
     compress: bool compress each subplot to save room. Default=True
-RETURNS:
+Outputs:
     None
 '''
 def prots_pep_pos_rankings(prots, ranks, save_dir='./', show_all=False, compress=True): 

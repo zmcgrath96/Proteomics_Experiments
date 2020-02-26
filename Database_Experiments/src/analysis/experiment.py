@@ -6,6 +6,7 @@ from analysis import score_utils
 from analysis.aggregations import __z_score_sum, __sum, __product
 from analysis.analysis_utils import get_top_n_prots
 from analysis.plotting import plot_experiment
+from typing import List, Dict
 
 #######################################################
 #                   CONSTANTS
@@ -60,7 +61,7 @@ def __get_k_number(file_name):
 '''__add_header_info
 DESC:
     add all header info to the experiment json
-PARAMS:
+Inputs:
     proteins: list of dictionaries of the form {name: str, sequence: str}
     peptides: list of dictionaries of the form 
     {    
@@ -79,21 +80,41 @@ def __add_header_info(proteins, peptides, args, json):
     json[EXPERIMENT_HEADER][EXPERIMENT_PEPTIDE_HEADER] = deepcopy(peptides)
     json[EXPERIMENT_HEADER][EXPERIMENT_ARGUMENT_HEADER] = deepcopy(args)
 
-'''__add_subsequence_agg
+def __right_adjust_scores(scores: dict) -> Dict:
+    '''
+    right adjust scores from a dictionary with {k: scores}
+    NOT in place
 
-DESC:
-    adds the aggregation information to each subsequence part in the dictionary
-PARAMS:
-    subsequence_name: string name of the subsequence
-    protein_names: names of all the proteins 
-    json: dictionary object where all items are save
-OPTIONAL:
-    predicting_agg_func: str name of the function used for aggregation. Default=sum
-RETURNS: 
-    None
-'''
-def __add_subsequnce_agg(peptide_dict, predicting_agg_func='sum'):
-    agg_func = __z_score_sum if 'z_score_sum' in predicting_agg_func.lower() else ( __product if 'product' in predicting_agg_func.lower() else __sum)
+    Inputs:
+        scores: dictionary of scores with k info in the keys
+    Outputs:
+        dictionary of the same type just adjusted by k length
+    '''
+    parseint = lambda s: int(s[s.index('=')+1:])
+    ks = [parseint(k) for k in scores if '=' in k]
+    min_k = min(ks)
+    adjusted_scores = {}
+    for k, score in scores.items():
+        # shift all scores in the list to the right by the diff of this k and the max k
+        if '=' not in k: # an aggregation function instead of a kmer
+            continue
+        this_k =  parseint(k)
+        diff = abs(this_k - min_k)
+        s = [0 for _ in range(diff)] + score
+        adjusted_scores[k] = s
+    return adjusted_scores
+
+def __agg_from_left(peptide_dict: dict, agg_func: str) -> Dict: 
+    '''
+    Perform k-mer aggregation from the left start site:
+
+    Inputs:
+        peptide_dict: dictionary of a peptide of {protein: {k: scores}}
+        agg_func: str name of aggregation function to use
+    Outputs:
+        Updated peptide dictionary with left aggregation
+    '''
+    af = __z_score_sum if 'z_score_sum' in agg_func.lower() else ( __product if 'product' in agg_func.lower() else __sum)
 
     subsequence_aggs = {}
     for prot_name, prot_scores in peptide_dict.items():
@@ -101,14 +122,72 @@ def __add_subsequnce_agg(peptide_dict, predicting_agg_func='sum'):
         if SAMPLE_PROTEIN_ANALYSIS == prot_name:
             continue
             
-        agged = agg_func(prot_scores)
-        peptide_dict[prot_name][predicting_agg_func] = deepcopy(agged)
+        just_ks = {}
+        for key in prot_scores:
+            if '=' in key:
+                just_ks[key] = prot_scores[key]
+        agged = af(prot_scores)
+
+        peptide_dict[prot_name][agg_func.lower() + '_left'] = deepcopy(agged)
         subsequence_aggs[prot_name] = deepcopy(agged)
     
     if SAMPLE_PROTEIN_ANALYSIS not in peptide_dict: 
         peptide_dict[SAMPLE_PROTEIN_ANALYSIS] = {}
 
-    peptide_dict[SAMPLE_PROTEIN_ANALYSIS][EXPERIMENT_PARENT_PREDICTION] = get_top_n_prots(subsequence_aggs)
+    if not EXPERIMENT_PARENT_PREDICTION in peptide_dict[SAMPLE_PROTEIN_ANALYSIS]:
+        peptide_dict[SAMPLE_PROTEIN_ANALYSIS][EXPERIMENT_PARENT_PREDICTION] = {}
+
+    peptide_dict[SAMPLE_PROTEIN_ANALYSIS][EXPERIMENT_PARENT_PREDICTION]['left'] = get_top_n_prots(subsequence_aggs)
+    return peptide_dict   
+
+def __agg_from_right(peptide_dict: dict, agg_func: str) -> Dict:
+    '''
+    Perform k-mer aggregation from the left start site:
+
+    Inputs:
+        peptide_dict: dictionary of a peptide of {k: scores}
+        agg_func: str name of aggregation function to use
+    Outputs:
+        Updated peptide dictionary with right aggregation
+    '''
+    af = __z_score_sum if 'z_score_sum' in agg_func.lower() else ( __product if 'product' in agg_func.lower() else __sum)
+
+    subsequence_aggs = {}
+    for prot_name, prot_scores in peptide_dict.items():
+    
+        if SAMPLE_PROTEIN_ANALYSIS == prot_name:
+            continue
+        adjusted_scores = __right_adjust_scores(prot_scores)
+        just_ks = {}
+        for key in adjusted_scores:
+            if '=' in key:
+                just_ks[key] = adjusted_scores[key]
+        agged = af(just_ks)
+
+        peptide_dict[prot_name][agg_func.lower() + '_right'] = deepcopy(agged)
+        subsequence_aggs[prot_name] = deepcopy(agged)
+    
+    if SAMPLE_PROTEIN_ANALYSIS not in peptide_dict: 
+        peptide_dict[SAMPLE_PROTEIN_ANALYSIS] = {}
+
+    if not EXPERIMENT_PARENT_PREDICTION in peptide_dict[SAMPLE_PROTEIN_ANALYSIS]:
+        peptide_dict[SAMPLE_PROTEIN_ANALYSIS][EXPERIMENT_PARENT_PREDICTION] = {}
+
+    peptide_dict[SAMPLE_PROTEIN_ANALYSIS][EXPERIMENT_PARENT_PREDICTION]['right'] = get_top_n_prots(subsequence_aggs)
+    return peptide_dict   
+
+def __add_subsequnce_agg(peptide_dict: dict, predicting_agg_func='sum') -> Dict:
+    '''
+    adds the aggregation information to each subsequence part in the dictionary
+    Inputs:
+        peptide_dict: dictionary of {k: scores}
+    kwargs:
+        predicting_agg_func: str name of the function used for aggregation. Default=sum
+    Outputs: 
+        None
+    '''
+    __agg_from_left(peptide_dict, predicting_agg_func)
+    __agg_from_right(peptide_dict, predicting_agg_func)
     return peptide_dict   
 
 '''__find_kmer_rank
@@ -116,10 +195,10 @@ def __add_subsequnce_agg(peptide_dict, predicting_agg_func='sum'):
 DESC:
     find how well the correct k-mer scores against all other k-mers of the same k
     1 based scores
-PARAMS:
+Inputs:
     correct_prot: str name of the correct protein
     peptide_analysis: dictionary containg all the peptide stuff from analysis
-RETURNS:
+Outputs:
     dictionary of ranks. entry is name of kmer or aggregate and rank is its inner kmer rank
 '''
 def __find_kmer_rank(correct_prot, correct_position, peptide_analysis):
@@ -158,10 +237,10 @@ def __find_kmer_rank(correct_prot, correct_position, peptide_analysis):
 
 DESC:
     run through all the proteins against this peptide and rank the correct score at the right position
-PARAMS: 
+Inputs: 
     json: dictionary object to add analysis to
     peptide: dictionary of all the peptide information
-RETURNS:
+Outputs:
     None
 '''
 def __rank_pep(json, peptide):
@@ -172,6 +251,22 @@ def __rank_pep(json, peptide):
     ranking_dict['sequence_length'] = len(peptide['peptide_sequence'])
     json[EXPERIMENT_ENTRY][peptide['peptide_name']][SAMPLE_PROTEIN_ANALYSIS]['ranks'] = ranking_dict
 
+
+def __remove_old_analysis(exp: dict) -> Dict:
+    '''
+    Remove any old analysis parts to avoid confusion
+
+    Inputs:
+        exp: experiment json
+    Outputs:
+        exp Dicitonary without any old analysis
+    '''
+    for pep in exp[EXPERIMENT_HEADER]:
+        if SAMPLE_PROTEIN_ANALYSIS in pep:
+            pep[SAMPLE_PROTEIN_ANALYSIS] = None
+
+    return exp
+
 #####################################################
 #               END "PRIVATE" FUNCTIONS
 #####################################################
@@ -180,8 +275,8 @@ def __rank_pep(json, peptide):
 
 DESC:
     builds an initial dictionary to be saved that has basic peptide, protein and score info
-PARAMS:
-    PARAMS:
+Inputs:
+    Inputs:
     proteins: list of dictionaries of the form {name: str, sequence: str}
     peptides: list of dictionaries of the form 
     {    
@@ -193,10 +288,10 @@ PARAMS:
         'end_index': int
     }
     args: dictionary parameters used when running the experiment
-OPTIONAL:
+kwargs:
     files: list of str output files from the scoring algorithm
     saving_dir: str path to where the experiment file should be saved. Default=./
-RETURNS:
+Outputs:
     str path to experiment json file
 '''
 def save_experiment(proteins, peptides, args, files=None, saving_dir='./'):
@@ -243,12 +338,12 @@ def save_experiment(proteins, peptides, args, files=None, saving_dir='./'):
 
 DESC:
     perform k-mer rankings and aggregations
-PARAMS:
+Inputs:
     exp: either a str to an experiment json file or a dictionary of a preloaded experiment file
-OPTIONAL:
+kwargs:
     predicting_agg_func: str name of the aggregation function to use. Default=sum
     saving_dir: str the name of the directory to save the experiment in. Default=./
-RETURNS:
+Outputs:
     str file path to the experiment json generated, dictionary of all experiment information
 '''
 def analyze(exp, predicting_agg_func='sum', saving_dir='./'):
@@ -266,6 +361,9 @@ def analyze(exp, predicting_agg_func='sum', saving_dir='./'):
     # separate file name from full directory
     if len(experiment_json_file_name.split('/')) > 1:
         experiment_json_file_name = experiment_json_file_name.split('/')[-1]
+
+    # remove any old analysis to avoid confusion
+    __remove_old_analysis(exp)
 
     # perform analysis on all peptides
     peptides = experiment_json[EXPERIMENT_ENTRY]

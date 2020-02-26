@@ -10,10 +10,10 @@ from sequences import sequence_utils as seq_utils
 
 DESC:
     make sure proteins are long enough
-PARAMS: 
+Inputs: 
     seqs: list of dictionaries {'name': str, 'sequence': str}
     min_length: int 
-RETURNS:
+Outputs:
     list of dictionaries of the same form 
 '''
 def __verify_length(seqs, min_length):
@@ -33,9 +33,9 @@ def __verify_length(seqs, min_length):
 
 DESC:
     Perfrom the actual digestion 
-PARAMS: 
+Inputs: 
     sequence: full length sequence to perform digestion on
-OPTIONAL:
+kwargs:
     miss_prob: 
     rand_cut_prob: float value [0, 1] probability of cutting peptide short randomly. Default=.05
 '''
@@ -93,16 +93,16 @@ def __tryptic_digest(sequence, miss_prob=0, rand_cut_prob=.05):
 
 DESC:
     Generate peptides with tryptic digest from sequences with missed cleavages at a probability
-PARAMS:
+Inputs:
     sequences: list of dictionary objects with entries {'sequence': string, 'name': string}
     number_digests: int number of peptides to generate
-OPTIONAL:
+kwargs:
     miss_prob: float the probability of a missed cleavage. Should range [0, 1). Default=0
     save_dir: string the directory in which to save the digestion file. Default=./
     save_name: string the name to save the digestion information in. Default=peptides.tsv
     min_length: int minimum length peptide to generate. Default=3
     rand_cut_prob: float value [0, 1] probability to randomly cut a peptide short. Default=.05
-RETURNS:
+Outputs:
     list of dictionaries of form 
     {
         'peptide_name': str,
@@ -191,14 +191,14 @@ def tryptic(sequences, number_digests, peptide_prefix='peptide_', miss_prob=0, s
 '''random_digest
 
 DESC:
-PARAMS:
+Inputs:
     proteins: list of dictionaries of the form {'sequence': string, 'name': string}
     n: number of peptides to create
-OPTIONAL:
+kwargs:
     peptide_prefix: str prefix to give all peptide names. Default='peptide_'
     min_length: int minimum length peptide to create. Default=3
     max_length: int maximum length peptide to create. Default=20
-RETURNS:
+Outputs:
     list of dictionaries of form 
     {
         'peptide_name': str,

@@ -6,9 +6,9 @@ from scipy.signal import find_peaks
 
 DESC:
     find the argmax and the max of an iterable
-PARAMS:
+Inputs:
     i: iterable to return max and argmax on
-RETURNS:
+Outputs:
     int, val: argmax, max
 '''
 def __get_argmax_max(i):
@@ -18,11 +18,11 @@ def __get_argmax_max(i):
 
 DESC:
     return the list and key of the best scoring list of scores
-PARAMS:
+Inputs:
     scores: iterable of lists each entry of the lists should be a number. If scores is not an iterable, [], 0 is returned
-OPTIONAL:
+kwargs:
     measure: string determines which metric is used for the calculate best score. Can be 'max', 'average', 'sum'. Default=average
-RETURNS:
+Outputs:
     list, val: the list and the index or key of the best score list
 '''
 def get_highest_scoring(scores, measure='average'):
@@ -52,12 +52,12 @@ def get_highest_scoring(scores, measure='average'):
 
 DESC:
     returns the top n list and keys or indices of an interable of lists
-PARAMS:
+Inputs:
     scores: iterable of lists each entry of the lists should be a number. If scores is not an iterable, [] is returned
-OPTIONAL:
+kwargs:
     measure: string determines which metric is used for the calculate best score. Can be 'max', 'average', 'sum'. Default=average
     n: int number of top scores to return. Default=5
-RETURNS:
+Outputs:
     [(list, val)]: list of tuples with the list, index or key of the top n in order
 '''
 def get_top_n(scores, measure='average', n=5):
@@ -76,12 +76,12 @@ def get_top_n(scores, measure='average', n=5):
 
 DESC: 
     finds the top n peaks of a signal 
-PARAMS:
+Inputs:
     signal: a list of floats 
-OPTIONAL: 
+kwargs: 
     n: top number of peaks to find. Default=5
     height: float lowest number to consider for peaks
-RETURNS:
+Outputs:
     list of ints. These are the positions of the top peaks
 '''
 def __find_top_n_peaks(signal, n=5, height=0):
@@ -98,11 +98,11 @@ def __find_top_n_peaks(signal, n=5, height=0):
 DESC:
     find the top n scoring proteins
     May return 5 of the same protein or mixture
-PARAMS:
+Inputs:
     prots: dictionary of scores. Keys should be the name of the proteins
-OPTIONAL:
+kwargs:
     n: number of top scores to find. Default=5
-RETURNS:
+Outputs:
     List of dictionaries of the form:
         [{protein_name:str, score: float, position: int}]
     In order by score

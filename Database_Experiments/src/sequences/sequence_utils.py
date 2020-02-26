@@ -4,16 +4,16 @@ import numpy as np
 
 DESC:
     return a list of values that are the lengths peptides should be
-PARAMS:
+Inputs:
     num_peptides: int number of lengths to generate
-OPTIONAL:
+kwargs:
     dist: str the type of distribution to use. Default=beta (based on experimental data)
             other values: random
     min_length: int minium length peptide to generate. Default=4
     max_length: int maximum length peptide to generate. Default=35
     a: float alpha value. Default=2.3 (based on experimental data)
     b: float beta value. Default=7 (based on experimental data)
-RETURNS:
+Outputs:
     list of int lengths drawn from distribution
 '''
 def length_dist(num_peptides, dist='beta', min_length=4, max_length=35, a=2.3, b=7):

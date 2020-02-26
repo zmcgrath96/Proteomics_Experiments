@@ -36,9 +36,9 @@ json_seq_len = 'sequence_length'
 
 DESC:
     Collect the score rankings for each peptide for each k
-PARAMS:
+Inputs:
     exp: dictionary experiment summary dictionary
-RETURNS:
+Outputs:
     dictionary of the form
     {
         k: {
@@ -69,9 +69,9 @@ def __collect_k_rankings(exp):
 
 DESC:
     generate and save a subsequence vs a protein graph
-PARAMS:
+Inputs:
     k_mers: dictionary of lists of floats to plot. entry names used for legend
-OPTIONAL:
+kwargs:
     title: string to label this plot. Also saving name for the plot. Default=''
     save_dir: string name of directory to save all output under. Default=./
     show_graph: bool whether or not to show the graph. Default=False
@@ -102,9 +102,9 @@ def plot_subsequence_vs_protein(k_mers, title='', save_dir='./', show_graph=Fals
 
 DESC:
     generate and save a subsequence against the aggregation scores
-PARAMS:
+Inputs:
     aggs: dictionary of list of aggregation scores. Entry names used for legend
-OPTIONAL:
+kwargs:
     title: string to label this plot. Also saving name for the plot. Default=''
     save_dir: string name of directory to save all output under. Default =./
     show_graph: bool whether or not to show the graph. Default=False
@@ -163,12 +163,12 @@ def plot_subsequence(aggs, title='', save_dir='./', show_graph=False, agg_func='
 
 DESC:
     Generates violin plots of ranking history
-PARAMS:
+Inputs:
     exp: dictionary experiment summary dictionary
-OPTIONAL:
+kwargs:
     save_dir: str path to directory to save images too. Default=./
     show_all: bool to show or not all plots. Default=False
-RETURNS:
+Outputs:
 '''
 def plot_score_rankings(exp, save_dir='./', show_all=False):
     # go through each peptide and collect stats

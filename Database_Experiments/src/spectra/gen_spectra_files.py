@@ -8,14 +8,14 @@ from utils import __make_valid_dir_string, __make_dir
 
 DESC:
     generate kmers and the spectra files associated with them 
-PARAMS:
+Inputs:
     sequences: list of dictionaries of the form {'name': str, 'sequence': str}. Sequences to generate
                 kmers from
     window_sizes: list of ints size of kmers to generate
-OPTIONAL:
+kwargs:
     save_dir: str the directory in which to save all the spectra files. Default=./
     compress: bool compress the spectra files. Default=True
-RETURNS:
+Outputs:
     list of strs of the file names/paths generated
 '''
 def generate(sequences, window_sizes, save_dir='./', compress=True):

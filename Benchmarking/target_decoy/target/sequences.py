@@ -47,10 +47,10 @@ def digest(protein_seq, digest, missed_cleavages, missed_cleavage_prob):
 DESC:
     Given a reference database generate some possible sequences 
     Uses the digest to determine cleaving sites 
-PARAMS:
+Inputs:
     ref_db: string filepath to the reference database
     number: int number of sequences to generate
-OPTIONAL:
+kwargs:
     digest: string the digest to perfrom on the proteins. Defaults to trypsin
     missed_cleavages: int number of cleavages to potentially miss
     missed_cleavage_prob: float number between 0, 1 to determine how often to miss a cleaving site

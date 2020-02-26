@@ -22,11 +22,11 @@ PARMS:
             left_parent_end: int,
             name: str,
         }
-OPTIONAL:
+kwargs:
     min_length: int minimum length peptide to generate. Default=4
     max_length: int maximum length peptide to generate. Default=20
     dist: str name of distribution to pull from. Default='beta'
-RETURNS:
+Outputs:
     dictionary of form
     {
         hybrid_peptide_sequence: str,
@@ -61,10 +61,10 @@ PARMS:
             left_parent_end: int,
             name: str,
         }
-OPTIONAL:
+kwargs:
     max_contribution: int max contribution from each side. Default=10
     min_length: mininum length peptide to create. Default=2
-RETURNS:
+Outputs:
     list of dictionarie of form
     [{
         hybrid_peptide_sequence: str,
@@ -96,7 +96,7 @@ def __make_hybrid_peps_brute_force(hybrid_prot, max_contribution=10, min_length=
 
 DESC:
     generate hybrid peptides. Guaranteed to capture the junction
-PARAMS:
+Inputs:
     hybrid_prots: list of dictionaries. Should be of the form 
         [{
             left_parent_name: str,
@@ -110,13 +110,13 @@ PARAMS:
             hybrid_protein: str, 
             name: str
         }]
-OPTIONAL:
+kwargs:
     num_gen: int number of hybrid peptides to genereate. if num_gen < len(hybrid_prots), then 
         the remaining will be ignored. After one is generated from. Default=10
     peptide_name_prefix: str prefix to add as the name to each protein. Default=HYBRID_PEPTIDE
     min_length: int minimum length peptide to generate. Default=4
     max_length: int maximum length peptide to generate. Default=20
-RETURNS:
+Outputs:
     list of dictionaries of the form 
         {
             hybrid_peptide_sequence: str,
@@ -160,7 +160,7 @@ def __generate_hybrids(hybrid_prots, num_gen=10, peptide_name_prefix='HYBRID_PEP
 
 DESC:
     Generate all possible hybrid peptides from a window of a hybrid 
-PARAMS:
+Inputs:
     hybrid_prots: list of dictionaries. Should be of the form 
         [{
             left_parent_name: str,
@@ -174,11 +174,11 @@ PARAMS:
             hybrid_protein: str, 
             name: str
         }]
-OPTIONAL:
+kwargs:
     peptide_name_prefix: str prefix to add as the name to each protein. Default=HYBRID_PEPTIDE
     min_length: int minimum length peptide to generate. Default=2
     max_contribution: int maximum to allow each side of the hybrid to allow. Default=10
-RETURNS:
+Outputs:
     list of dictionaries of the form 
         {
             hybrid_peptide_sequence: str,
@@ -210,7 +210,7 @@ def __generate_hybrids_brute_force(hybrid_prots, peptide_name_prefix='HYBRID_PEP
 
 DESC:
     generates peptides from proteins given
-PARAMS:
+Inputs:
     proteins: list of dictionaries of the form {'name': str, 'sequence': str}
               NOTE: if hybrid_list set to true, form is 
               {
@@ -226,13 +226,13 @@ PARAMS:
                 name: str
               }
     n: number of peptides to generate
-OPTIONAL:
+kwargs:
     min_length: int minimum length peptide to generate. Default=3
     max_length: int maximum length peptide to generate. Default=20
     digest: str type of digest to perform. Default=random
     hybrid_list: bool if the proteins passed in are hybrids and you wish to capture a junction point, set to True. Default=False
     dist: str name of distribution to use for peptide length. Default=beta (based on experimental data)
-RETURNS:
+Outputs:
     list of dictionaries of form 
     {
         'peptide_name': str,

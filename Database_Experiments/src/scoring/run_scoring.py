@@ -62,14 +62,14 @@ def __remove_indices(index_file):
 
 DESC:
     use the crux tool to score spectra against databases
-PARAMS:
+Inputs:
     spectra_files: list of str paths to all the spectra (.mzML) files
     database_files: list of str paths to all the database (.fasta) files
     path_to_crux_cmd: str path to the executable for crux.
     output_dir: str path to the directory to save files
-OPTIONAL:
+kwargs:
     compress: bool compress the output result. Default=True
-RETURNS:
+Outputs:
     list of str of output files
 '''
 def __crux_search(spectra_files, database_files, path_to_crux_cmd, output_dir, compress=True):
@@ -130,13 +130,13 @@ def __crux_search(spectra_files, database_files, path_to_crux_cmd, output_dir, c
 
 DESC:
     custom search on peptides
-PARAMS:
+Inputs:
     spectra_files: list of strings paths to all .mzML files
     database_files: list of strings paths to all .fasta files
     output_dir: str path to directory to save results under
 OPTONAL:
     compress: bool whether or not to compress results. Default=True
-RETURNS:
+Outputs:
     list of str of output files
 '''
 def __custom_search(spectra_files, database_files, output_dir, compress=True):
@@ -166,15 +166,15 @@ def __custom_search(spectra_files, database_files, output_dir, compress=True):
 
 DESC:
     use the crux tool to score spectra against databases
-PARAMS:
+Inputs:
     spectra_files: list of str paths to all the spectra (.mzML) files
     database_files: list of str paths to all the database (.fasta) files
     output_dir: str path to the directory to save files
-OPTIONAL:
+kwargs:
     compress: bool compress the output result. Default=True
     score_func: str determine which scoring function to use. Default='custom'
     path_to_crux_cmd: str path to the executable for crux. Default=''
-RETURNS:
+Outputs:
     list of str of output files
 '''
 def score_peptides(spectra_files, database_files, output_dir, compress=True, score_func='custom', path_to_crux_cmd=''):

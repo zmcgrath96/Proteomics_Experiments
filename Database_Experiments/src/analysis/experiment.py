@@ -60,7 +60,7 @@ def __get_k_number(file_name):
 '''__add_header_info
 DESC:
     add all header info to the experiment json
-PARAMS:
+Inputs:
     proteins: list of dictionaries of the form {name: str, sequence: str}
     peptides: list of dictionaries of the form 
     {    
@@ -83,13 +83,13 @@ def __add_header_info(proteins, peptides, args, json):
 
 DESC:
     adds the aggregation information to each subsequence part in the dictionary
-PARAMS:
+Inputs:
     subsequence_name: string name of the subsequence
     protein_names: names of all the proteins 
     json: dictionary object where all items are save
-OPTIONAL:
+kwargs:
     predicting_agg_func: str name of the function used for aggregation. Default=sum
-RETURNS: 
+Outputs: 
     None
 '''
 def __add_subsequnce_agg(peptide_dict, predicting_agg_func='sum'):
@@ -116,10 +116,10 @@ def __add_subsequnce_agg(peptide_dict, predicting_agg_func='sum'):
 DESC:
     find how well the correct k-mer scores against all other k-mers of the same k
     1 based scores
-PARAMS:
+Inputs:
     correct_prot: str name of the correct protein
     peptide_analysis: dictionary containg all the peptide stuff from analysis
-RETURNS:
+Outputs:
     dictionary of ranks. entry is name of kmer or aggregate and rank is its inner kmer rank
 '''
 def __find_kmer_rank(correct_prot, correct_position, peptide_analysis):
@@ -158,10 +158,10 @@ def __find_kmer_rank(correct_prot, correct_position, peptide_analysis):
 
 DESC:
     run through all the proteins against this peptide and rank the correct score at the right position
-PARAMS: 
+Inputs: 
     json: dictionary object to add analysis to
     peptide: dictionary of all the peptide information
-RETURNS:
+Outputs:
     None
 '''
 def __rank_pep(json, peptide):
@@ -180,8 +180,8 @@ def __rank_pep(json, peptide):
 
 DESC:
     builds an initial dictionary to be saved that has basic peptide, protein and score info
-PARAMS:
-    PARAMS:
+Inputs:
+    Inputs:
     proteins: list of dictionaries of the form {name: str, sequence: str}
     peptides: list of dictionaries of the form 
     {    
@@ -193,10 +193,10 @@ PARAMS:
         'end_index': int
     }
     args: dictionary parameters used when running the experiment
-OPTIONAL:
+kwargs:
     files: list of str output files from the scoring algorithm
     saving_dir: str path to where the experiment file should be saved. Default=./
-RETURNS:
+Outputs:
     str path to experiment json file
 '''
 def save_experiment(proteins, peptides, args, files=None, saving_dir='./'):
@@ -243,12 +243,12 @@ def save_experiment(proteins, peptides, args, files=None, saving_dir='./'):
 
 DESC:
     perform k-mer rankings and aggregations
-PARAMS:
+Inputs:
     exp: either a str to an experiment json file or a dictionary of a preloaded experiment file
-OPTIONAL:
+kwargs:
     predicting_agg_func: str name of the aggregation function to use. Default=sum
     saving_dir: str the name of the directory to save the experiment in. Default=./
-RETURNS:
+Outputs:
     str file path to the experiment json generated, dictionary of all experiment information
 '''
 def analyze(exp, predicting_agg_func='sum', saving_dir='./'):

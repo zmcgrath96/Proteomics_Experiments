@@ -6,6 +6,7 @@ from analysis import score_utils
 from analysis.aggregations import __z_score_sum, __sum, __product
 from analysis.analysis_utils import get_top_n_prots
 from analysis.plotting import plot_experiment
+from typing import List, Dict
 
 #######################################################
 #                   CONSTANTS
@@ -17,7 +18,7 @@ EXPERIMENT_HEADER = 'experiment_info'
 EXPERIMENT_PROTEIN_HEADER = 'proteins'
 EXPERIMENT_PEPTIDE_HEADER = 'peptides'
 EXPERIMENT_ARGUMENT_HEADER = 'arguments'
-EXPERIMENT_PARENT_PREDICTION = 'predicted_parents'
+EXPERIMENT_SEQUENCE_PREDICTION = 'sequence_predictions'
 SAMPLE_ENTRY = 'sample'
 SAMPLE_PROTEINS = 'proteins'
 SAMPLE_PROTEIN_ANALYSIS = 'analysis'
@@ -79,23 +80,74 @@ def __add_header_info(proteins, peptides, args, json):
     json[EXPERIMENT_HEADER][EXPERIMENT_PEPTIDE_HEADER] = deepcopy(peptides)
     json[EXPERIMENT_HEADER][EXPERIMENT_ARGUMENT_HEADER] = deepcopy(args)
 
-'''__add_subsequence_agg
+def __predict_sequence(prot_info: dict, starting_pos: int) -> Dict:
+    '''
+    make a prediction on what the peptide sequence is
 
-DESC:
-    adds the aggregation information to each subsequence part in the dictionary
-Inputs:
-    subsequence_name: string name of the subsequence
-    protein_names: names of all the proteins 
-    json: dictionary object where all items are save
-kwargs:
-    predicting_agg_func: str name of the function used for aggregation. Default=sum
-Outputs: 
-    None
-'''
-def __add_subsequnce_agg(peptide_dict, predicting_agg_func='sum'):
+    Inputs:
+        prot_info:      dictionary with the kmer scoring info
+        starting_pos:   int position of the higest score
+    Outputs:
+        dictionary with the prediction. 
+        {
+            'starting_pos': int,
+            'predicted_length': int
+        }
+    '''
+    max_score_k = 0
+    max_score = -10
+    get_k = lambda sk: int(sk[sk.index('=')+1:])
+    for ke in prot_info:
+        if '=' not in ke:
+            continue
+        k = get_k(ke)
+        max_score, max_score_k = (max_score, max_score_k) if max_score > prot_info[ke][starting_pos] else (prot_info[ke][starting_pos], k)
+    # we now have the k where the score peaked, so we should be able to make dumb prediction off this
+    return {'starting_pos': starting_pos, 'predicted_length': max_score_k}
+
+def __make_sequence_predictions(peptide_dict: dict, agg_fucn:str, n=5) -> Dict:
+    '''
+    make a prediction as to who the parent is and what the sequence is
+    
+    Inputs:
+        peptide_dict:     dictionary containing protein names (keys) and score information (dict) with kmers (k=keys) and scores (values)
+        agg_func:         aggregation fucntion name. Used to find the aggregated scores
+    kwargs:
+        n:                              int top n preditions to make
+    Outputs:
+        peptide_predition:              dictionary of top n predictions
+    '''
+    agged = {}
+    for p in peptide_dict:
+        if p == SAMPLE_PROTEIN_ANALYSIS:
+            continue
+        agged[p] = deepcopy(peptide_dict[p][agg_fucn])
+    
+    # get the best proteins
+    top_prots = get_top_n_prots(agged, n=n)
+
+    # now that we have the top proteins, use k-information to try and predict the sequece
+    predictions = {}
+    for tp in top_prots:
+        prot_name = tp['protein_name']
+        pos = tp['position']
+        predictions[prot_name] = __predict_sequence(peptide_dict[prot_name], pos)
+    return predictions
+
+def __add_subsequnce_agg(peptide_dict: dict, predicting_agg_func='sum', ignore_hybrids=True) -> Dict:
+    '''
+    Add aggregation information to each peptide score info
+
+    Inputs:
+        peptide_dict:           dictionary with kmer scores for each protein of a peptide
+    kwargs:
+        predicting_agg_func:    string name of the aggregation function to use. Default='sum'
+        ignore_hybrids:         bool ignore hybrid proteins in rankings. Default=True
+    Outputs:
+        peptide_dict:           same peptide dictionary but with the added aggregation information
+    '''
     agg_func = __z_score_sum if 'z_score_sum' in predicting_agg_func.lower() else ( __product if 'product' in predicting_agg_func.lower() else __sum)
 
-    subsequence_aggs = {}
     for prot_name, prot_scores in peptide_dict.items():
     
         if SAMPLE_PROTEIN_ANALYSIS == prot_name:
@@ -103,12 +155,22 @@ def __add_subsequnce_agg(peptide_dict, predicting_agg_func='sum'):
             
         agged = agg_func(prot_scores)
         peptide_dict[prot_name][predicting_agg_func] = deepcopy(agged)
-        subsequence_aggs[prot_name] = deepcopy(agged)
     
     if SAMPLE_PROTEIN_ANALYSIS not in peptide_dict: 
         peptide_dict[SAMPLE_PROTEIN_ANALYSIS] = {}
 
-    peptide_dict[SAMPLE_PROTEIN_ANALYSIS][EXPERIMENT_PARENT_PREDICTION] = get_top_n_prots(subsequence_aggs)
+    # if ignoring hybrid proteins, remove theme from the list
+    to_predict = {}
+    if not ignore_hybrids:
+        to_predict = deepcopy(peptide_dict)
+    else:
+        del_keys = [x for x in peptide_dict if HYBRID_SEACH_STRING.lower() in x.lower()]
+        for k in peptide_dict:
+            if k in del_keys:
+                continue
+            to_predict[k] = deepcopy(peptide_dict[k])
+
+    peptide_dict[SAMPLE_PROTEIN_ANALYSIS][EXPERIMENT_SEQUENCE_PREDICTION] = __make_sequence_predictions(to_predict, predicting_agg_func)
     return peptide_dict   
 
 '''__find_kmer_rank

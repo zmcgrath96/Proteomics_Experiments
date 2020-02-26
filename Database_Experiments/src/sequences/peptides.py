@@ -195,7 +195,7 @@ def __generate_hybrids_brute_force(hybrid_prots, peptide_name_prefix='HYBRID_PEP
 
     for prot in hybrid_prots:
         hybrid_peps += __make_hybrid_peps_brute_force(prot, max_contribution=max_contribution, min_length=min_length)
-    fill_zeros = len(str(ceil(len(hybrid_peps) / 10)))
+    fill_zeros = len(str(len(hybrid_peps)))
     for pep in hybrid_peps:
         pep['peptide_name'] = peptide_name_prefix + str(name_c).zfill(fill_zeros)
         name_c += 1

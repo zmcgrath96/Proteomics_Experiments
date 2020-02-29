@@ -40,6 +40,7 @@ def cmp_spectra_spectra(spec: list, reference: list) -> float:
     '''
     CREATED FEB 26 2020
     Score two spectra against eachother. Simple additive scoring with bonuses for streaks
+    Divides by the length of the reference to make it length biased for the reference
 
     Inputs:
         spec:       list of floats (from mass spectra)
@@ -67,6 +68,7 @@ def cmp_spectra_spectra(spec: list, reference: list) -> float:
             last = False
     
     score += max_streak
+    score /= (len(reference) / 2)
     return score 
 
 

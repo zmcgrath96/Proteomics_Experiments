@@ -7,6 +7,7 @@ from analysis.aggregations import __z_score_sum, __sum, __product
 from analysis.analysis_utils import get_top_n_prots
 from analysis.plotting import plot_experiment
 from typing import List, Dict
+import sys
 
 #######################################################
 #                   CONSTANTS
@@ -22,6 +23,12 @@ EXPERIMENT_SEQUENCE_PREDICTION = 'sequence_predictions'
 SAMPLE_ENTRY = 'sample'
 SAMPLE_PROTEINS = 'proteins'
 SAMPLE_PROTEIN_ANALYSIS = 'analysis'
+
+START_POSITION = 'starting_pos'
+PREDICTED_LENGTH = 'predicted_length'
+
+PROTEIN_NAME = 'protein_name'
+POSITION = 'position'
 
 HYBRID_SEACH_STRING = 'HYBRID'
 #####################################################
@@ -100,10 +107,14 @@ def __predict_sequence(prot_info: dict, starting_pos: int) -> Dict:
     for ke in prot_info:
         if '=' not in ke:
             continue
+        # check to see that the starting position is in the length. If its not, we know the peptide is shorter than that k
+        if starting_pos > len(prot_info[ke]):
+            continue
         k = get_k(ke)
-        max_score, max_score_k = (max_score, max_score_k) if max_score > prot_info[ke][starting_pos] else (prot_info[ke][starting_pos], k)
+        # keep the current champion score if the max score is at least equal to the current score
+        max_score, max_score_k = (max_score, max_score_k) if max_score >= prot_info[ke][starting_pos] else (prot_info[ke][starting_pos], k)
     # we now have the k where the score peaked, so we should be able to make dumb prediction off this
-    return {'starting_pos': starting_pos, 'predicted_length': max_score_k}
+    return {START_POSITION: starting_pos, PREDICTED_LENGTH: max_score_k}
 
 def __make_sequence_predictions(peptide_dict: dict, agg_fucn:str, n=5) -> Dict:
     '''
@@ -127,11 +138,13 @@ def __make_sequence_predictions(peptide_dict: dict, agg_fucn:str, n=5) -> Dict:
     top_prots = get_top_n_prots(agged, n=n)
 
     # now that we have the top proteins, use k-information to try and predict the sequece
-    predictions = {}
+    predictions = []
     for tp in top_prots:
-        prot_name = tp['protein_name']
-        pos = tp['position']
-        predictions[prot_name] = __predict_sequence(peptide_dict[prot_name], pos)
+        prot_name = tp[PROTEIN_NAME]
+        pos = tp[POSITION]
+        prediction = __predict_sequence(peptide_dict[prot_name], pos)
+        prediction[PROTEIN_NAME] = prot_name
+        predictions.append(prediction)
     return predictions
 
 def __add_subsequnce_agg(peptide_dict: dict, predicting_agg_func='sum', ignore_hybrids=True) -> Dict:
@@ -234,6 +247,21 @@ def __rank_pep(json, peptide):
     ranking_dict['sequence_length'] = len(peptide['peptide_sequence'])
     json[EXPERIMENT_ENTRY][peptide['peptide_name']][SAMPLE_PROTEIN_ANALYSIS]['ranks'] = ranking_dict
 
+def __remove_analysis(exp: dict) -> Dict:
+    '''
+    Remove the old analysis of the experiment to avoid issues
+
+    Inputs:
+        exp:    experiment json dictionary to clean
+    Outputs:
+        exp:    cleaned experiment dictionary
+    '''
+    for pep in exp[EXPERIMENT_ENTRY]:
+        if SAMPLE_PROTEIN_ANALYSIS in pep:
+            pep[SAMPLE_PROTEIN_ANALYSIS] = None
+
+    return exp
+
 #####################################################
 #               END "PRIVATE" FUNCTIONS
 #####################################################
@@ -328,6 +356,9 @@ def analyze(exp, predicting_agg_func='sum', saving_dir='./'):
     # separate file name from full directory
     if len(experiment_json_file_name.split('/')) > 1:
         experiment_json_file_name = experiment_json_file_name.split('/')[-1]
+
+    # remove old analysis
+    exp = __remove_analysis(exp)
 
     # perform analysis on all peptides
     peptides = experiment_json[EXPERIMENT_ENTRY]

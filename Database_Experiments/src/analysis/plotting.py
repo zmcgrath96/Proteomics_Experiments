@@ -176,7 +176,7 @@ def plot_peptide_scores(exp, agg_func='sum', saving_dir='./', show_all=False, co
             if pep['peptide_name'] == peptide:
                 info = pep 
                 break
-        peptide_plotting.plot_subsequence(agg_scores, title=str(peptide), save_dir=pep_saving_dir, show_graph=show_all, agg_func=agg_func, peaks=prots['analysis']['predicted_parents'], sequence_info=info, compress=compress)
+        peptide_plotting.plot_subsequence(agg_scores, title=str(peptide), save_dir=pep_saving_dir, show_graph=show_all, agg_func=agg_func, sequence_info=info, compress=compress)
     
 
 '''plot_experiment

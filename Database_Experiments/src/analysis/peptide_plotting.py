@@ -118,7 +118,7 @@ kwargs:
     save_raw_json: bool save the raw json data for each graph. Default=False
     compress: bool to compress the directory. Default=True
 '''
-def plot_subsequence(aggs, title='', save_dir='./', show_graph=False, agg_func='sum', peaks=None, sequence_info=None, save_raw_json=False, compress=True):
+def plot_subsequence(aggs, title='', save_dir='./', show_graph=False, agg_func='sum', sequence_info=None, save_raw_json=False, compress=True):
     save_dir = __make_valid_dir_string(save_dir)
     __make_dir(save_dir)
 
@@ -130,23 +130,6 @@ def plot_subsequence(aggs, title='', save_dir='./', show_graph=False, agg_func='
             continue
         plt.plot([j for j in range(len(score))], score, all_line_types[i].strip(), label=str(agg))
         i += 1
-    
-    if peaks is not None and type(peaks[0]) is dict:
-        if len(peaks) > 0:
-            label_peaks_pos = [x['position'] for x in peaks]
-            label_peaks_h = [x['score'] for x in peaks]
-            max_peak_value = max([x['score'] for x in peaks])
-            max_peak_pos = None
-            for x in peaks:
-                if x['score'] == max_peak_value:
-                    max_peak_pos = x['position']
-            plt.plot(label_peaks_pos, label_peaks_h, 'x')
-            plt.text(.1, .975, 'max peak position: {}'.format(max_peak_pos), transform=plt.gcf().transFigure)
-            plt.text(.1, .96, 'max peak value: {}'.format(max_peak_value),transform=plt.gcf().transFigure)
-    if type(sequence_info) is dict:
-        plt.text(.5, .975, 'sequence: {}'.format(sequence_info['peptide_sequence']), transform=plt.gcf().transFigure)
-        plt.text(.5, .95, 'actual starting position: {}'.format(sequence_info['start_index']), transform=plt.gcf().transFigure)
-        plt.text(.5, .925, 'actual parent protein: {}'.format(sequence_info['parent_name']), transform=plt.gcf().transFigure)
 
     plt.xlabel('subsequence start position')
     plt.ylabel('{} of k-mer scores'.format(agg_func))

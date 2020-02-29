@@ -1,7 +1,7 @@
 import matplotlib.pyplot as plt
 import itertools, os
 from utils import __make_valid_dir_string, __make_dir, __gzip_dir
-from analysis import write_output
+from file_io import JSON
 
 ####################################################
 #                   CONSTANTS
@@ -94,7 +94,7 @@ def plot_subsequence_vs_protein(k_mers, title='', save_dir='./', show_graph=Fals
     plt.legend()
     plt.savefig(save_dir + title)
     show_graph and plt.show()
-    save_raw_json and write_output.write_raw_json(save_dir + title, k_mers)
+    save_raw_json and write_output.JSON.save_dict(save_dir + title, k_mers)
     plt.close()
 
 
@@ -137,7 +137,7 @@ def plot_subsequence(aggs, title='', save_dir='./', show_graph=False, agg_func='
     plt.title(title)
     plt.savefig(save_dir + title)
     show_graph and plt.show()
-    save_raw_json and write_output.write_raw_json(save_dir + title, aggs)
+    save_raw_json and write_output.JSON.save_dict(save_dir + title, aggs)
     plt.close()
     compress and __gzip_dir(save_dir)
 

@@ -1,11 +1,11 @@
 from copy import deepcopy
 import json
 import utils
-from analysis.write_output import write_raw_json
+from file_io import JSON
 from analysis import score_utils
 from analysis.aggregations import __z_score_sum, __sum, __product
 from analysis.analysis_utils import get_top_n_prots
-from analysis.plotting import plot_experiment
+from summarize.plotting import plot_experiment
 from typing import List, Dict
 import sys
 
@@ -300,7 +300,7 @@ def save_experiment(proteins, peptides, args, files=None, saving_dir='./'):
 
     # if no scoring files exist, just save the proteins and peptides
     if files is None or (isinstance(files, list) and len(files) == 0):
-        write_raw_json(saving_dir + experiment_json_file_name, experiment_json)
+        JSON.save_dict(saving_dir + experiment_json_file_name, experiment_json)
         return(saving_dir + experiment_json_file_name)
 
     # go through each peptide
@@ -325,7 +325,7 @@ def save_experiment(proteins, peptides, args, files=None, saving_dir='./'):
                 
         experiment_json[EXPERIMENT_ENTRY][pep['peptide_name']] = deepcopy(subsequence_dict)
 
-    write_raw_json(saving_dir + experiment_json_file_name, experiment_json)
+    JSON.save_dict(saving_dir + experiment_json_file_name, experiment_json)
     return(saving_dir + experiment_json_file_name)
         
 
@@ -375,6 +375,6 @@ def analyze(exp, predicting_agg_func='sum', saving_dir='./'):
         __rank_pep(experiment_json, peptide_info_dict)
     
     # save to file
-    write_raw_json(saving_dir + experiment_json_file_name, experiment_json)
+    JSON.save_dict(saving_dir + experiment_json_file_name, experiment_json)
 
     return(saving_dir + experiment_json_file_name), experiment_json

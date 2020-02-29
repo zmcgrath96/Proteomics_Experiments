@@ -6,7 +6,8 @@ from time import time
 from spectra import gen_spectra_files
 from scoring import run_scoring
 from sequences import peptides, proteins
-from analysis import plotting, experiment
+from analysis import experiment
+from summarize import plotting
 from utils import __file_exists, __make_valid_dir_string, __make_dir, __is_json, __is_fasta
 
 ''' 

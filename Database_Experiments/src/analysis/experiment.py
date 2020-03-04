@@ -32,6 +32,7 @@ PROTEIN_NAME = 'protein_name'
 POSITION = 'position'
 
 HYBRID_SEACH_STRING = 'HYBRID'
+HYBRID_FLAG = 'is_hybrid'
 #####################################################
 #               END CONSTANTS
 #####################################################
@@ -312,7 +313,7 @@ def analyze(exp, predicting_agg_func='sum', saving_dir='./'):
         p_counter += 1
         print('Analyzing peptide {}/{}[{}%]\r'.format(p_counter, len(peptides), int( (float(p_counter)/float(len(peptides))) *100 )), end='')
         peptide = __add_subsequnce_agg(peptide, predicting_agg_func=predicting_agg_func)
-        peptide['is_hybrid'] = HYBRID_SEACH_STRING in pep_name.lower()
+        peptide[SAMPLE_PROTEIN_ANALYSIS][HYBRID_FLAG] = HYBRID_SEACH_STRING.lower() in pep_name.lower()
         peptide_info_dict = experiment_json[EXPERIMENT_HEADER][EXPERIMENT_PEPTIDE_HEADER][peptide_header_list_idx[pep_name]]
         __rank_pep(experiment_json, peptide_info_dict)
     

@@ -133,7 +133,7 @@ def __generate_hybrids(hybrid_prots, num_gen=10, peptide_name_prefix='HYBRID_PEP
     hybrid_peps = []
     name_c = 0
 
-    fill_zeros = len(str(ceil(num_gen / 10)))
+    fill_zeros = len(str(num_gen))
 
     for i in range(first_round):
         print('Generating hybrid peptide {}/{}[{}%]\r'.format(name_c, num_gen, int(float(name_c)/float(num_gen) * 100)), end="")

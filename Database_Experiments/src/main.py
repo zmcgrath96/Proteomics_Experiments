@@ -9,6 +9,7 @@ from sequences import peptides, proteins
 from analysis import experiment
 from summarize import plotting
 from utils import __file_exists, __make_valid_dir_string, __make_dir, __is_json, __is_fasta
+from summarize import summary
 
 ''' 
     IMPORT DEFAULTS
@@ -132,7 +133,7 @@ def main(args):
         experiment_json_file = experiment.save_experiment(all_proteins_raw, all_peptides_raw, {**vars(args), **defaults}, saving_dir=save_dir)
         print('Done.')
 
-    if start_pos == 's' or start_pos == 'b':
+    if start_pos == 'sc' or start_pos == 'b':
 
         experiment_json_file = experiment_json_file if experiment_json_file is not None else input_file
         start_pos == 's' and print('Loading experiment file...')
@@ -167,7 +168,7 @@ def main(args):
         experiment_json_file = experiment.save_experiment(all_proteins_raw, all_peptides_raw, {**vars(args), **defaults}, files=score_output_files, saving_dir=save_dir)
         print('Done.')
 
-    if start_pos == 'a' or start_pos == 'b' or start_pos == 's':
+    if start_pos == 'a' or start_pos == 'b' or start_pos == 'sc':
         # load experiment file
         print('Loading experiment...')
         experiment_json_file = experiment_json_file if experiment_json_file is not None else input_file
@@ -179,15 +180,23 @@ def main(args):
         experiment_json_file, exp_json = experiment.analyze(exp_json, predicting_agg_func=agg_func, saving_dir=save_dir)
         print('\nDone.')
 
+    if start_pos == 'a' or start_pos == 'b' or start_pos == 'sc' or start_pos == 'p':
+        # check to see if exp has been loaded
+        experiment_json_file = input_file if experiment_json_file is None else experiment_json_file
+        if exp_json is None:
+            print('Loading experiment file...')
+            exp_json = json.load(open(experiment_json_file, 'r'))
+            print('Finished loading experiment')
+        # plot experiment
+        plotting.plot_experiment(exp_json, agg_func='', show_all=show_all, saving_dir=save_dir, compress=compress, plot_pep_scores=plot_pep_scores, plot_pep_ranks_len=plot_pep_ranks_length, plot_pep_ranks_prot=plot_pep_ranks_prot)
+
     # check to see if exp has been loaded
     experiment_json_file = input_file if experiment_json_file is None else experiment_json_file
     if exp_json is None:
         print('Loading experiment file...')
         exp_json = json.load(open(experiment_json_file, 'r'))
         print('Finished loading experiment')
-    # plot experiment
-    plotting.plot_experiment(exp_json, agg_func='', show_all=show_all, saving_dir=save_dir, compress=compress, plot_pep_scores=plot_pep_scores, plot_pep_ranks_len=plot_pep_ranks_length, plot_pep_ranks_prot=plot_pep_ranks_prot)
-
+    summary.make_summary(exp_json, output_dir=save_dir)
 
     print('Finished experiment. Time to complete: {} seconds'.format(time() - start_time))
 
@@ -195,7 +204,7 @@ def main(args):
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Entry file for the database experiments')
     parser.add_argument('input_file', type=str, metavar='F', help='Path to a fasta with protein name and sequences OR path to an experiment json file (with .json extension) to load')
-    parser.add_argument('--start', type=str, dest='start_pos', default='b', help='Program position to start at. Three options: \nb --- beggining. Start from beginning with a .fasta file with proteins.\ns --- scoring. Use proteins from an older generation and score them.\na --- analysis. Start at the analysis step with an old experiment json file.\np --- plotting. Use an old analysis from an experiment json and generate new plots. Default=b')
+    parser.add_argument('--start', type=str, dest='start_pos', default='b', help='Program position to start at. Four options: \nb --- beggining. Start from beginning with a .fasta file with proteins.\nsc --- scoring. Use proteins from an older generation and score them.\na --- analysis. Start at the analysis step with an old experiment json file.\np --- plotting. Use an old analysis from an experiment json and generate new plots.\nsu --- summary. Generate a summay file for an experiment.\n Default=b')
     parser.add_argument('--num-peptides', dest='num_peptides', type=int, default=50, help='Number of peptides to generate as the fake sample. Default=50')
     parser.add_argument('--num-hybrids', dest='num_hybrids', type=int, default=2, help='Number of hybrid proteins to generate. Default=2')
     parser.add_argument('--aggregate-function', dest='agg_func', type=str, default='sum', help='Which aggregation function to use for combining k-mer scores. Pick either sum or product. Default=sum')

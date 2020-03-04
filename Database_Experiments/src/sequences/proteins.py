@@ -79,7 +79,7 @@ Outputs:
 '''
 def generate_hybrids(prots, num_gen, min_contribution=10, name_prefix='HYBRID_'):
     hybrids = []
-    fill_zeros = len(str(ceil(num_gen / 10)))
+    fill_zeros = len(str(num_gen))
 
     for i in range(num_gen):
         print('Generating hybrid protein {}/{}[{}%]\r'.format(i, num_gen, int(float(i)/float(num_gen) * 100)), end="")

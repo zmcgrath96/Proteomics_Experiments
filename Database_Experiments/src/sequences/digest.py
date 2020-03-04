@@ -128,7 +128,7 @@ def tryptic(sequences, number_digests, peptide_prefix='peptide_', miss_prob=0, s
         for _ in range(number_digests - len(sequences)):
             to_digest.append(choice(sequences))
 
-    fill_zeros = len(str(ceil(number_digests / 10)))
+    fill_zeros = len(str(number_digests))
 
     peptides = []
     o = open(save_dir + save_name, 'w')
@@ -211,7 +211,7 @@ Outputs:
 '''
 def random_digest(proteins, n, peptide_prefix='peptide_', min_length=3, max_length=20, dist='beta'):
     digested = []
-    fill_zeros = len(str(ceil(n / 10)))
+    fill_zeros = len(str(n))
     lengths = seq_utils.length_dist(n, dist=dist, min_length=min_length, max_length=max_length)
 
     to_digest = deepcopy(proteins)

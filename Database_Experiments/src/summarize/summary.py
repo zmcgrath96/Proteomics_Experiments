@@ -64,10 +64,10 @@ def __pad_and_center(num: Number, s: str) -> str:
     pad and center a number in a string
     
     Inputs:
-        num: the number to center
-        s:   the string to center the number int
+        num:        the number to center
+        s:          the string to center the number int
     Outputs:
-        centered: string representing the number
+        centered:   string representing the number
     '''
     if len(str(num)) >= len(s):
         return str(num) 
@@ -143,10 +143,10 @@ def __summary_header(prot_info: dict, pep_info: dict, summary_dict: dict) -> (st
     Create a string to return that has the basic experiment information in it
     
     Inputs:
-        prot_info: dictionary of protein information
-        pep_info:  dictionary of peptide information
+        prot_info:  dictionary of protein information
+        pep_info:   dictionary of peptide information
     Outputs:
-        header:    string of the header information
+        header:     string of the header information
     '''
     header = ''
     header += PROTEIN_SUMMARY_HEADER + HEADER_UNDERLINE + HEADER_ROW_PROTEIN_SUMMARY + '\n'
@@ -196,9 +196,9 @@ def __prediction_summary(exp: dict, summary_dict: dict) -> (str, dict):
     Generate a summary of the predictions done
     
     Inputs:
-        exp:     dictionary with the experiment data
+        exp:        dictionary with the experiment data
     Outputs:
-        summary: string of the summary
+        summary:    string of the summary
     '''
     #total peptides, correct predictions, (%), near miss predictions (%), correct parent protein, (%), correct starting position, (%), correct peptide length, (%)
     summary = ''

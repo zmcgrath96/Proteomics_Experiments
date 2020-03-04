@@ -1,5 +1,6 @@
 from numbers import Number
 from utils import __make_valid_dir_string, __make_dir
+from file_io import JSON
 
 ######################################################################
 #                   CONSTANTS
@@ -7,6 +8,7 @@ from utils import __make_valid_dir_string, __make_dir
 
 DIVIDER_WIDTH = 70
 SUMMARY_FILE_NAME = 'summary.txt'
+SUMMARY_JSON_FILE_NAME = 'summary.json'
 SECTION_DIVIDER = '\n\n' + '=' * DIVIDER_WIDTH + '\n\n\n\n\n'
 HEADER_UNDERLINE = '\n' + '-' * DIVIDER_WIDTH + '\n'
 PROTEIN_SUMMARY_HEADER = 'EXPERIMENT PROTEIN INFORMATION'
@@ -136,7 +138,7 @@ def __prediction_stats_non_hyb(exp: dict) -> tuple:
     
     return (correct_count, near_miss, correct_parents, correct_starting_position, correct_length)
 
-def __summary_header(prot_info: dict, pep_info: dict) -> str:
+def __summary_header(prot_info: dict, pep_info: dict, summary_dict: dict) -> (str, dict):
     '''
     Create a string to return that has the basic experiment information in it
     
@@ -172,9 +174,24 @@ def __summary_header(prot_info: dict, pep_info: dict) -> str:
     non_hyb_pep_count_s = __pad_and_center(non_hyb_pep_count, HEADER_ROW_NAMES_PEPTIDE_SUMMARY[1])
     hyb_pep_count_s = __pad_and_center(hyb_pep_count, HEADER_ROW_NAMES_PEPTIDE_SUMMARY[2])
     header += pep_cols.format(pep_count_s, non_hyb_pep_count_s, hyb_pep_count_s) + SECTION_DIVIDER
-    return header
 
-def __prediction_summary(exp: dict) -> str:
+    # add info to the summary dict
+    summary_dict['header'] = {
+        'protein_info': {
+            'count': prot_count,
+            'non-hybrid_count': non_hyb_prot_count,
+            'hybrid_count': hyb_prot_count
+        },
+        'peptide_info': {
+            'count': pep_count,
+            'non-hybrid_count': non_hyb_pep_count,
+            'hybrid_count': hyb_pep_count
+        }
+    }
+    
+    return header, summary_dict
+
+def __prediction_summary(exp: dict, summary_dict: dict) -> (str, dict):
     '''
     Generate a summary of the predictions done
     
@@ -213,7 +230,23 @@ def __prediction_summary(exp: dict) -> str:
                HEADER_ROW_NAMES_EXPERIMENT_NON_HYBRID_SUMMARY[10] + ' '.rjust(rjust_width(HEADER_ROW_NAMES_EXPERIMENT_NON_HYBRID_SUMMARY[10]), '~') + str(corr_len_p)
     
     summary += NEAR_MISS_CONTEXT + SECTION_DIVIDER
-    return summary
+
+    # add info to the summary dict
+    summary_dict['non-hybrid_peptide_summary'] = {
+        'count': peptide_count,
+        'totally_correct': corr_c, 
+        'totally_correct_percent': corr_c_p,
+        'correct_parent': corr_par, 
+        'correct_parent_percentage': corr_par_p,
+        'near_miss': near_miss,
+        'near_miss_percentage': near_miss_p,
+        'correct_starting_position': corr_start_pos,
+        'correct_starting_position_percentage': corr_start_pos_p,
+        'correct_length': corr_len,
+        'correct_length_percentage': corr_len_p
+    }
+    
+    return summary, summary_dict
 
 ######################################################################
 #                   END PRIVATE FUNCTIONS
@@ -233,16 +266,20 @@ def make_summary(exp: dict, output_dir='./') -> None:
     output_dir = __make_valid_dir_string(output_dir)
     __make_dir(output_dir)
 
+    summary_dict = {}
+
     protein_info = exp['experiment_info']['proteins']
     peptide_info = exp['experiment_info']['peptides']
 
     # start with experiment summary
     # proteins
     # peptides
-    header = __summary_header(protein_info, peptide_info)
+    header, summary_dict = __summary_header(protein_info, peptide_info, summary_dict)
     
     # crunch the numbers 
-    summary = __prediction_summary(exp)
+    summary, summary_dict = __prediction_summary(exp, summary_dict)
     
     with open(output_dir + SUMMARY_FILE_NAME, 'w') as o:
         o.write(header + summary)
+
+    JSON.save_dict(output_dir + SUMMARY_JSON_FILE_NAME, summary_dict)

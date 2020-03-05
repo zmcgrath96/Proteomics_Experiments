@@ -40,7 +40,7 @@ def __predict_sequence(prot_info: dict, starting_pos: int) -> dict:
         if '=' not in ke:
             continue
         # check to see that the starting position is in the length. If its not, we know the peptide is shorter than that k
-        if starting_pos > len(prot_info[ke]):
+        if starting_pos >= len(prot_info[ke]):
             continue
         k = get_k(ke)
         # keep the current champion score if the max score is at least equal to the current score

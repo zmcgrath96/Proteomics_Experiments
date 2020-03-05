@@ -104,9 +104,9 @@ def generate_hybrids(prots, num_gen, min_contribution=10, name_prefix='HYBRID_')
             'right_parent_name': right_parent['name'],
             'left_parent_sequence': left_parent['sequence'],
             'right_parent_sequence': right_parent['sequence'],
-            'left_parent_end': left_end,
+            'left_parent_end': left_end - 1,        # inclusive index of the end
             'right_parent_start': right_start,
-            'left_parent_contribution': left_end - 1,
+            'left_parent_contribution': left_end,
             'right_parent_contribution': len(right_parent['sequence']) - right_start,
             'protein': hybrid,
             'name': name

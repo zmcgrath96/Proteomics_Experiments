@@ -25,7 +25,7 @@ with open(default_json_file, 'r') as o:
 '''
     CONSTANTS
 '''
-starting_positions = ['b', 'p', 'a', 's']
+starting_positions = ['b', 'p', 'a', 'sc', 'su']
 '''
     END CONSTANTS
 '''
@@ -196,7 +196,9 @@ def main(args):
         print('Loading experiment file...')
         exp_json = json.load(open(experiment_json_file, 'r'))
         print('Finished loading experiment')
+    print('Generating Sumamry...')
     summary.make_summary(exp_json, output_dir=save_dir)
+    print('Done.')
 
     print('Finished experiment. Time to complete: {} seconds'.format(time() - start_time))
 

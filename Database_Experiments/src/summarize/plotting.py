@@ -71,7 +71,7 @@ def __find_agg_score(scores, agg_func=''):
 def __find_pep_starting_pos(peps, pep_name):
     for pep in peps:
         if pep['peptide_name'] == pep_name:
-            return pep['start_index']
+            return pep['starting_position']
     return -1
 
 '''__aggregate_ranks

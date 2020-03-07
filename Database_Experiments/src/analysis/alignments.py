@@ -5,7 +5,7 @@ from analysis.analysis_utils import get_top_n_prots
 #                       CONSTANTS
 ###################################################################
 
-START_POSITION = 'starting_pos'
+START_POSITION = 'starting_position'
 PREDICTED_LENGTH = 'predicted_length'
 SAMPLE_PROTEIN_ANALYSIS = 'analysis'
 PROTEIN_NAME = 'protein_name'
@@ -29,7 +29,7 @@ def __predict_sequence(prot_info: dict, starting_pos: int) -> dict:
     Outputs:
         dictionary with the prediction. 
         {
-            'starting_pos': int,
+            'starting_position': int,
             'predicted_length': int
         }
     '''

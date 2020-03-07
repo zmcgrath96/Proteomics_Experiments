@@ -173,8 +173,8 @@ def __prediction_stats_non_hyb(exp: dict) -> tuple:
         peptide_prediction = pep['analysis']['sequence_predictions'][0]  # prediction information
 
         corr_par = peptide_info['parent_name'] == peptide_prediction['protein_name']
-        corr_start_pos = peptide_info['start_index'] == peptide_prediction['starting_pos']
-        corr_len = peptide_info['end_index'] - peptide_info['start_index'] == peptide_prediction['predicted_length']
+        corr_start_pos = peptide_info['starting_position'] == peptide_prediction['starting_position']
+        corr_len = peptide_info['ending_position'] - peptide_info['starting_position'] == peptide_prediction['predicted_length']
 
         if corr_par and corr_start_pos and corr_len:
             full_correct = True
@@ -220,7 +220,7 @@ def __hybrid_single_parent_prediction(sub_peptide_info: dict, candidates: list) 
     corr_parent = True
     
     # determine if there is a starting position that matches
-    corr_start_pos_candidates = [x for x in candidates if x['starting_pos'] == sub_peptide_info['starting_position']]
+    corr_start_pos_candidates = [x for x in candidates if x['starting_position'] == sub_peptide_info['starting_position']]
     if len(corr_start_pos_candidates) > 0:
         corr_start_pos = True
         candidates = corr_start_pos_candidates
@@ -260,10 +260,10 @@ def __get_sub_peptide_info(peptide_name: str, exp: dict) -> (dict, dict):
     left_sub_peptide['parent_name'] = hyb_prot_info['left_parent_name']
     right_sub_peptide['parent_name'] = hyb_prot_info['right_parent_name']
     
-    left_sub_peptide['starting_position'] = hyb_pep_info['start_index'] # since left peptide indexed by hybrid and left starts, we're set here
+    left_sub_peptide['starting_position'] = hyb_pep_info['starting_position'] # since left peptide indexed by hybrid and left starts, we're set here
     right_sub_peptide['starting_position'] = hyb_prot_info['right_parent_start'] # we know the junction will always be here
     
-    left_sub_peptide['length'] = hyb_prot_info['left_parent_contribution'] - hyb_pep_info['start_index']
+    left_sub_peptide['length'] = hyb_prot_info['left_parent_contribution'] - hyb_pep_info['starting_position']
     right_sub_peptide['length'] = len(hyb_pep_info['peptide_sequence']) - left_sub_peptide['length']
     
     return left_sub_peptide, right_sub_peptide

@@ -46,8 +46,8 @@ def __make_hybrid_pep(hybrid_prot, min_length=4, max_length=20, dist='beta'):
         'peptide_sequence': pep,
         'parent_name': hybrid_prot['name'],
         'parent_sequence': hybrid_prot['protein'],
-        'start_index': hybrid_prot['protein'].index(pep),
-        'end_index': hybrid_prot['protein'].index(pep) + len(pep)
+        'starting_position': hybrid_prot['protein'].index(pep),
+        'ending_position': hybrid_prot['protein'].index(pep) + len(pep)
     }
 
 '''__make_hybrid_peps_brute_force
@@ -87,8 +87,8 @@ def __make_hybrid_peps_brute_force(hybrid_prot, max_contribution=10, min_length=
                 'peptide_sequence': pep,
                 'parent_name': hybrid_prot['name'],
                 'parent_sequence': hybrid_prot['protein'],
-                'start_index': hybrid_prot['protein'].index(pep),
-                'end_index': hybrid_prot['protein'].index(pep) + len(pep),
+                'starting_position': hybrid_prot['protein'].index(pep),
+                'ending_position': hybrid_prot['protein'].index(pep) + len(pep),
             })
     return hyb_peps
 
@@ -239,8 +239,8 @@ Outputs:
         'peptide_sequence': str,
         'parent_name': str,
         'parent_sequence': str,
-        'start_index': int, 
-        'end_index': int
+        'starting_position': int, 
+        'ending_position': int
     }
 '''
 def gen_peptides(proteins, n, min_length=3, max_length=20, digest='random', hybrid_list=False, dist='beta'):

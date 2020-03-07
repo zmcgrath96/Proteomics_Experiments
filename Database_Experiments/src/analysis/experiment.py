@@ -25,7 +25,7 @@ SAMPLE_ENTRY = 'sample'
 SAMPLE_PROTEINS = 'proteins'
 SAMPLE_PROTEIN_ANALYSIS = 'analysis'
 
-START_POSITION = 'starting_pos'
+START_POSITION = 'starting_position'
 PREDICTED_LENGTH = 'predicted_length'
 
 PROTEIN_NAME = 'protein_name'
@@ -78,8 +78,8 @@ Inputs:
         'peptide_sequence': str,
         'parent_name': str,
         'parent_sequence': str,
-        'start_index': int, 
-        'end_index': int
+        'starting_position': int, 
+        'ending_position': int
     }
     args: dictionary parameters used when running the experiment
     json: dictionary object in which to save the header info
@@ -184,7 +184,7 @@ Outputs:
 def __rank_pep(json, peptide):
     ranking_dict = {}
     ranking_dict['correct_protein'] = peptide['parent_name']
-    ranking_dict['ranks'] = __find_kmer_rank(peptide['parent_name'], peptide['start_index'], deepcopy(json[EXPERIMENT_ENTRY][peptide['peptide_name']]))
+    ranking_dict['ranks'] = __find_kmer_rank(peptide['parent_name'], peptide['starting_position'], deepcopy(json[EXPERIMENT_ENTRY][peptide['peptide_name']]))
     ranking_dict['sequence'] = peptide['peptide_sequence']
     ranking_dict['sequence_length'] = len(peptide['peptide_sequence'])
     json[EXPERIMENT_ENTRY][peptide['peptide_name']][SAMPLE_PROTEIN_ANALYSIS]['ranks'] = ranking_dict
@@ -221,8 +221,8 @@ Inputs:
         'peptide_sequence': str,
         'parent_name': str,
         'parent_sequence': str,
-        'start_index': int, 
-        'end_index': int
+        'starting_position': int, 
+        'ending_position': int
     }
     args: dictionary parameters used when running the experiment
 kwargs:

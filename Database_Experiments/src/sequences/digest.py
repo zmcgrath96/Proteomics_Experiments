@@ -109,8 +109,8 @@ Outputs:
         'peptide_sequence': str,
         'parent_name': str,
         'parent_sequence': str,
-        'start_index': int, 
-        'end_index': int
+        'starting_position': int, 
+        'ending_position': int
     }
 '''
 def tryptic(sequences, number_digests, peptide_prefix='peptide_', miss_prob=0, save_dir='./', save_name='peptides.tsv', min_length=3, max_length=20, rand_cut_prob=.05, dist='beta'):
@@ -133,7 +133,7 @@ def tryptic(sequences, number_digests, peptide_prefix='peptide_', miss_prob=0, s
     peptides = []
     o = open(save_dir + save_name, 'w')
     form = '{}\t{}\t{}\t{}\t{}\t{}\n'
-    o.write(form.format('peptide_name', 'peptide', 'parent_name', 'parent_sequence', 'start_location', 'end_location'))
+    o.write(form.format('peptide_name', 'peptide', 'parent_name', 'parent_sequence', 'starting_position', 'ending_position'))
 
     digest_count = 0
     for digest in to_digest:
@@ -170,8 +170,8 @@ def tryptic(sequences, number_digests, peptide_prefix='peptide_', miss_prob=0, s
             'peptide_sequence': this_pep,
             'parent_name': name,
             'parent_sequence': seq,
-            'start_index': start, 
-            'end_index': end
+            'starting_position': start, 
+            'ending_position': end
         }
         peptides.append(pep_obj)
         o.write(form.format(pep_name, this_pep, name, seq, start, end))
@@ -205,8 +205,8 @@ Outputs:
         'peptide_sequence': str,
         'parent_name': str,
         'parent_sequence': str,
-        'start_index': int, 
-        'end_index': int
+        'starting_position': int, 
+        'ending_position': int
     }
 '''
 def random_digest(proteins, n, peptide_prefix='peptide_', min_length=3, max_length=20, dist='beta'):
@@ -231,8 +231,8 @@ def random_digest(proteins, n, peptide_prefix='peptide_', min_length=3, max_leng
             'peptide_sequence': pep,
             'parent_name': to_digest[i]['name'],
             'parent_sequence': seq,
-            'start_index': start,
-            'end_index': start + r
+            'starting_position': start,
+            'ending_position': start + r
         }
         digested.append(d)
 

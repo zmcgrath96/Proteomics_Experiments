@@ -40,7 +40,7 @@ def __make_hybrid_pep(hybrid_prot, min_length=4, max_length=20, dist='beta'):
     l = seq_utils.length_dist(1, dist=dist, min_length=min_length, max_length=max_length)
     left_contr = randint(1, l-1)
     right_contr = l - left_contr
-    j_site = hybrid_prot['left_parent_end']
+    j_site = hybrid_prot['left_parent_end_position']
     pep = hybrid_prot['protein'][j_site-left_contr:j_site+right_contr]
     return {
         'peptide_sequence': pep,
@@ -76,7 +76,7 @@ Outputs:
 '''
 def __make_hybrid_peps_brute_force(hybrid_prot, max_contribution=10, min_length=2):
     hyb_peps = []
-    j_site = hybrid_prot['left_parent_end']
+    j_site = hybrid_prot['left_parent_end_pos']
 
     for i in range(1, max_contribution):
         for j in range(1, max_contribution):

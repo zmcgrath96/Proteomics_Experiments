@@ -117,6 +117,6 @@ def compare_sequence_sequence_ion_type(spectra: str, reference: str, ion: str) -
     Ouputs:
         float score of the comparison
     '''
-    spectra_ions, _ = calc_masses(spectra, ion=ion)['spectrum']
-    reference_ions , _= calc_masses(reference, ion=ion)['spectrum']
+    spectra_ions, _ = calc_masses(spectra, ion=ion)
+    reference_ions , _= calc_masses(reference, ion=ion)
     return compare_masses(spectra_ions, reference_ions)

@@ -1,4 +1,4 @@
-from file_io import mzML, fasta, csv
+from file_io import fasta, csv
 from scoring.comparisons import compare_sequence_spectra, compare_spectra_sequence_ion_type
 
 
@@ -68,12 +68,12 @@ def search_proteins(spectrum: dict, database: list) -> (dict, dict):
     }
     return best_matches
 
-def search_database(spec_file: str, database: list, output_name: str) -> (str, str):
+def search_database(spectra: list, database: list, output_name: str) -> (str, str):
     '''
     Find the hightest scoring subsequence for each spectra
     
     Inputs:
-        spec_file:      str path to .mzML file
+        spec_file:      list of dictionaries of the form {'level': , 'scan_no': , 'spectrum': } from a .mzML file
         database:       list of dictionaries read from a fasta file of form
                     {
                         'identifier': any,
@@ -86,9 +86,8 @@ def search_database(spec_file: str, database: list, output_name: str) -> (str, s
     Outputs: 
         string path to the saved file containing scores
     '''
-    specs = mzML.read(spec_file)
     results = []
-    for spec in specs:
+    for spec in spectra:
         results.append(search_proteins(spec, database))
 
     return csv.write_iter_of_dicts(results, output_name)

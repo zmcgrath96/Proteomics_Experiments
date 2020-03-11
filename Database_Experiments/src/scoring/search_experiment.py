@@ -4,7 +4,7 @@ import shutil
 from subprocess import call
 from utils import __make_dir, __make_valid_dir_string, __is_gzipped, __gunzip, __gzip
 from scoring import search
-from file_io import fasta
+from file_io import fasta, mzML
 
 crux_to_rm = ['tide-search.decoy.txt', 'tide-search.log.txt', 'tide-search.params.txt']
 scoring_functions = ['crux', 'custom']
@@ -152,6 +152,24 @@ def __load_databases(database_files: list) -> dict:
         dbs[db_name] = fasta.read(db_name)
     return dbs
 
+def __load_spectra(spectra_files: list) -> dict:
+    '''
+    Load the .mzML files into memory
+
+    Inputs:
+        spectra_files: list of strings of full paths to .mzML files
+    Ouputs:
+        dictionary of lists of the form
+        {
+            '<spectra file name>': [spectra]
+        }
+    '''
+    spectra = {}
+    for spectra_file in spectra_files:
+        spectra_file = spectra_file if not __is_gzipped(spectra_file) else __gunzip(spectra_file)
+        spectra[spectra_file] = mzML.read(spectra_file)
+    return spectra
+
 def __custom_search(spectra_files: list, database_files: list, output_dir: str, compress=True) -> list:
     '''
     Use a custom scoring function to score spectra
@@ -171,19 +189,19 @@ def __custom_search(spectra_files: list, database_files: list, output_dir: str, 
     no_spec = len(spectra_files)
     no_db = len(database_files)
 
-    # preload databases into memory to reduce file io
+    # preload stuff into memory to reduce file io
     print('Loading databases into memory...')
     databases = __load_databases(database_files)
     print('Done')
+    print('Loading spectra into memory...')
+    spectra = __load_spectra(spectra_files)
+    print('Done')
 
-    for spec_no, spectra_file in enumerate(spectra_files):
-        spectra_file = spectra_file if not __is_gzipped(spectra_file) else __gunzip(spectra_file)
-
+    for spec_no, spectra_file in enumerate(spectra):
         for db_no, db in enumerate(databases):
             print('On spectrum: {}/{} [{}%]   On database: {}/{} [{}%]\r'.format(spec_no, no_spec, int(float(spec_no) / float(no_spec) * 100), db_no, no_db, int(float(db_no) / float(no_db) * 100)), end='')
-
             output_name = output_dir + 'search_output/' + '{}_vs_{}'.format(__parse_spectrum_name(spectra_file), __parse_db_name(db))
-            output_file = search.search_database(spectra_file, databases[db], output_name)
+            output_file = search.search_database(spectra[spectra_file], databases[db], output_name)
             output_file = output_file if not compress else __gzip(output_file)
             output_files.append(output_file)
     return output_files

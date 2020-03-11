@@ -1,5 +1,5 @@
 from file_io import mzML, fasta, csv
-from scoring.compare import compare_sequence_spectra, compare_sequence_sequence_ion_type
+from scoring.comparisons import compare_sequence_spectra, compare_spectra_sequence_ion_type
 
 
 def search_proteins(spectrum: dict, database: list) -> (dict, dict):
@@ -33,8 +33,8 @@ def search_proteins(spectrum: dict, database: list) -> (dict, dict):
     best_match_b = {}
     best_match_y = {}
     for prot in database:
-        b_score = compare_sequence_sequence_ion_type(spectrum['spectrum'], prot['sequence'], 'b')
-        y_score = compare_sequence_sequence_ion_type(spectrum['spectrum'], prot['sequence'], 'y')
+        b_score = compare_spectra_sequence_ion_type(spectrum['spectrum'], prot['sequence'], 'b')
+        y_score = compare_spectra_sequence_ion_type(spectrum['spectrum'], prot['sequence'], 'y')
         if best_match_b == {} or best_match_b['score'] < b_score:
             best_match_b = {
                 'protein_id': prot['identifier'],

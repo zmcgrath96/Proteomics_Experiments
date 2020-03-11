@@ -41,7 +41,7 @@ def __make_hybrid_pep(hybrid_prot, min_length=4, max_length=20, dist='beta'):
     left_contr = randint(1, l-1)
     right_contr = l - left_contr
     j_site = hybrid_prot['left_parent_end_position']
-    pep = hybrid_prot['protein'][j_site-left_contr:j_site+right_contr]
+    pep = hybrid_prot['protein'][j_site-left_contr + 1:j_site+right_contr + 1]
     return {
         'peptide_sequence': pep,
         'parent_name': hybrid_prot['name'],
@@ -50,37 +50,36 @@ def __make_hybrid_pep(hybrid_prot, min_length=4, max_length=20, dist='beta'):
         'ending_position': hybrid_prot['protein'].index(pep) + len(pep)
     }
 
-'''__make_hybrid_peps_brute_force
-
-DESC:
-    generate a hybrid peptide
-PARMS:
-    hybrid_prot: a dictionary with entries 
+def __make_hybrid_peps_brute_force(hybrid_prot, max_contribution=10, min_contribution=3, min_length=2):
+    '''
+    Generate every hybrid peptide from min length to 2*max_contribution including the hybrid junction site
+    Inputs:
+        hybrid_prot:    a dictionary with entries 
+            {
+                hybrid_protein: str,
+                left_parent_end: int,
+                name: str,
+            }
+    kwargs:
+        max_contribution:   int max contribution from each side. Default=10
+        min_contribution:   int minimum contribution from each side. Default=3
+        min_length:         mininum length peptide to create. Default=2
+    Outputs:
+        list of dictionarie of form
         {
-            hybrid_protein: str,
-            left_parent_end: int,
-            name: str,
+            hybrid_peptide_sequence: str,
+            hybrid_parent_name: str,
+            hybrid_parent_sequence: str,
+            start_index: int, 
+            end_index: int
         }
-kwargs:
-    max_contribution: int max contribution from each side. Default=10
-    min_length: mininum length peptide to create. Default=2
-Outputs:
-    list of dictionarie of form
-    [{
-        hybrid_peptide_sequence: str,
-        hybrid_parent_name: str,
-        hybrid_parent_sequence: str,
-        start_index: int, 
-        end_index: int
-    }]
-'''
-def __make_hybrid_peps_brute_force(hybrid_prot, max_contribution=10, min_length=2):
+    '''
     hyb_peps = []
-    j_site = hybrid_prot['left_parent_end_pos']
+    j_site = hybrid_prot['left_parent_end_position']
 
-    for i in range(1, max_contribution):
-        for j in range(1, max_contribution):
-            pep = hybrid_prot['protein'][j_site - i:j_site + j]
+    for i in range(min_contribution, max_contribution):
+        for j in range(min_contribution, max_contribution):
+            pep = hybrid_prot['protein'][j_site - i + 1:j_site + j + 1]
             if len(pep) < min_length:
                 continue
             hyb_peps.append({

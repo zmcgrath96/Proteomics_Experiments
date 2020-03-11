@@ -258,12 +258,13 @@ def save_experiment(proteins, peptides, args, files=None, saving_dir='./'):
             if prot_with_subseq is None or len(prot_with_subseq) == 0: 
                 print('No files scoring {} against {} were found. Skipping'.format(prot_name, pep['peptide_name']))
 
-            this_prot_kmers = []
             for f in prot_with_subseq:
-                scores, _, _ = score_utils.get_scores_scan_pos_label(f)
+                # we now have b and y ion scores, so we need to get both
+                b_scores, y_scores = score_utils.get_b_y_scores(f)
                 k = 'k=' + str(__get_k_number(f))
-                subsequence_dict[prot_name][k] = scores
-                this_prot_kmers.append(scores)
+                subsequence_dict[prot_name][k] = {}
+                subsequence_dict[prot_name][k]['b'] = b_scores
+                subsequence_dict[prot_name][k]['y'] = y_scores
                 
         experiment_json[EXPERIMENT_ENTRY][pep['peptide_name']] = deepcopy(subsequence_dict)
 

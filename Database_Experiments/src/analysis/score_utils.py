@@ -89,6 +89,35 @@ def get_scores_scan_pos_label(file, search_substring=''):
     aligned_scores, _ = align_scan_pos(list(df[col_names['score']]), list(df[col_names['scan_number']]))
     return aligned_scores, [], ''
 
+def get_b_y_scores(file: str) -> (list, list):
+    '''
+    Return both the b and y ion scores
+
+    Inputs:
+        file:   string full path to the file name to extract scores from 
+    Ouptus:
+        (b_scores, y_scores)
+        scores both have a list of floats of the scores from each position in order
+    '''
+    sep = '\t' if '.tsv' in file else ','
+    if utils.__is_gzipped(file):
+        file = utils.__gunzip(file)
+
+    df = pd.read_csv(file, sep, header=0)
+    
+    # get the b scores first
+    df.sort_values('score_b', ascending=False)
+    df.drop_duplicates(subset='scan_no_b')
+    df = df.sort_values('scan_no_b')
+    b_aligned_scores, _ = align_scan_pos(list(df['score_b']), list(df['scan_no_b']))
+
+    # get the y scores second
+    df.sort_values('score_y', ascending=False)
+    df.drop_duplicates(subset='scan_no_y')
+    df = df.sort_values('scan_no_y')
+    y_aligned_scores, _ = align_scan_pos(list(df['score_y']), list(df['scan_no_y']))
+    return b_aligned_scores, y_aligned_scores
+
 '''pad_scores
 
 DESC:

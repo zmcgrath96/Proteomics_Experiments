@@ -4,7 +4,7 @@ import argparse
 import json
 from time import time
 from spectra import gen_spectra_files
-from scoring import run_scoring
+from scoring import search_experiment
 from sequences import peptides, proteins
 from analysis import experiment
 from summarize import plotting
@@ -160,7 +160,7 @@ def main(args):
 
         # run scoring algorithm on database and k-mers
         print('Scoring...')
-        score_output_files = run_scoring.score_peptides(spectra_files, fasta_databases, save_dir, compress=compress, score_func=score_func, path_to_crux_cmd=defaults['crux_cmd'])
+        score_output_files = search_experiment.score_peptides(spectra_files, fasta_databases, save_dir, compress=compress, score_func=score_func, path_to_crux_cmd=defaults['crux_cmd'])
         print('\nDone.')
 
         # save the experiment in a json file

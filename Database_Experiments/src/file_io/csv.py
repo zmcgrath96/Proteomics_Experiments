@@ -1,18 +1,18 @@
 from utils import __make_valid_csv_file, __make_valid_dir_string, __make_dir
 
-'''write_iter_of_dicts
-
-DESC:
-    write a csv from an iterable of dictionaries with entries as column names
-Inputs:
-    iter_of_dicts: an iterable of dictionaries to write
-    file_name: name of file to write to
-kwargs:
-    no_header: bool don't use a header line. Default=False
-Outputs: 
-    none
-'''
 def write_iter_of_dicts(iter_of_dicts, file_name, no_header=False):
+    '''
+    Write a csv from an iterable of dictionaries with entries as column names
+    Dictionaries should only be one level deep, no nested dictionary
+
+    Inputs:
+        iter_of_dicts: an iterable of dictionaries to write
+        file_name: name of file to write to
+    kwargs:
+        no_header: bool don't use a header line. Default=False
+    Outputs: 
+        string file name written to
+    '''
     if len(iter_of_dicts) == 0:
         return 
 

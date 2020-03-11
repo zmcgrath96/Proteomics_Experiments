@@ -1,5 +1,5 @@
 from file_io import mzML, fasta, csv
-from scoring.compare import cmp_string_spectra
+from scoring.compare import compare_sequence_spectra
 
 
 def search_proteins(spectrum: dict, database: list) -> dict:
@@ -29,7 +29,7 @@ def search_proteins(spectrum: dict, database: list) -> dict:
     '''
     best_match = {}
     for prot in database:
-        score = cmp_string_spectra(prot['sequence'], spectrum['spectrum'])
+        score = compare_sequence_spectra(prot['sequence'], spectrum['spectrum'])
         if best_match == {} or best_match['score'] < score:
             best_match = {
                 'protein_id': prot['identifier'],

@@ -1,4 +1,8 @@
 from utils import __make_valid_csv_file, __make_valid_dir_string, __make_dir
+import queue
+import time
+
+SLEEPTIME = 0.001
 
 def write_iter_of_dicts(iter_of_dicts, file_name, no_header=False):
     '''
@@ -34,5 +38,29 @@ def write_iter_of_dicts(iter_of_dicts, file_name, no_header=False):
             o.write(template.format(*vals))     
 
     return(file_name) 
+
+
+def threaded_writer_interface(q: queue.Queue, flist: list) -> None:
+    '''
+    Threaded interface for the csv writer
+
+    Inputs:
+        q:      queue.Queue object for threadsafe operations
+                For normal Queue operations, each entry should be of the form (writeable, filename)
+                To end this thread, pass in (None, None)
+        flist:  list to append written files to. Python lists are threadsafe by default
+    Outputs:
+        None
+    '''
+    while True:
+        if not q.empty():
+            writeable, filename = q.get()
+            if writeable is None and filename is None: 
+                break
+            filename = write_iter_of_dicts(writeable, filename)
+            flist.append(filename)
+            q.task_done()
+        else: 
+            time.sleep(SLEEPTIME)
 
 

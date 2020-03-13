@@ -6,7 +6,7 @@ from analysis import score_utils
 from analysis.aggregations import __z_score_sum, __sum, __product
 from analysis.analysis_utils import get_top_n_prots
 from summarize.plotting import plot_experiment
-from analysis.alignments import make_sequence_predictions
+from analysis.alignments import make_sequence_predictions, make_sequence_predictions_ions
 from typing import List, Dict
 import sys
 
@@ -108,8 +108,15 @@ def __add_subsequnce_agg(peptide_dict: dict, predicting_agg_func='sum', ignore_h
         if SAMPLE_PROTEIN_ANALYSIS == prot_name:
             continue
             
-        agged = agg_func(prot_scores)
-        peptide_dict[prot_name][predicting_agg_func] = deepcopy(agged)
+        # need to break into b and y ion aggregations {k: {b: [],y: []}}
+        to_agg_b =  [prot_scores[k]['b'] for k in prot_scores]
+        to_agg_y =  [prot_scores[k]['y'] for k in prot_scores]
+        agged_b = agg_func(to_agg_b)
+        agged_y = agg_func(to_agg_y)
+        peptide_dict[prot_name][predicting_agg_func] = {
+            'b': deepcopy(agged_b),
+            'y': deepcopy(agged_y)
+        }
     
     if SAMPLE_PROTEIN_ANALYSIS not in peptide_dict: 
         peptide_dict[SAMPLE_PROTEIN_ANALYSIS] = {}
@@ -125,7 +132,7 @@ def __add_subsequnce_agg(peptide_dict: dict, predicting_agg_func='sum', ignore_h
                 continue
             to_predict[k] = deepcopy(peptide_dict[k])
 
-    peptide_dict[SAMPLE_PROTEIN_ANALYSIS][EXPERIMENT_SEQUENCE_PREDICTION] = make_sequence_predictions(to_predict, predicting_agg_func)
+    peptide_dict[SAMPLE_PROTEIN_ANALYSIS][EXPERIMENT_SEQUENCE_PREDICTION] = make_sequence_predictions_ions(to_predict, predicting_agg_func)
     return peptide_dict   
 
 '''__find_kmer_rank
@@ -171,20 +178,28 @@ def __find_kmer_rank(correct_prot, correct_position, peptide_analysis):
     
     return ranking[correct_prot]
 
-'''__rank_pep
 
-DESC:
-    run through all the proteins against this peptide and rank the correct score at the right position
-Inputs: 
-    json: dictionary object to add analysis to
-    peptide: dictionary of all the peptide information
-Outputs:
-    None
-'''
-def __rank_pep(json, peptide):
+def __rank_pep(json: dict, peptide: dict) -> None:
+    '''
+    Run through all the proteins against this peptide and rank the correct score at the right position
+    All additions are in place and not object is returned
+
+    Inputs: 
+        json:       dictionary object to add analysis to
+        peptide:    dictionary of all the peptide information
+    Outputs:
+        None
+    '''
     ranking_dict = {}
     ranking_dict['correct_protein'] = peptide['parent_name']
-    ranking_dict['ranks'] = __find_kmer_rank(peptide['parent_name'], peptide['starting_position'], deepcopy(json[EXPERIMENT_ENTRY][peptide['peptide_name']]))
+    # separate into b and y rankings
+    get_ions_from_scores = lambda peptide_info, ion: {prot: {k: peptide_info[prot][k][ion] for k in peptide_info[prot]} for prot in peptide_info if prot != 'analysis'}
+    to_rank_b = get_ions_from_scores(json[EXPERIMENT_ENTRY][peptide['peptide_name']], 'b')
+    to_rank_y = get_ions_from_scores(json[EXPERIMENT_ENTRY][peptide['peptide_name']], 'y')
+    ranking_dict['ranks'] = {
+        'b': __find_kmer_rank(peptide['parent_name'], peptide['starting_position'], to_rank_b), 
+        'y': __find_kmer_rank(peptide['parent_name'], peptide['starting_position'], to_rank_y)
+    }
     ranking_dict['sequence'] = peptide['peptide_sequence']
     ranking_dict['sequence_length'] = len(peptide['peptide_sequence'])
     json[EXPERIMENT_ENTRY][peptide['peptide_name']][SAMPLE_PROTEIN_ANALYSIS]['ranks'] = ranking_dict

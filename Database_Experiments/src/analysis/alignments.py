@@ -48,11 +48,36 @@ def __predict_sequence(prot_info: dict, starting_pos: int) -> dict:
     # we now have the k where the score peaked, so we should be able to make dumb prediction off this
     return {START_POSITION: starting_pos, PREDICTED_LENGTH: max_score_k}
 
+def predict_pep_seqs(prot_scores: list, peptide_dict: dict) -> list:
+    '''
+    For all proteins try and predict the sequence
+
+    Inputs:
+        prot_scores:    list of scores with protein information
+        peptide_dict:   dictionary containing protein names (keys) and score information (dict) with kmers (k=keys) and scores (values)
+    Outputs:
+        list of dictionaries with prediction information
+        {
+            'starting_position':    int,
+            'predicted_length':     int,
+            'protein_name':         str,
+        }
+    '''
+    predictions = []
+    for tp in prot_scores:
+        prot_name = tp[PROTEIN_NAME]
+        pos = tp[POSITION]
+        prediction = __predict_sequence(peptide_dict[prot_name], pos)
+        prediction[PROTEIN_NAME] = prot_name
+        predictions.append(prediction)
+    return predictions
+
+
 ###################################################################
 #                     END PRIVATE FUNCTIONS
 ###################################################################
 
-def make_sequence_predictions(peptide_dict: dict, agg_fucn:str, n=5) -> dict:
+def make_sequence_predictions(peptide_dict: dict, agg_func:str, n=5) -> list:
     '''
     make a prediction as to who the parent is and what the sequence is
     
@@ -62,24 +87,56 @@ def make_sequence_predictions(peptide_dict: dict, agg_fucn:str, n=5) -> dict:
     kwargs:
         n:                      int top n preditions to make
     Outputs:
-        peptide_predition:      dictionary of top n predictions
+        peptide_predition:      list of top n predictions
     '''
     agged = {}
     for p in peptide_dict:
         if p == SAMPLE_PROTEIN_ANALYSIS:
             continue
-        agged[p] = deepcopy(peptide_dict[p][agg_fucn])
+        agged[p] = deepcopy(peptide_dict[p][agg_func])
     
     # get the best proteins
     top_prots = get_top_n_prots(agged, n=n)
 
     # now that we have the top proteins, use k-information to try and predict the sequece
-    predictions = []
-    for tp in top_prots:
-        prot_name = tp[PROTEIN_NAME]
-        pos = tp[POSITION]
-        prediction = __predict_sequence(peptide_dict[prot_name], pos)
-        prediction[PROTEIN_NAME] = prot_name
-        predictions.append(prediction)
+    predictions = predict_pep_seqs(top_prots, peptide_dict)
 
     return predictions
+
+def make_sequence_predictions_ions(peptide_dict: dict, agg_func: str, n=5) -> list:
+    '''
+    Make best n predictions for both b ions and y ions
+
+    Inputs:
+        peptide_dict:           dictionary containing protein names (keys) and score information (dict) with kmers (k=keys) with ions ('b, 'y') and scores (values)
+        agg_func:               aggregation fucntion name. Used to find the aggregated scores
+    kwargs:
+        n:                      int top n preditions to make
+    Outputs:
+        b_prediction, y_prediction
+            both of these are list of top n predictions
+    '''
+    # separate b and y info
+    b_pep_dict = {}
+    y_pep_dict = {}
+    b_prots = {}
+    y_prots = {}
+    # {k: {b: , y: }}
+    get_ion_from_kmers = lambda x, ion: {k: x[k][ion] for k in x}
+    for p in peptide_dict:
+        if p == SAMPLE_PROTEIN_ANALYSIS:
+            continue
+        b_prots[p] = deepcopy(peptide_dict[p][agg_func]['b'])
+        y_prots[p] = deepcopy(peptide_dict[p][agg_func]['y'])
+        b_pep_dict[p] = get_ion_from_kmers(peptide_dict[p], 'b') 
+        y_pep_dict[p] = get_ion_from_kmers(peptide_dict[p], 'y')
+    
+    # get the best proteins
+    top_prots_b = get_top_n_prots(b_prots, n=n)
+    top_prots_y = get_top_n_prots(y_prots, n=n)
+
+    # now that we have the top proteins, use k-information to try and predict the sequece
+    b_predictions = predict_pep_seqs(top_prots_b, b_pep_dict)
+    y_predictions = predict_pep_seqs(top_prots_y, y_pep_dict)
+
+    return b_predictions, y_predictions

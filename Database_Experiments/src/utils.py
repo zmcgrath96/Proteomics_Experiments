@@ -1,4 +1,4 @@
-import os, gzip, shutil
+import os, gzip, shutil, copy
 
 '''__get_related_files
 
@@ -195,3 +195,29 @@ Outputs:
 '''
 def __is_fasta(file):
     return True if '.fasta' in file else False
+
+def __split_exp_by_ion(exp: dict, ion: str) -> dict:
+    '''
+    Make a copy of the experiment split by ion information
+
+    Inputs:
+        exp:    dictionary with expeiment summary information
+        ion:    string ion type. Possible types are {'b', 'y'}
+    Outpus:
+        dict same structure as experiment just without other ion information
+    '''
+    ionized_exp = {}
+    ionized_exp['experiment_info'] = copy.deepcopy(exp['experiment_info'])
+    ionized_exp['experiment'] = {}
+    for pep_name, pep in exp['experiment'].items():
+        ionized_exp['experiment'][pep_name] = {}
+        for prot_name, prot in pep.items():
+            if prot_name == 'analysis':
+                ionized_exp['experiment'][pep_name][prot_name] = copy.deepcopy(prot)
+                ionized_exp['experiment'][pep_name][prot_name]['ranks']['ranks'] = ionized_exp['experiment'][pep_name][prot_name]['ranks']['ranks'][ion]
+                continue
+            ionized_exp['experiment'][pep_name][prot_name] = {}
+            for k, scores in prot.items():
+                ionized_exp['experiment'][pep_name][prot_name][k] = scores[ion] 
+
+    return ionized_exp

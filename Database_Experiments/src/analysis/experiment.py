@@ -5,10 +5,12 @@ from file_io import JSON
 from analysis import score_utils
 from analysis.aggregations import __z_score_sum, __sum, __product
 from analysis.analysis_utils import get_top_n_prots
+from analysis.score_utils import pad_scores
 from summarize.plotting import plot_experiment
 from analysis.alignments import make_sequence_predictions, make_sequence_predictions_ions
 from typing import List, Dict
 import sys
+from numpy import argmax
 
 #######################################################
 #                   CONSTANTS
@@ -111,8 +113,16 @@ def __add_subsequnce_agg(peptide_dict: dict, predicting_agg_func='sum', ignore_h
         # need to break into b and y ion aggregations {k: {b: [],y: []}}
         to_agg_b =  [prot_scores[k]['b'] for k in prot_scores]
         to_agg_y =  [prot_scores[k]['y'] for k in prot_scores]
+        # do our own padding here for the y agg to align it properly
+        # find the longest one 
+        longest_score = argmax([len(x) for x in to_agg_y])
+        adjusted_to_agg_y = []
+        for agg in to_agg_y:
+            x, _ = pad_scores(agg, to_agg_y[longest_score], side='l')
+            adjusted_to_agg_y.append(x)
+
         agged_b = agg_func(to_agg_b)
-        agged_y = agg_func(to_agg_y)
+        agged_y = agg_func(adjusted_to_agg_y)
         peptide_dict[prot_name][predicting_agg_func] = {
             'b': deepcopy(agged_b),
             'y': deepcopy(agged_y)

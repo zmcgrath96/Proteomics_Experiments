@@ -118,25 +118,31 @@ def get_b_y_scores(file: str) -> (list, list):
     y_aligned_scores, _ = align_scan_pos(list(df['score_y']), list(df['scan_no_y']))
     return b_aligned_scores, y_aligned_scores
 
-'''pad_scores
-
-DESC:
+def pad_scores(score_l1, score_l2, padding=0, side='right'):
+    '''
     Makes two lists the same length (filled with 0s)
-Inputs:
-    score_l1: list of floats for the first set of scores
-    score_l2: list of floats for the second set of scores
-kwargs:    
-    padding: float number to pad the list with. Default=0
-Outputs:
-    list, list of modified score_l1, modified score_l2
-'''
-def pad_scores(score_l1, score_l2, padding=0):
+
+    Inputs:
+        score_l1:   list of floats for the first set of scores
+        score_l2:   list of floats for the second set of scores
+    kwargs:    
+        padding:    float number to pad the list with. Default=0
+        side:       string determine which side to pad. Options are {'right', 'left', 'r', 'l'}. Default='right'
+    Outputs:
+        list, list of modified score_l1, modified score_l2
+    '''
     score_l1 = list(score_l1)
     score_l2 = list(score_l2)
     diff = len(score_l1) - len(score_l2)
     if diff == 0:
         return score_l1, score_l2
     elif diff > 0:
-        return score_l1, score_l2 + [padding for _ in range(abs(diff))]
+        if 'l' in side:
+            return score_l1, [padding for _ in range(abs(diff))] + score_l2 
+        else: 
+            return score_l1, score_l2 + [padding for _ in range(abs(diff))]
     else:
-        return score_l1 + [padding for _ in range(abs(diff))], score_l2
+        if 'l' in side: 
+            return [padding for _ in range(abs(diff))] + score_l1, score_l2
+        else: 
+            return score_l1 + [padding for _ in range(abs(diff))], score_l2

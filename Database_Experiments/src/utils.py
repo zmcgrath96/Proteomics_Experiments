@@ -221,3 +221,15 @@ def __split_exp_by_ion(exp: dict, ion: str) -> dict:
                 ionized_exp['experiment'][pep_name][prot_name][k] = scores[ion] 
 
     return ionized_exp
+
+def experiment_has_ion_types(exp: dict) -> bool:
+    '''
+    Determines if the experiment split scores by ion type
+
+    Inputs:
+        exp:    dictionary containing experiment information
+    Outputs:
+        True if ion types detected False otherwise
+    '''
+    first_pep = exp['experiment'][next(iter(exp['experiment']))]
+    return set(['b', 'y']) & set(first_pep['analysis']['ranks']['ranks'].keys())

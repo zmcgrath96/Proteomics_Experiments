@@ -1,5 +1,5 @@
 from numbers import Number
-from utils import __make_valid_dir_string, __make_dir
+from utils import __make_valid_dir_string, __make_dir, experiment_has_ion_types, __split_exp_by_ion
 from file_io import JSON
 
 ######################################################################
@@ -523,11 +523,7 @@ def __prediction_summary(exp: dict, summary_dict: dict) -> (str, dict):
     
     return summary, summary_dict
 
-######################################################################
-#                     END PRIVATE FUNCTIONS
-######################################################################
-
-def make_summary(exp: dict, output_dir='./') -> None:
+def __summary_generator(exp: dict, output_dir='./') -> None:
     '''
     Creates a summary txt file for the experiment
 
@@ -560,3 +556,25 @@ def make_summary(exp: dict, output_dir='./') -> None:
 
     JSON.save_dict(output_dir + SUMMARY_JSON_FILE_NAME, summary_dict)
     print('Done.')
+
+######################################################################
+#                     END PRIVATE FUNCTIONS
+######################################################################
+
+def make_summary(exp: dict, output_dir='./') -> None:
+    '''
+    Creates a summary txt file for the experiment
+
+    Inputs:
+        exp:        dictionary of the experiment results
+    kwargs:
+        output_dir: string name of directory to save file to. Default='./'
+    Outputs:
+        None
+    '''
+    if experiment_has_ion_types(exp):
+        for ion in ['b', 'y']:
+            ion_exp = __split_exp_by_ion(exp, ion)
+            __summary_generator(ion_exp, output_dir=__make_valid_dir_string(output_dir) + 'ion_{}'.format(ion))
+    else:
+        __summary_generator(exp, output_dir=output_dir)

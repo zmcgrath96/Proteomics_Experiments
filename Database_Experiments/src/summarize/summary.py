@@ -261,7 +261,7 @@ def __get_sub_peptide_info(peptide_name: str, exp: dict) -> (dict, dict):
     right_sub_peptide['parent_name'] = hyb_prot_info['right_parent_name']
     
     left_sub_peptide['starting_position'] = hyb_pep_info['starting_position'] # since left peptide indexed by hybrid and left starts, we're set here
-    right_sub_peptide['starting_position'] = hyb_prot_info['right_parent_start'] # we know the junction will always be here
+    right_sub_peptide['starting_position'] = hyb_prot_info['right_parent_start_position'] # we know the junction will always be here
     
     left_sub_peptide['length'] = hyb_prot_info['left_parent_contribution'] - hyb_pep_info['starting_position']
     right_sub_peptide['length'] = len(hyb_pep_info['peptide_sequence']) - left_sub_peptide['length']
@@ -492,6 +492,7 @@ def __hybrid_peptide_summary(exp: dict, summary_dict: dict) -> (str, dict):
                HEADER_ROW_NAMES_EXPERIMENT_HYBRID_SUMMARY[11] + ' '.rjust(rjust_width(HEADER_ROW_NAMES_EXPERIMENT_HYBRID_SUMMARY[11]), '~') + str(right_info['correct_length']) + '\n' + \
                HEADER_ROW_NAMES_EXPERIMENT_HYBRID_SUMMARY[12] + ' '.rjust(rjust_width(HEADER_ROW_NAMES_EXPERIMENT_HYBRID_SUMMARY[12]), '~') + str(percent_of(right_info['correct_length'], hyb_pep_count)) + '\n' 
     
+    summary += HYBRID_NEAR_MISS_CONTEXT + '\n' + HYBRID_CORRECT_PREDICTIONS_CONTEXT + '\n' + HYBRID_CORRECT_PARENT_PREDICTIONS_CONTEXT
     summary_dict['hybrid_peptide_summary'] = {
         'count': hyb_pep_count,
         'totally_correct': total_correct_count, 

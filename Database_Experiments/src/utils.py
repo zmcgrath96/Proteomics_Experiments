@@ -215,6 +215,7 @@ def __split_exp_by_ion(exp: dict, ion: str) -> dict:
             if prot_name == 'analysis':
                 ionized_exp['experiment'][pep_name][prot_name] = copy.deepcopy(prot)
                 ionized_exp['experiment'][pep_name][prot_name]['ranks']['ranks'] = ionized_exp['experiment'][pep_name][prot_name]['ranks']['ranks'][ion]
+                ionized_exp['experiment'][pep_name][prot_name]['sequence_predictions'] = ionized_exp['experiment'][pep_name][prot_name]['sequence_predictions'][ion]
                 continue
             ionized_exp['experiment'][pep_name][prot_name] = {}
             for k, scores in prot.items():

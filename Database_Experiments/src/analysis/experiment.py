@@ -132,7 +132,11 @@ def __add_subsequnce_agg(peptide_dict: dict, predicting_agg_func='sum', ignore_h
                 continue
             to_predict[k] = deepcopy(peptide_dict[k])
 
-    peptide_dict[SAMPLE_PROTEIN_ANALYSIS][EXPERIMENT_SEQUENCE_PREDICTION] = make_sequence_predictions_ions(to_predict, predicting_agg_func)
+    b_predicted, y_predicted = make_sequence_predictions_ions(to_predict, predicting_agg_func)
+    peptide_dict[SAMPLE_PROTEIN_ANALYSIS][EXPERIMENT_SEQUENCE_PREDICTION] = {
+        'b': b_predicted,
+        'y': y_predicted
+    }
     return peptide_dict   
 
 '''__find_kmer_rank
@@ -334,6 +338,8 @@ def analyze(exp, predicting_agg_func='sum', saving_dir='./'):
         __rank_pep(experiment_json, peptide_info_dict)
     
     # save to file
+    print('Finished analysis. Saving to file...')
     JSON.save_dict(saving_dir + experiment_json_file_name, experiment_json)
+    print('Done.')
 
     return(saving_dir + experiment_json_file_name), experiment_json

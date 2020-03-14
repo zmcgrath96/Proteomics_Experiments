@@ -4,7 +4,7 @@ import itertools
 import os
 import numpy as np
 from copy import deepcopy
-from utils import __get_related_files, __make_dir, __make_valid_dir_string, __gzip_dir, __split_exp_by_ion
+from utils import __get_related_files, __make_dir, __make_valid_dir_string, __gzip_dir, __split_exp_by_ion, experiment_has_ion_types
 from analysis.analysis_utils import get_top_n, __get_argmax_max
 from analysis.score_utils import align_scan_pos, get_scores_scan_pos_label, pad_scores
 from summarize import peptide_plotting, protein_plotting
@@ -177,53 +177,79 @@ def plot_peptide_scores(exp, agg_func='sum', saving_dir='./', show_all=False, co
                 break
         peptide_plotting.plot_subsequence(agg_scores, title=str(peptide), save_dir=pep_saving_dir, show_graph=show_all, agg_func=agg_func, sequence_info=info, compress=compress)
     
-
-'''plot_experiment
-
-DESC:
+def plot_generator(exp: dict, agg_func='sum', show_all=False, saving_dir='./', compress=True, plot_pep_scores=True, plot_pep_ranks_len=True, plot_pep_ranks_prot=True) -> None:
+    '''
     Generate various plots for the experiment
-Inputs:
-    exp: dict the json used to save all information
-kwargs:
-    agg_func: string aggregate function to use. Default=sum
-    saving_dir: string path to directory to save figures under. Default=./
-    show_all: bool whether or not to show all graphs. Default=False
-    compress: bool whether or not to compress output files. If True, all subsequnce plots are compressed. Default=True
-Outputs: 
-    None
-'''
-def plot_experiment(exp, agg_func='sum', show_all=False, saving_dir='./', compress=True, plot_pep_scores=True, plot_pep_ranks_len=True, plot_pep_ranks_prot=True):
-    '''
-    1. plot the kmer scores
-    2. plot the aggregation
-    2. plot the ranking history
-    '''
 
+    Inputs:
+        exp: dict the json used to save all information
+    kwargs:
+        agg_func: string aggregate function to use. Default=sum
+        saving_dir: string path to directory to save figures under. Default=./
+        show_all: bool whether or not to show all graphs. Default=False
+        compress: bool whether or not to compress output files. If True, all subsequnce plots are compressed. Default=True
+    Outputs: 
+        None
+    '''
+     #create the saving directory
+    saving_dir = __make_valid_dir_string(saving_dir)
+    __make_dir(saving_dir)        
+
+    # Plot the kmer scores and score aggregations
+    if plot_pep_scores:
+        print('Generating peptide score plots...')
+        plot_peptide_scores(exp, agg_func=agg_func, saving_dir=saving_dir, show_all=show_all, compress=compress)
+        print('Finished.')
+
+    # Plot the ranking of the corect 
+    if plot_pep_ranks_len:
+        print('Generating score ranking plots...')
+        peptide_plotting.plot_score_rankings(exp, save_dir=saving_dir + 'ranking_plots/', show_all=show_all)
+        print('Finished.')
+
+    # Plot score distributions vs protein sequence
+    if plot_pep_ranks_prot:
+        print('Generating score distributions vs protein sequences...')
+        plot_protein_summary(exp, saving_dir=saving_dir, show_all=show_all, compress=compress)
+        print('Finished.')
+
+def plot_experiment(exp: dict, agg_func='sum', show_all=False, saving_dir='./', compress=True, plot_pep_scores=True, plot_pep_ranks_len=True, plot_pep_ranks_prot=True) -> None:
+    '''
+    Generate various plots for the experiment
+    
+    Inputs:
+        exp: dict the json used to save all information
+    kwargs:
+        agg_func: string aggregate function to use. Default=sum
+        saving_dir: string path to directory to save figures under. Default=./
+        show_all: bool whether or not to show all graphs. Default=False
+        compress: bool whether or not to compress output files. If True, all subsequnce plots are compressed. Default=True
+    Outputs: 
+        None
+    '''
     print('Generating plots...')
-    for ion in ['b', 'y']:
-        #create the saving directory
-        saving_dir = __make_valid_dir_string(saving_dir) + 'ion_{}/'.format(ion)
-        __make_dir(saving_dir)        
-
-        # split into b and y experiments to not have to change everything downstream
-        ion_exp = __split_exp_by_ion(exp, ion)
-
-        # Plot the kmer scores and score aggregations
-        if plot_pep_scores:
-            print('Generating {} peptide score plots...'.format(ion))
-            plot_peptide_scores(ion_exp, agg_func=agg_func, saving_dir=saving_dir, show_all=show_all, compress=compress)
-            print('Finished.')
-
-        # Plot the ranking of the corect 
-        if plot_pep_ranks_len:
-            print('Generating {} score ranking plots...'.format(ion))
-            peptide_plotting.plot_score_rankings(ion_exp, save_dir=saving_dir + 'ranking_plots/', show_all=show_all)
-            print('Finished.')
-
-        # Plot score distributions vs protein sequence
-        if plot_pep_ranks_prot:
-            print('Generating {} score distributions vs protein sequences...'.format(ion))
-            plot_protein_summary(ion_exp, saving_dir=saving_dir, show_all=show_all, compress=compress)
-            print('Finished.')
-
+    if experiment_has_ion_types(exp):
+        for ion in ['b', 'y']:
+            ion_exp = __split_exp_by_ion(exp, ion)
+            plot_generator(
+                ion_exp, 
+                agg_func=agg_func, 
+                show_all=show_all, 
+                saving_dir=__make_valid_dir_string(saving_dir) + 'ion_{}'.format(ion), 
+                compress=compress, 
+                plot_pep_scores=plot_pep_scores, 
+                plot_pep_ranks_len=plot_pep_ranks_len,
+                plot_pep_ranks_prot=plot_pep_ranks_prot
+            )
+    else:
+        plot_generator(
+            exp, 
+            agg_func=agg_func, 
+            show_all=show_all, 
+            saving_dir=saving_dir, 
+            compress=compress, 
+            plot_pep_scores=plot_pep_scores, 
+            plot_pep_ranks_len=plot_pep_ranks_len,
+            plot_pep_ranks_prot=plot_pep_ranks_prot
+        )
     print('Finished generating all plots.')

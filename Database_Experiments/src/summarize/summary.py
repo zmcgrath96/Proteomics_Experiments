@@ -194,7 +194,7 @@ def __prediction_stats_non_hyb(exp: dict) -> tuple:
     
     return (correct_count, near_miss, correct_parents, correct_starting_position, correct_length)
 
-def __hybrid_single_parent_prediction(sub_peptide_info: dict, candidates: list) -> tuple:
+def __hybrid_single_parent_prediction(sub_peptide_info: dict, candidates: list, side='l') -> tuple:
     '''
     Try and match one of the potential candidates to one of the known parents
     
@@ -220,7 +220,8 @@ def __hybrid_single_parent_prediction(sub_peptide_info: dict, candidates: list) 
     corr_parent = True
     
     # determine if there is a starting position that matches
-    corr_start_pos_candidates = [x for x in candidates if x['starting_position'] == sub_peptide_info['starting_position']]
+    offset = 0 if not 'r' in side else sub_peptide_info['length'] - 1
+    corr_start_pos_candidates = [x for x in candidates if x['starting_position'] == sub_peptide_info['starting_position'] + offset]
     if len(corr_start_pos_candidates) > 0:
         corr_start_pos = True
         candidates = corr_start_pos_candidates
@@ -302,7 +303,7 @@ def __prediction_stats_hyb(exp: dict) -> (int, dict, dict):
         # get each of the sub_peptide info
         left_sub_pep, right_sub_pep = __get_sub_peptide_info(pep_name, exp)
         left_stats = __hybrid_single_parent_prediction(left_sub_pep, candidates)
-        right_stats = __hybrid_single_parent_prediction(right_sub_pep, candidates)
+        right_stats = __hybrid_single_parent_prediction(right_sub_pep, candidates, side='r')
         
         # (fully_corr, corr_parent, near_miss, corr_start_pos, corr_len)
         left_parent['correct_count'] += 1 if left_stats[0] else 0

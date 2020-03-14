@@ -232,7 +232,7 @@ def random_digest(proteins, n, peptide_prefix='peptide_', min_length=3, max_leng
             'parent_name': to_digest[i]['name'],
             'parent_sequence': seq,
             'starting_position': start,
-            'ending_position': start + r
+            'ending_position': start + r - 1 # inclusive
         }
         digested.append(d)
 

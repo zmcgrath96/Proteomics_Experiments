@@ -35,6 +35,8 @@ POSITION = 'position'
 
 HYBRID_SEACH_STRING = 'HYBRID'
 HYBRID_FLAG = 'is_hybrid'
+
+agg_funcs = ['sum', 'z_score_sum', 'product']
 #####################################################
 #               END CONSTANTS
 #####################################################
@@ -114,8 +116,12 @@ def __add_subsequnce_agg(peptide_dict: dict, predicting_agg_func='sum', ignore_h
         to_agg_b =  [prot_scores[k]['b'] for k in prot_scores]
         to_agg_y =  [prot_scores[k]['y'] for k in prot_scores]
         # do our own padding here for the y agg to align it properly
+        # in addition to padding all the shorter lists, ALL need to be padded by min(k) - 1 in order to have actual end alignment make sens
         # find the longest one 
-        longest_score = argmax([len(x) for x in to_agg_y])
+        longest_score = int(argmax([len(x) for x in to_agg_y]))
+        parse_k = lambda k: int(k.split('=')[1])
+        smallest_k = min([parse_k(k) for k in prot_scores])
+        to_agg_y[longest_score] = [0 for _ in range(smallest_k - 1)] + to_agg_y[longest_score]
         adjusted_to_agg_y = []
         for agg in to_agg_y:
             x, _ = pad_scores(agg, to_agg_y[longest_score], side='l')
@@ -128,7 +134,7 @@ def __add_subsequnce_agg(peptide_dict: dict, predicting_agg_func='sum', ignore_h
             'y': deepcopy(agged_y)
         }
     
-    if SAMPLE_PROTEIN_ANALYSIS not in peptide_dict: 
+    if SAMPLE_PROTEIN_ANALYSIS not in peptide_dict or peptide_dict[SAMPLE_PROTEIN_ANALYSIS] is None: 
         peptide_dict[SAMPLE_PROTEIN_ANALYSIS] = {}
 
     # if ignoring hybrid proteins, remove theme from the list
@@ -227,9 +233,14 @@ def __remove_analysis(exp: dict) -> Dict:
     Outputs:
         exp:    cleaned experiment dictionary
     '''
-    for pep in exp[EXPERIMENT_ENTRY]:
-        if SAMPLE_PROTEIN_ANALYSIS in pep:
-            pep[SAMPLE_PROTEIN_ANALYSIS] = None
+    for _, pep in exp[EXPERIMENT_ENTRY].items():
+        # remove all old aggregations and analysis
+        for prot_name, prot in pep.items():
+            if SAMPLE_PROTEIN_ANALYSIS in prot_name:
+                pep[SAMPLE_PROTEIN_ANALYSIS] = None
+            for af in agg_funcs:
+                if af in prot:
+                    del prot[af]
 
     return exp
 

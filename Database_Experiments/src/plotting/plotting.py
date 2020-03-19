@@ -7,7 +7,7 @@ from copy import deepcopy
 from utils import __get_related_files, __make_dir, __make_valid_dir_string, __gzip_dir, __split_exp_by_ion, experiment_has_ion_types
 from analysis.analysis_utils import get_top_n, __get_argmax_max
 from analysis.score_utils import align_scan_pos, get_scores_scan_pos_label
-from summarize import peptide_plotting, protein_plotting
+from plotting import peptide_plotting, protein_plotting
 
 ####################################################
 #               CONSTANTS

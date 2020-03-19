@@ -6,7 +6,6 @@ from analysis import score_utils
 from analysis.aggregations import __z_score_sum, __sum, __product
 from analysis.analysis_utils import get_top_n_prots
 from analysis.score_utils import pad_scores
-from summarize.plotting import plot_experiment
 from analysis.alignments import make_sequence_predictions, make_sequence_predictions_ions
 from typing import List, Dict
 import sys

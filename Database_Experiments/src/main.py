@@ -7,7 +7,7 @@ from spectra import gen_spectra_files
 from scoring import search_experiment
 from sequences import peptides, proteins
 from analysis import experiment
-from summarize import plotting
+from plotting import plotting
 from utils import __file_exists, __make_valid_dir_string, __make_dir, __is_json, __is_fasta
 from summarize import summary
 

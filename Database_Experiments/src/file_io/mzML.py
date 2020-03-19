@@ -1,5 +1,5 @@
 from pyopenms import MSExperiment, MzMLFile
-from utils import __file_exists
+from utils.utils import file_exists
 
 '''read
 
@@ -12,7 +12,7 @@ Outputs:
 
 '''
 def read(file):
-    if not __file_exists(file):
+    if not file_exists(file):
         print('File {} not found. Please make sure that this file exists'.format(file))
         return
     else: 

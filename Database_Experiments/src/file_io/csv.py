@@ -1,4 +1,4 @@
-from utils import __make_valid_csv_file, __make_valid_dir_string, __make_dir
+from utils.utils import make_valid_csv_file, make_valid_dir_string, make_dir
 import queue
 import time
 
@@ -21,9 +21,9 @@ def write_iter_of_dicts(iter_of_dicts, file_name, no_header=False):
         return 
 
     d = '/'.join(file_name.split('/')[:-1])
-    d = __make_valid_dir_string(d)
-    __make_dir(d)
-    file_name = __make_valid_csv_file(file_name)
+    d = make_valid_dir_string(d)
+    make_dir(d)
+    file_name = make_valid_csv_file(file_name)
     d = None 
     keys = [key for key in iter_of_dicts[0]]
     template = ''

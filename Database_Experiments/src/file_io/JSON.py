@@ -1,5 +1,5 @@
 import json
-from utils import  __make_valid_json_file
+from utils.utils import _make_valid_json_file
 
 def save_dict(file: str, d: dict) -> None:
     '''
@@ -11,7 +11,7 @@ def save_dict(file: str, d: dict) -> None:
     Outputs:
         None
     '''
-    file = __make_valid_json_file(file)
+    file = make_valid_json_file(file)
     if type(d) != dict:
         raise Exception('d should be type dict. Type of d: {}'.format(type(d)))
     with open(file, 'w') as o:

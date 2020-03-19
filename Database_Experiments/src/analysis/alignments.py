@@ -1,5 +1,5 @@
 from copy import deepcopy
-from analysis.analysis_utils import get_top_n_prots
+from utils.analysis_utils import get_top_n_prots
 
 ###################################################################
 #                       CONSTANTS

@@ -1,6 +1,6 @@
 import matplotlib.pyplot as plt
 import itertools, os
-from utils import __make_valid_dir_string, __make_dir, __gzip_dir
+from utils.utils import make_valid_dir_string, make_dir, gzip_dir
 from file_io import JSON
 
 ####################################################
@@ -78,8 +78,8 @@ kwargs:
     save_raw_json: bool whether or not to save to raw json data. Default=False
 '''
 def plot_subsequence_vs_protein(k_mers, title='', save_dir='./', show_graph=False, save_raw_json=False):
-    save_dir = __make_valid_dir_string(save_dir) + title + '/'
-    __make_dir(save_dir)
+    save_dir = make_valid_dir_string(save_dir) + title + '/'
+    make_dir(save_dir)
 
     plt.figure(figsize=(10, 7))
     i  = 0
@@ -119,8 +119,8 @@ kwargs:
     compress: bool to compress the directory. Default=True
 '''
 def plot_subsequence(aggs, title='', save_dir='./', show_graph=False, agg_func='sum', sequence_info=None, save_raw_json=False, compress=True):
-    save_dir = __make_valid_dir_string(save_dir)
-    __make_dir(save_dir)
+    save_dir = make_valid_dir_string(save_dir)
+    make_dir(save_dir)
 
     plt.figure(figsize=(10, 7))
     i = 0
@@ -139,7 +139,7 @@ def plot_subsequence(aggs, title='', save_dir='./', show_graph=False, agg_func='
     show_graph and plt.show()
     save_raw_json and JSON.save_dict(save_dir + title, aggs)
     plt.close()
-    compress and __gzip_dir(save_dir)
+    compress and gzip_dir(save_dir)
 
 
 '''plot_score_rankings
@@ -158,8 +158,8 @@ def plot_score_rankings(exp, save_dir='./', show_all=False):
     # x axis: length of the sequnce
     # y axis: violin plot of distribution
     # do it for each k or aggregation
-    save_dir = __make_valid_dir_string(save_dir)
-    __make_dir(save_dir)
+    save_dir = make_valid_dir_string(save_dir)
+    make_dir(save_dir)
 
     rs = __collect_k_rankings(exp)
     for k in rs:

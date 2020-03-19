@@ -1,7 +1,7 @@
 from sequences.digest import tryptic, random_digest
 from math import ceil
 from random import choice, randint
-from sequences import sequence_utils as seq_utils
+from utils.sequence_utils import length_dist
 
 digest_functions = {
     'random': random_digest,
@@ -37,7 +37,7 @@ Outputs:
     }
 '''
 def __make_hybrid_pep(hybrid_prot, min_length=4, max_length=20, dist='beta'):
-    l = seq_utils.length_dist(1, dist=dist, min_length=min_length, max_length=max_length)
+    l = length_dist(1, dist=dist, min_length=min_length, max_length=max_length)
     left_contr = randint(1, l-1)
     right_contr = l - left_contr
     j_site = hybrid_prot['left_parent_end_position']

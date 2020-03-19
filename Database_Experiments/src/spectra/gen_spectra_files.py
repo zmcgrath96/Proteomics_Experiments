@@ -2,7 +2,7 @@ import argparse
 import json
 from spectra import gen_spectra, write_spectra
 from sequences.gen_k_mers import k_mers
-from utils import __make_valid_dir_string, __make_dir
+from utils.utils import make_valid_dir_string, make_dir
 
 '''generate 
 
@@ -20,7 +20,8 @@ Outputs:
 '''
 def generate(sequences, window_sizes, save_dir='./', compress=True):
     output_files = []
-    save_dir = __make_valid_dir_string(save_dir) + 'spectra/'
+    save_dir = make_valid_dir_string(save_dir) + 'spectra/'
+    make_dir(save_dir)
     
     for window_size in window_sizes:
         print('Generating {}-mer spectra for all proteins...'.format(window_size))

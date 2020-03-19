@@ -1,14 +1,13 @@
 from copy import deepcopy
 import json
-import utils
+
+from utils.utils import make_dir, make_valid_dir_string, get_related_files, is_json
+from utils.score_utils import pad_scores, get_b_y_scores
+from utils.analysis_utils import get_top_n_prots
+
 from file_io import JSON
-from analysis import score_utils
 from analysis.aggregations import __z_score_sum, __sum, __product
-from analysis.analysis_utils import get_top_n_prots
-from analysis.score_utils import pad_scores
 from analysis.alignments import make_sequence_predictions, make_sequence_predictions_ions
-from typing import List, Dict
-import sys
 from numpy import argmax
 
 #######################################################
@@ -92,7 +91,7 @@ def __add_header_info(proteins, peptides, args, json):
     json[EXPERIMENT_HEADER][EXPERIMENT_PEPTIDE_HEADER] = deepcopy(peptides)
     json[EXPERIMENT_HEADER][EXPERIMENT_ARGUMENT_HEADER] = deepcopy(args)
 
-def __add_subsequnce_agg(peptide_dict: dict, predicting_agg_func='sum', ignore_hybrids=True) -> Dict:
+def __add_subsequnce_agg(peptide_dict: dict, predicting_agg_func='sum', ignore_hybrids=True) -> dict:
     '''
     Add aggregation information to each peptide score info
 
@@ -223,7 +222,7 @@ def __rank_pep(json: dict, peptide: dict) -> None:
     ranking_dict['sequence_length'] = len(peptide['peptide_sequence'])
     json[EXPERIMENT_ENTRY][peptide['peptide_name']][SAMPLE_PROTEIN_ANALYSIS]['ranks'] = ranking_dict
 
-def __remove_analysis(exp: dict) -> Dict:
+def __remove_analysis(exp: dict) -> dict:
     '''
     Remove the old analysis of the experiment to avoid issues
 
@@ -272,8 +271,8 @@ Outputs:
 '''
 def save_experiment(proteins, peptides, args, files=None, saving_dir='./'):
     global experiment_json_file_name, experiment_json
-    saving_dir = utils.__make_valid_dir_string(saving_dir)
-    utils.__make_dir(saving_dir)
+    saving_dir = make_valid_dir_string(saving_dir)
+    make_dir(saving_dir)
 
     # add header information to the json
     __add_header_info(proteins, peptides, args, experiment_json)
@@ -288,18 +287,18 @@ def save_experiment(proteins, peptides, args, files=None, saving_dir='./'):
     for pc, pep in enumerate(peptides):
         print('Progress: {}%\r'.format(int((float(pc)/float(len(peptides))) * 100)), end='')
         # get the peptide related files
-        pep_related = utils.__get_related_files(files, pep['peptide_name'])
+        pep_related = get_related_files(files, pep['peptide_name'])
         subsequence_dict = {}
         # get the protein information for each peptide
         for prot_name in protein_names:
             subsequence_dict[prot_name] = {}
-            prot_with_subseq = utils.__get_related_files(pep_related, str(prot_name).lower())
+            prot_with_subseq = get_related_files(pep_related, str(prot_name).lower())
             if prot_with_subseq is None or len(prot_with_subseq) == 0: 
                 print('No files scoring {} against {} were found. Skipping'.format(prot_name, pep['peptide_name']))
 
             for f in prot_with_subseq:
                 # we now have b and y ion scores, so we need to get both
-                b_scores, y_scores = score_utils.get_b_y_scores(f)
+                b_scores, y_scores = get_b_y_scores(f)
                 k = 'k=' + str(__get_k_number(f))
                 subsequence_dict[prot_name][k] = {}
                 subsequence_dict[prot_name][k]['b'] = b_scores
@@ -325,13 +324,13 @@ Outputs:
 '''
 def analyze(exp, predicting_agg_func='sum', saving_dir='./'):
     global experiment_json, experiment_json_file_name
-    saving_dir = utils.__make_valid_dir_string(saving_dir)
-    utils.__make_dir(saving_dir)
+    saving_dir = make_valid_dir_string(saving_dir)
+    make_dir(saving_dir)
 
     # either load json from file or change its name
     if isinstance(exp, dict):
         experiment_json = exp
-    elif isinstance(exp, str) and utils.__is_json(exp):
+    elif isinstance(exp, str) and is_json(exp):
         experiment_json_file_name = exp 
         experiment_json = json.load(open(experiment_json_file_name, 'r'))
     

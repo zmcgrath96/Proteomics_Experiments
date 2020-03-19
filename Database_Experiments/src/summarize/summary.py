@@ -1,5 +1,6 @@
 from numbers import Number
-from utils import __make_valid_dir_string, __make_dir, experiment_has_ion_types, __split_exp_by_ion
+from utils.utils import make_valid_dir_string, make_dir
+from utils.experiment_utils import experiment_has_ion_types, split_exp_by_ion
 from file_io import JSON
 
 ######################################################################
@@ -536,8 +537,8 @@ def __summary_generator(exp: dict, output_dir='./') -> None:
     Outputs:
         None
     '''
-    output_dir = __make_valid_dir_string(output_dir)
-    __make_dir(output_dir)
+    output_dir = make_valid_dir_string(output_dir)
+    make_dir(output_dir)
 
     summary_dict = {}
     
@@ -576,7 +577,7 @@ def make_summary(exp: dict, output_dir='./') -> None:
     '''
     if experiment_has_ion_types(exp):
         for ion in ['b', 'y']:
-            ion_exp = __split_exp_by_ion(exp, ion)
-            __summary_generator(ion_exp, output_dir=__make_valid_dir_string(output_dir) + 'ion_{}'.format(ion))
+            ion_exp = split_exp_by_ion(exp, ion)
+            __summary_generator(ion_exp, output_dir=make_valid_dir_string(output_dir) + 'ion_{}'.format(ion))
     else:
         __summary_generator(exp, output_dir=output_dir)

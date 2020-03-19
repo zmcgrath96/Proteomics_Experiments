@@ -1,5 +1,5 @@
 import os 
-from utils import __file_exists, __make_valid_dir_string, __make_dir
+from utils.utils import file_exists, make_valid_dir_string, make_dir
 from file_io import fasta
 from math import ceil
 from random import randint
@@ -16,7 +16,7 @@ Outputs:
     list of dictionaries of form {name: str, sequence: str}
 '''
 def __from_csv(csv_file, has_header=False):
-    if not __file_exists(csv_file):
+    if not file_exists(csv_file):
         raise Exception('File {} does not exist'.format(csv_file))
     read_header = False
     prots = []
@@ -128,8 +128,8 @@ Outputs:
 '''
 def generate_databases(peptides, save_dir='./'):
     output_files = []
-    save_dir = __make_valid_dir_string(save_dir) + 'databases/'
-    __make_dir(save_dir)
+    save_dir = make_valid_dir_string(save_dir) + 'databases/'
+    make_dir(save_dir)
 
     for pep in peptides:
         file_name = '{}{}'.format(save_dir, pep['name'])

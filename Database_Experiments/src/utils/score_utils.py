@@ -1,6 +1,5 @@
 import pandas as pd
-import utils
-
+from utils.utils import is_gzipped, gunzip_file
 ###############################################
 #               CONSTANTS 
 ###############################################
@@ -74,8 +73,8 @@ RETUNS:
 '''
 def get_scores_scan_pos_label(file, search_substring=''):
     sep = '\t' if '.tsv' in file else ','
-    if utils.__is_gzipped(file):
-        file = utils.__gunzip(file)
+    if is_gzipped(file):
+        file = gunzip_file(file)
 
     df = pd.read_csv(file, sep, header=0)
         
@@ -100,8 +99,8 @@ def get_b_y_scores(file: str) -> (list, list):
         scores both have a list of floats of the scores from each position in order
     '''
     sep = '\t' if '.tsv' in file else ','
-    if utils.__is_gzipped(file):
-        file = utils.__gunzip(file)
+    if is_gzipped(file):
+        file = gunzip_file(file)
 
     df = pd.read_csv(file, sep, header=0)
     

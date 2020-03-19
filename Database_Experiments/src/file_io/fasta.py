@@ -1,4 +1,4 @@
-from utils import __make_valid_fasta_file, __file_exists
+from utils.utils import make_valid_fasta_file, file_exists
 
 '''write
 
@@ -11,7 +11,7 @@ Outputs:
     name of the output file written to
 '''
 def write(output_name, sequences):
-    output_name = __make_valid_fasta_file(output_name)
+    output_name = make_valid_fasta_file(output_name)
     with open(output_name, 'w') as o:
         for i, seq in enumerate(sequences):
             o.write('>sp|{}|{}\n{}\n'.format('id{}'.format(i), seq['name'], seq['sequence']))
@@ -27,7 +27,7 @@ Outputs:
     list of dictionaries of form {'name': str, 'sequence': str, 'identifier': str}
 '''
 def read(fasta_file):
-    if not __file_exists(fasta_file):
+    if not file_exists(fasta_file):
         raise Exception('File {} does not exist'.format(fasta_file))
     prots = []
     with open(fasta_file, 'r') as i:

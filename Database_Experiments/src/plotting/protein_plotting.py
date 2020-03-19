@@ -1,4 +1,4 @@
-import utils 
+from utils.utils import gzip_file, make_valid_dir_string, make_dir
 import matplotlib.pyplot as plt
 from matplotlib import gridspec
 import matplotlib as mpl
@@ -134,7 +134,7 @@ def protein_pos_ranks(prot, ranks, save_dir='./', show=False, compress=True):
     file_name = save_dir + prot[prot_name] + '.png'
     plt.savefig(file_name)
     plt.close()
-    compress and utils.__gzip(file_name)
+    compress and gzip_file(file_name)
     
 
 '''prots_pep_pos_rankings
@@ -157,8 +157,8 @@ Outputs:
     None
 '''
 def prots_pep_pos_rankings(prots, ranks, save_dir='./', show_all=False, compress=True): 
-    save_dir = utils.__make_valid_dir_string(save_dir + 'protein_position_rankings') 
-    utils.__make_dir(save_dir)
+    save_dir = make_valid_dir_string(save_dir + 'protein_position_rankings') 
+    make_dir(save_dir)
 
     ranks = __sort_ranks(ranks)
     num_prots = len(prots)

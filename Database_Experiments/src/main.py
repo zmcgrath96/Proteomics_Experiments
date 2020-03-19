@@ -8,7 +8,7 @@ from scoring import search_experiment
 from sequences import peptides, proteins
 from analysis import experiment
 from plotting import plotting
-from utils import __file_exists, __make_valid_dir_string, __make_dir, __is_json, __is_fasta
+from utils import file_exists, make_valid_dir_string, make_dir, is_json, is_fasta
 from summarize import summary
 
 ''' 
@@ -45,9 +45,9 @@ def str2bool(v):
 
 def is_correct_file(pos, file):
     if pos == 'b':
-        return __is_fasta(file), '.fasta'
+        return is_fasta(file), '.fasta'
     else: 
-        return __is_json(file), '.json'
+        return is_json(file), '.json'
 
 def clean_prots(prots):
     cleaned = []
@@ -81,8 +81,8 @@ def main(args):
     # input files
     input_file = args.input_file
     # output parameters
-    save_dir = __make_valid_dir_string(args.save_dir)
-    __make_dir(save_dir)
+    save_dir =make_valid_dir_string(args.save_dir)
+    make_dir(save_dir)
     # peptide/protein parameters
     num_peptides = args.num_peptides
     num_hybs = args.num_hybrids

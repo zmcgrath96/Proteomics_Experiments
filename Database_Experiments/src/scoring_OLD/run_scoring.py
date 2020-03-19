@@ -2,7 +2,7 @@ import pyopenms
 import os
 import shutil
 from subprocess import call
-from utils import __make_dir, __make_valid_dir_string, __is_gzipped, __gunzip, __gzip
+from utils.utils import make_dir, make_valid_dir_string, is_gzipped, gunzip_file, gzip_file
 from scoring import search
 from file_io import fasta
 
@@ -36,8 +36,8 @@ def __index_db_files(path_to_crux_cmd: str, db_files: list) -> list:
         print('On database {}/{}[{}%]\r'.format(i+1, num_dbs, int(((i+1)/num_dbs) * 100)), end="")
         
         this_output_dir = '/'.join(str(db_file).split('/')[:-1])
-        this_output_dir = __make_valid_dir_string(this_output_dir) + 'indexed/'
-        __make_dir(this_output_dir)
+        this_output_dir = make_valid_dir_string(this_output_dir) + 'indexed/'
+        make_dir(this_output_dir)
         idx_name = this_output_dir + str(db_file).replace('.fasta', '_index').split('/')[-1]
 
         indx_cmd = [
@@ -82,11 +82,11 @@ def __crux_search(spectra_files: list, database_files: list, path_to_crux_cmd: s
     Outputs:
         list of str of output files
     '''
-    output_dir = __make_valid_dir_string(output_dir) + 'search_output/'
-    __make_dir(output_dir)
+    output_dir = make_valid_dir_string(output_dir) + 'search_output/'
+    make_dir(output_dir)
     spec_dir = '/'.join(spectra_files[0].split('/')[:-1])
 
-    is_compressed = __is_gzipped(spectra_files[0])
+    is_compressed = is_gzipped(spectra_files[0])
     print('Pre-indexing database files...')
     indexed_db_files = __index_db_files(path_to_crux_cmd, database_files)
     print('\nDone. Scoring..')
@@ -97,7 +97,7 @@ def __crux_search(spectra_files: list, database_files: list, path_to_crux_cmd: s
     num_specs = len(spectra_files)
 
     for i, spec_file in enumerate(spectra_files):
-        spec_file = spec_file if not is_compressed else __gunzip(spec_file)
+        spec_file = spec_file if not is_compressed else gunzip_file(spec_file)
         for j, database_file in enumerate(indexed_db_files):
             this_db_name = __parse_db_name(database_file)
             print('On spectrum {}/{}[{}%]\tOn database file {}/{}[{}%]\r'.format(i+1, num_specs, int(((i+1)/num_specs) * 100), j+1, num_dbs, int(((j+1)/num_dbs)*100)), end="")
@@ -118,7 +118,7 @@ def __crux_search(spectra_files: list, database_files: list, path_to_crux_cmd: s
                 ] 
             call(search_cmd)
             output_count += 1
-            o = this_output_dir + '/tide-search.target.txt' if not compress else __gzip(this_output_dir + '/tide-search.target.txt')
+            o = this_output_dir + '/tide-search.target.txt' if not compress else gzip_file(this_output_dir + '/tide-search.target.txt')
             o_tsv = o.replace('.txt', '.tsv')
             os.rename(o, o_tsv)
             output_files.append(o_tsv)
@@ -165,7 +165,8 @@ def __custom_search(spectra_files: list, database_files: list, output_dir: str, 
     Outputs:
         list of str of output files
     '''
-    output_dir = __make_valid_dir_string(output_dir)
+    output_dir = make_valid_dir_string(output_dir)
+    make_dir(output_dir)
     output_files = []
 
     no_spec = len(spectra_files)
@@ -177,14 +178,14 @@ def __custom_search(spectra_files: list, database_files: list, output_dir: str, 
     print('Done')
 
     for spec_no, spectra_file in enumerate(spectra_files):
-        spectra_file = spectra_file if not __is_gzipped(spectra_file) else __gunzip(spectra_file)
+        spectra_file = spectra_file if not is_gzipped(spectra_file) else gunzip_file(spectra_file)
 
         for db_no, db in enumerate(databases):
             print('On spectrum: {}/{} [{}%]   On database: {}/{} [{}%]\r'.format(spec_no, no_spec, int(float(spec_no) / float(no_spec) * 100), db_no, no_db, int(float(db_no) / float(no_db) * 100)), end='')
 
             output_name = output_dir + 'search_output/' + '{}_vs_{}'.format(__parse_spectrum_name(spectra_file), __parse_db_name(db))
             output_file = search.search_database(spectra_file, databases[db], output_name)
-            output_file = output_file if not compress else __gzip(output_file)
+            output_file = output_file if not compress else gzip_file(output_file)
             output_files.append(output_file)
     return output_files
 #######################################################################################

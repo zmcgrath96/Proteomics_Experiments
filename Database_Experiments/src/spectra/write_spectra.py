@@ -1,5 +1,5 @@
 from pyopenms import MSExperiment, MSSpectrum, MzMLFile, Peak1D, Precursor
-from utils import __make_valid_dir_string, __make_dir, __gzip
+from utils.utils import make_valid_dir_string, make_dir, gzip_file
 
 '''write_mzml
 
@@ -19,8 +19,8 @@ Outputs:
 def write_mzml(file_name, spectra, title_prefix='Spectrum ', output_dir='./', compress=True):
     if '.mzml' not in file_name.lower():
         file_name += '.mzML'
-    output_dir = __make_valid_dir_string(output_dir)
-    __make_dir(output_dir)
+    output_dir = make_valid_dir_string(output_dir)
+    make_dir(output_dir)
     output_file = output_dir + file_name
 
     exp = MSExperiment()
@@ -43,6 +43,6 @@ def write_mzml(file_name, spectra, title_prefix='Spectrum ', output_dir='./', co
         exp.addSpectrum(spec)
 
     MzMLFile().store(output_file, exp)
-    output_file = __gzip(output_file) if compress else output_file
+    output_file = gzip_file(output_file) if compress else output_file
 
     return output_file

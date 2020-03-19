@@ -4,9 +4,8 @@ import itertools
 import os
 import numpy as np
 from copy import deepcopy
-from utils import __get_related_files, __make_dir, __make_valid_dir_string, __gzip_dir, __split_exp_by_ion, experiment_has_ion_types
-from analysis.analysis_utils import get_top_n, __get_argmax_max
-from analysis.score_utils import align_scan_pos, get_scores_scan_pos_label
+from utils.utils import make_dir, make_valid_dir_string
+from utils.experiment_utils import split_exp_by_ion, experiment_has_ion_types
 from plotting import peptide_plotting, protein_plotting
 
 ####################################################
@@ -160,14 +159,14 @@ def plot_peptide_scores(exp, agg_func='sum', saving_dir='./', show_all=False, co
         subsequence_counter += 1
         # generate plots for all the proteins against the peptide
         agg_scores = {}
-        pep_saving_dir = __make_valid_dir_string(saving_dir + 'subsequence_plots/' + peptide)
-        __make_dir(pep_saving_dir)
+        pep_saving_dir = make_valid_dir_string(saving_dir + 'subsequence_plots/' + peptide)
+        make_dir(pep_saving_dir)
         for prot, k_mers in prots.items():
             if prot == 'analysis' or prot == 'ranks':
                 continue
             plot_title = '{} vs {}'.format(peptide, prot)
-            pep_prot_saving_dir = __make_valid_dir_string(pep_saving_dir + prot)
-            __make_dir(pep_prot_saving_dir)
+            pep_prot_saving_dir = make_valid_dir_string(pep_saving_dir + prot)
+            make_dir(pep_prot_saving_dir)
             peptide_plotting.plot_subsequence_vs_protein(k_mers, title=plot_title, save_dir=pep_prot_saving_dir, show_graph=show_all)
             agg_scores[prot] = __find_agg_score(k_mers, agg_func)
         info = None
@@ -192,8 +191,8 @@ def plot_generator(exp: dict, agg_func='sum', show_all=False, saving_dir='./', c
         None
     '''
      #create the saving directory
-    saving_dir = __make_valid_dir_string(saving_dir)
-    __make_dir(saving_dir)        
+    saving_dir = make_valid_dir_string(saving_dir)
+    make_dir(saving_dir)        
 
     # Plot the kmer scores and score aggregations
     if plot_pep_scores:
@@ -230,12 +229,12 @@ def plot_experiment(exp: dict, agg_func='sum', show_all=False, saving_dir='./', 
     print('Generating plots...')
     if experiment_has_ion_types(exp):
         for ion in ['b', 'y']:
-            ion_exp = __split_exp_by_ion(exp, ion)
+            ion_exp = split_exp_by_ion(exp, ion)
             plot_generator(
                 ion_exp, 
                 agg_func=agg_func, 
                 show_all=show_all, 
-                saving_dir=__make_valid_dir_string(saving_dir) + 'ion_{}'.format(ion), 
+                saving_dir=make_valid_dir_string(saving_dir) + 'ion_{}'.format(ion), 
                 compress=compress, 
                 plot_pep_scores=plot_pep_scores, 
                 plot_pep_ranks_len=plot_pep_ranks_len,

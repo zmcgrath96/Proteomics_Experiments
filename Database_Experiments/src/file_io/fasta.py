@@ -17,16 +17,17 @@ def write(output_name, sequences):
             o.write('>sp|{}|{}\n{}\n'.format('id{}'.format(i), seq['name'], seq['sequence']))
     return output_name
 
-'''read
-
-DESC:
-    read proteins into memory from fasta file
-Inputs:
-    fasta_file: str path to fasta file
-Outputs:
-    list of dictionaries of form {'name': str, 'sequence': str, 'identifier': str}
-'''
-def read(fasta_file):
+def read(fasta_file: str, is_uniprot=False) -> list:
+    '''read
+    Read proteins into memory from fasta file
+    
+    Inputs:
+        fasta_file: str path to fasta file
+    kwargs:
+        is_uniprot: bool adds attribute 'human_readable_name' to dictionary if True. Default=False
+    Outputs:
+        list        list of dictionaries of form {'name': str, 'sequence': str, 'identifier': str}
+    '''
     if not file_exists(fasta_file):
         raise Exception('File {} does not exist'.format(fasta_file))
     prots = []
@@ -34,26 +35,36 @@ def read(fasta_file):
         name = None 
         seq = '' 
         identifier = ''
+        hmn_rdble_name = ''
         for line in i:
             if '>' in line: #name line
 
                 # add the last thing to the list
                 if not ((name is None or name == '') and (seq is None or seq == '')):
-                    prots.append({
+                    entry = {
                         'name': name,
                         'sequence': seq,
                         'identifier': identifier
-                    })
+                    }
+                    if is_uniprot:
+                        entry['human_readable_name'] = hmn_rdble_name
+                    prots.append(entry)
 
                 seq = '' 
                 name = str(str(line.split('|')[2]).split(' ')[0]).replace('\n', '')
                 identifier = str(line.split('|')[1])
+                if is_uniprot:
+                    after_bar = str(line.split('|')[2])
+                    hmn_rdble_name = str(' '.join(after_bar.split(' ')[1:]).split('OS=')[0]).strip()
             else:
                 seq += line.replace('\n', '')
         # add the last one
-        prots.append({
+        entry = {
             'name': name,
             'sequence': seq,
             'identifier': identifier
-        })
+        }
+        if is_uniprot:
+            entry['human_readable_name'] = hmn_rdble_name
+        prots.append(entry)
     return prots

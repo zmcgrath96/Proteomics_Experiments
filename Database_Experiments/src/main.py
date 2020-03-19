@@ -8,7 +8,7 @@ from scoring import search_experiment
 from sequences import peptides, proteins
 from analysis import experiment
 from plotting import plotting
-from utils import file_exists, make_valid_dir_string, make_dir, is_json, is_fasta
+from utils.utils import file_exists, make_valid_dir_string, make_dir, is_json, is_fasta
 from summarize import summary
 
 ''' 

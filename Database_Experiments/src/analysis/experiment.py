@@ -284,7 +284,9 @@ def save_experiment(proteins, peptides, args, files=None, saving_dir='./'):
         return(saving_dir + experiment_json_file_name)
 
     # go through each peptide
-    for pc, pep in enumerate(peptides):
+    pc = 0
+    while len(peptides):
+        pep = peptides.pop(0)
         print('Progress: {}%\r'.format(int((float(pc)/float(len(peptides))) * 100)), end='')
         # get the peptide related files
         pep_related = get_related_files(files, pep['peptide_name'])
@@ -305,6 +307,8 @@ def save_experiment(proteins, peptides, args, files=None, saving_dir='./'):
                 subsequence_dict[prot_name][k]['y'] = y_scores
                 
         experiment_json[EXPERIMENT_ENTRY][pep['peptide_name']] = deepcopy(subsequence_dict)
+        del pep
+        pc += 1
 
     JSON.save_dict(saving_dir + experiment_json_file_name, experiment_json)
     return(saving_dir + experiment_json_file_name)

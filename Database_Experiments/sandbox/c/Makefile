@@ -1,5 +1,5 @@
-triemake: trie.c testTrie.c 
-	gcc -o testTrie trie.c testTrie.c
+treeMake: tree.c testTree.c 
+	gcc -o testTree tree.c testTree.c
 
 clean:
 	rm -rf *.o

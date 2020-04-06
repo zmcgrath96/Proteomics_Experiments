@@ -1,14 +1,13 @@
 from copy import deepcopy
 import json
-
 from utils.utils import make_dir, make_valid_dir_string, get_related_files, is_json
 from utils.score_utils import pad_scores, get_b_y_scores
 from utils.analysis_utils import get_top_n_prots
-
 from file_io import JSON
 from analysis.aggregations import __z_score_sum, __sum, __product
 from analysis.alignments import make_sequence_predictions, make_sequence_predictions_ions
 from numpy import argmax
+import pickle
 
 #######################################################
 #                   CONSTANTS
@@ -44,10 +43,10 @@ agg_funcs = ['sum', 'z_score_sum', 'product']
 #####################################################
 experiment_json = {
     EXPERIMENT_HEADER: {
-        EXPERIMENT_PROTEIN_HEADER: None, 
+        EXPERIMENT_PROTEIN_HEADER: None,
         EXPERIMENT_PEPTIDE_HEADER: None,
         EXPERIMENT_ARGUMENT_HEADER: None
-    }, 
+    },
     EXPERIMENT_ENTRY: {
 
     }
@@ -74,13 +73,13 @@ DESC:
     add all header info to the experiment json
 Inputs:
     proteins: list of dictionaries of the form {name: str, sequence: str}
-    peptides: list of dictionaries of the form 
-    {    
+    peptides: list of dictionaries of the form
+    {
         'peptide_name': str,
         'peptide_sequence': str,
         'parent_name': str,
         'parent_sequence': str,
-        'starting_position': int, 
+        'starting_position': int,
         'ending_position': int
     }
     args: dictionary parameters used when running the experiment
@@ -106,16 +105,16 @@ def __add_subsequnce_agg(peptide_dict: dict, predicting_agg_func='sum', ignore_h
     agg_func = __z_score_sum if 'z_score_sum' in predicting_agg_func.lower() else ( __product if 'product' in predicting_agg_func.lower() else __sum)
 
     for prot_name, prot_scores in peptide_dict.items():
-    
+
         if SAMPLE_PROTEIN_ANALYSIS == prot_name:
             continue
-            
+
         # need to break into b and y ion aggregations {k: {b: [],y: []}}
         to_agg_b =  [prot_scores[k]['b'] for k in prot_scores]
         to_agg_y =  [prot_scores[k]['y'] for k in prot_scores]
         # do our own padding here for the y agg to align it properly
         # in addition to padding all the shorter lists, ALL need to be padded by min(k) - 1 in order to have actual end alignment make sens
-        # find the longest one 
+        # find the longest one
         longest_score = int(argmax([len(x) for x in to_agg_y]))
         parse_k = lambda k: int(k.split('=')[1])
         smallest_k = min([parse_k(k) for k in prot_scores])
@@ -131,8 +130,8 @@ def __add_subsequnce_agg(peptide_dict: dict, predicting_agg_func='sum', ignore_h
             'b': deepcopy(agged_b),
             'y': deepcopy(agged_y)
         }
-    
-    if SAMPLE_PROTEIN_ANALYSIS not in peptide_dict or peptide_dict[SAMPLE_PROTEIN_ANALYSIS] is None: 
+
+    if SAMPLE_PROTEIN_ANALYSIS not in peptide_dict or peptide_dict[SAMPLE_PROTEIN_ANALYSIS] is None:
         peptide_dict[SAMPLE_PROTEIN_ANALYSIS] = {}
 
     # if ignoring hybrid proteins, remove theme from the list
@@ -151,7 +150,7 @@ def __add_subsequnce_agg(peptide_dict: dict, predicting_agg_func='sum', ignore_h
         'b': b_predicted,
         'y': y_predicted
     }
-    return peptide_dict   
+    return peptide_dict
 
 '''__find_kmer_rank
 
@@ -193,7 +192,7 @@ def __find_kmer_rank(correct_prot, correct_position, peptide_analysis):
                 last_score = fscore
             if pos == correct_position:
                 ranking[score[0]][k] = rank
-    
+
     return ranking[correct_prot]
 
 
@@ -202,7 +201,7 @@ def __rank_pep(json: dict, peptide: dict) -> None:
     Run through all the proteins against this peptide and rank the correct score at the right position
     All additions are in place and not object is returned
 
-    Inputs: 
+    Inputs:
         json:       dictionary object to add analysis to
         peptide:    dictionary of all the peptide information
     Outputs:
@@ -215,7 +214,7 @@ def __rank_pep(json: dict, peptide: dict) -> None:
     to_rank_b = get_ions_from_scores(json[EXPERIMENT_ENTRY][peptide['peptide_name']], 'b')
     to_rank_y = get_ions_from_scores(json[EXPERIMENT_ENTRY][peptide['peptide_name']], 'y')
     ranking_dict['ranks'] = {
-        'b': __find_kmer_rank(peptide['parent_name'], peptide['starting_position'], to_rank_b), 
+        'b': __find_kmer_rank(peptide['parent_name'], peptide['starting_position'], to_rank_b),
         'y': __find_kmer_rank(peptide['parent_name'], peptide['starting_position'], to_rank_y)
     }
     ranking_dict['sequence'] = peptide['peptide_sequence']
@@ -253,13 +252,13 @@ DESC:
 Inputs:
     Inputs:
     proteins: list of dictionaries of the form {name: str, sequence: str}
-    peptides: list of dictionaries of the form 
-    {    
+    peptides: list of dictionaries of the form
+    {
         'peptide_name': str,
         'peptide_sequence': str,
         'parent_name': str,
         'parent_sequence': str,
-        'starting_position': int, 
+        'starting_position': int,
         'ending_position': int
     }
     args: dictionary parameters used when running the experiment
@@ -283,11 +282,18 @@ def save_experiment(proteins, peptides, args, files=None, saving_dir='./'):
         JSON.save_dict(saving_dir + experiment_json_file_name, experiment_json)
         return(saving_dir + experiment_json_file_name)
 
+    # pickle dump everything to be able to come back to it later in event of crash
+    # with open(saving_dir + 'protein_pickle', 'wb') as o:
+    #     pickle.dump(proteins, o)
+    # with open(saving_dir + 'peptide_pickle', 'wb') as o:
+    #     pickle.dump(peptides, o)
+
     # go through each peptide
     pc = 0
+    pl = len(peptides)
     while len(peptides):
         pep = peptides.pop(0)
-        print('Progress: {}%\r'.format(int((float(pc)/float(len(peptides))) * 100)), end='')
+        print('Progress: {}%\r'.format(int((float(pc)/float(pl)) * 100)), end='')
         # get the peptide related files
         pep_related = get_related_files(files, pep['peptide_name'])
         subsequence_dict = {}
@@ -295,7 +301,7 @@ def save_experiment(proteins, peptides, args, files=None, saving_dir='./'):
         for prot_name in protein_names:
             subsequence_dict[prot_name] = {}
             prot_with_subseq = get_related_files(pep_related, str(prot_name).lower())
-            if prot_with_subseq is None or len(prot_with_subseq) == 0: 
+            if prot_with_subseq is None or len(prot_with_subseq) == 0:
                 print('No files scoring {} against {} were found. Skipping'.format(prot_name, pep['peptide_name']))
 
             for f in prot_with_subseq:
@@ -305,14 +311,14 @@ def save_experiment(proteins, peptides, args, files=None, saving_dir='./'):
                 subsequence_dict[prot_name][k] = {}
                 subsequence_dict[prot_name][k]['b'] = b_scores
                 subsequence_dict[prot_name][k]['y'] = y_scores
-                
+
         experiment_json[EXPERIMENT_ENTRY][pep['peptide_name']] = deepcopy(subsequence_dict)
         del pep
         pc += 1
 
     JSON.save_dict(saving_dir + experiment_json_file_name, experiment_json)
     return(saving_dir + experiment_json_file_name)
-        
+
 
 '''analyze
 
@@ -335,9 +341,9 @@ def analyze(exp, predicting_agg_func='sum', saving_dir='./'):
     if isinstance(exp, dict):
         experiment_json = exp
     elif isinstance(exp, str) and is_json(exp):
-        experiment_json_file_name = exp 
+        experiment_json_file_name = exp
         experiment_json = json.load(open(experiment_json_file_name, 'r'))
-    
+
     # separate file name from full directory
     if len(experiment_json_file_name.split('/')) > 1:
         experiment_json_file_name = experiment_json_file_name.split('/')[-1]
@@ -359,7 +365,7 @@ def analyze(exp, predicting_agg_func='sum', saving_dir='./'):
         peptide[SAMPLE_PROTEIN_ANALYSIS][HYBRID_FLAG] = HYBRID_SEACH_STRING.lower() in pep_name.lower()
         peptide_info_dict = experiment_json[EXPERIMENT_HEADER][EXPERIMENT_PEPTIDE_HEADER][peptide_header_list_idx[pep_name]]
         __rank_pep(experiment_json, peptide_info_dict)
-    
+
     # save to file
     print('Finished analysis. Saving to file...')
     JSON.save_dict(saving_dir + experiment_json_file_name, experiment_json)

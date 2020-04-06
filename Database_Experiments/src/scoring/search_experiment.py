@@ -2,7 +2,7 @@ import pyopenms
 import os
 import shutil
 from subprocess import call
-from utils.utils import make_dir, make_valid_dir_string, is_gzipped, gunzip_file, gzip_file
+from utils.utils import make_dir, make_valid_dir_string, is_gzipped, gunzip_file, gzip_file, gzip_dir
 from scoring import search
 from file_io import fasta, mzML
 
@@ -197,6 +197,12 @@ def __custom_search(spectra_files: list, database_files: list, output_dir: str, 
     print('Loading spectra into memory...')
     spectra = __load_spectra(spectra_files)
     print('Done')
+
+    # running out of room so gzip those directories
+    # db_dir = '/'.join(database_files[0].split('/')[:-1])
+    # spect_dir = '/'.join(spectra_files[0].split('/')[:-1])
+    # gzip_dir(db_dir)
+    # gzip_dir(spect_dir)
 
     for spec_no, spectra_file in enumerate(spectra):
         for db_no, db in enumerate(databases):

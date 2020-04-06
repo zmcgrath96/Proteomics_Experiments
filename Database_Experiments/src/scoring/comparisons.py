@@ -36,7 +36,7 @@ def cmp_spectra_spectra__JAN_2020(spec, reference):
     return score / divider
 
 
-def compare_masses(spectrum: list, reference: list) -> float:
+def compare_masses__FEB_2020(spectrum: list, reference: list) -> float:
     '''
     CREATED FEB 26 2020
     Score two spectra against eachother. Simple additive scoring with bonuses for streaks
@@ -62,6 +62,44 @@ def compare_masses(spectrum: list, reference: list) -> float:
         if mass in reference:
             score += 1
             last = True
+
+        else:
+            streak = 0
+            last = False
+    
+    score += max_streak
+    score /= (len(reference) / 2)
+    return score 
+
+def compare_masses(spectrum: list, reference: list) -> float:
+    '''
+    CREATED APRIL 6 2020
+    Score two spectra against eachother. Simple additive scoring with bonuses for streaks
+    Divides by the length of the reference to make it length biased for the reference
+
+    Note:   the difference between this one and the February one is which spectrum
+            is being iterated through. This one iterates through the reference first
+
+    Inputs:
+        spectrum:   list of floats (from mass spectra)
+        reference:  list of floats (calculated from protein sequence)
+    Outputs:
+        score:      float score 
+    '''
+    if len(spectrum) == 0 or len(reference) == 0:
+        return
+    streak = 0
+    last = False
+    score = 0
+    max_streak = 0
+    for refmass in reference:
+        if last == True:
+            streak += 1
+            max_streak = max([streak, max_streak])
+
+        if refmass in spectrum:
+            score += 1
+            last = True 
 
         else:
             streak = 0

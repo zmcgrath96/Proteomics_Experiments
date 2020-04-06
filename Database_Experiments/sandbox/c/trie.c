@@ -21,6 +21,8 @@ Supported functions:
 
 // define character size
 #define CHAR_SIZE 26
+// define string size
+#define STRING_SIZE CHAR_SIZE*128
 
 // A Trie node
 struct Trie
@@ -28,7 +30,7 @@ struct Trie
 	int isLeaf;	// 1 when node is a leaf node
 	struct Trie* character[CHAR_SIZE];
 	char value;	// character value held in the node
-	char ** names;	// string array to hold names of things that have this substring
+	char ** names[STRING_SIZE];	// string array to hold names of things that have this substring
 };
 
 // Function that returns a new Trie node
@@ -64,7 +66,7 @@ void insert(struct Trie *head, char* str, char * name)
 
 	// mark current node as leaf
 	curr->isLeaf = 1;
-	curr->
+	c
 }
 
 // Iterative function to search a string in Trie. It returns 
